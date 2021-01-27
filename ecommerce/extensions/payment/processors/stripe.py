@@ -1,11 +1,21 @@
+
+
+#Added Stripe Payment Processor by clintonb · Pull Request #1147 · edx/ecommerce
+#https://github.com
+
+
+
+
+#Type a message
 """ Stripe payment processing. """
 from __future__ import absolute_import, unicode_literals
 
 import logging
-
+import six
 import stripe
 from oscar.apps.payment.exceptions import GatewayError, TransactionDeclined
 from oscar.core.loading import get_model
+
 
 from ecommerce.extensions.payment.constants import STRIPE_CARD_TYPE_MAP
 from ecommerce.extensions.payment.processors import (
@@ -48,19 +58,42 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         raise NotImplementedError('The Stripe payment processor does not support transaction parameters.')
 
     def _get_basket_amount(self, basket):
-        return str((basket.total_incl_tax * 100).to_integral_value())
+        return str((basket.total_incl_tax * 100).to_integral_value())  
 
     def handle_processor_response(self, response, basket=None):
         token = response
         order_number = basket.order_number
         currency = basket.currency
-
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
+        tracking_context = basket.owner.tracking_context or {}
+        if not tracking_context.get('customer_id', None):
+            billing_address = self.get_address_from_token(token)
+            address = {
+                'city': billing_address.line4,
+                'country': billing_address.country,
+                'line1': billing_address.line1,
+                'line2': billing_address.line2,
+                'postal_code': billing_address.postcode,
+                'state': billing_address.state
+            }
+            customer = stripe.Customer.create(
+                source=token,
+                email=basket.owner.email,
+                address=address,
+                name=basket.owner.full_name
+            )
+            customer_id = customer['id']
+            basket.owner.tracking_context = basket.owner.tracking_context or {}
+            basket.owner.tracking_context.update({'customer_id': customer_id})
+            basket.owner.save()
+        else:
+            customer_id = tracking_context.get('customer_id')
         try:
             charge = stripe.Charge.create(
                 amount=self._get_basket_amount(basket),
                 currency=currency,
-                source=token,
+                # source=token,
+                customer=customer_id,
                 description=order_number,
                 metadata={'order_number': order_number}
             )
