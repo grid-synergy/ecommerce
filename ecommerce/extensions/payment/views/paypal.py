@@ -66,9 +66,11 @@ class PaypalPaymentExecutionView(EdxOrderPlacementMixin, View):
             ck = basket.lines.first().product.course_id
             user_id = basket.owner.lms_user_id
             try:
-                response = lms_discount_client.user(user_id).course(ck).get()
+                response = lms_discount_client.course(ck).get()
                 self.request.GET = self.request.GET.copy()
                 self.request.GET['discount_jwt'] = response.get('jwt')
+                self.request.POST = self.request.POST.copy()
+                self.request.POST['discount_jwt'] = response.get('jwt')
             except (SlumberHttpBaseException, Timeout) as error:
                 logger.warning(
                     'Failed to get discount jwt from LMS. [%s] returned [%s]',
@@ -101,10 +103,10 @@ class PaypalPaymentExecutionView(EdxOrderPlacementMixin, View):
             # order. REVMI-124 will create the order before payment processing, when we have the discount context.
             self._add_dynamic_discount_to_request(basket)
             # END TODO
-
             Applicator().apply(basket, basket.owner, self.request)
 
             basket_add_organization_attribute(basket, self.request.GET)
+         
             return basket
         except MultipleObjectsReturned:
             logger.warning(u"Duplicate payment ID [%s] received from PayPal.", payment_id)
