@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from django.conf.urls import include, url
+from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework_extensions.routers import ExtendedSimpleRouter as SimpleRouter
 
@@ -23,6 +24,8 @@ from ecommerce.extensions.api.v2.views import retirement as retirement_views
 from ecommerce.extensions.api.v2.views import stockrecords as stockrecords_views
 from ecommerce.extensions.api.v2.views import user_management as user_management_views
 from ecommerce.extensions.api.v2.views import vouchers as voucher_views
+from ecommerce.extensions.api.v2.views.gs_views import get_ephemeral_key
+from ecommerce.extensions.api.v2.stripe_api import views as custom_stripe_view
 from ecommerce.extensions.voucher.views import CouponReportCSVView
 
 ORDER_NUMBER_PATTERN = r'(?P<number>[-\w]+)'
@@ -67,6 +70,10 @@ COUPON_URLS = [
 
 CHECKOUT_URLS = [
     url(r'^$', checkout_views.CheckoutView.as_view(), name='process')
+]
+
+CUSTOM_STRIPE_URLS = [
+    url(r'^$', custom_stripe_view.CustomStripeView.as_view(), name='create_customer'),
 ]
 
 ATOMIC_PUBLICATION_URLS = [
@@ -117,6 +124,8 @@ urlpatterns = [
     url(r'^retirement/', include((RETIREMENT_URLS, 'retirement'))),
     url(r'^user_management/', include((USER_MANAGEMENT_URLS, 'user_management'))),
     url(r'^assignment-email/', include((ASSIGNMENT_EMAIL_URLS, 'assignment-email'))),
+    url(r'^stripe_get_ephemeral_key/$', get_ephemeral_key, name='get_ephemeral_key'),
+    url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
 ]
 
 router = SimpleRouter()
