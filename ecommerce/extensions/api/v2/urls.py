@@ -76,6 +76,10 @@ CUSTOM_STRIPE_URLS = [
     url(r'^$', custom_stripe_view.CustomStripeView.as_view(), name='create_customer'),
 ]
 
+STRIPE_PAYMENT_URLS = [
+    url(r'^$', custom_stripe_view.PaymentView.as_view(), name='stripe_payment'),
+]
+
 ATOMIC_PUBLICATION_URLS = [
     url(r'^$', publication_views.AtomicPublicationView.as_view(), name='create'),
     url(
@@ -126,6 +130,7 @@ urlpatterns = [
     url(r'^assignment-email/', include((ASSIGNMENT_EMAIL_URLS, 'assignment-email'))),
     url(r'^stripe_get_ephemeral_key/$', get_ephemeral_key, name='get_ephemeral_key'),
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
+    url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
 ]
 
 router = SimpleRouter()

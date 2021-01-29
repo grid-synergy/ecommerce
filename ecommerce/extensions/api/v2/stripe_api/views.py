@@ -5,6 +5,7 @@ from ecommerce.core.models import User
 import stripe
 from django.conf import settings
 from oscar.core.loading import get_model
+import logging
 
 BillingAddress = get_model('order', 'BillingAddress')
 Country = get_model('address', 'Country')
@@ -79,7 +80,18 @@ class CustomStripeView(APIView):
         )
         return address
 
+class PaymentView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-
-
-
+    def post(self, request, *args, **kwargs):
+        email = request.user.email
+        customer_data = stripe.Customer.list(email=email).data
+        if len(customer_data) > 0:
+            payment_data = stripe.Charge.create(
+                amount=1000, currency='sgd',
+                customer=customer_data[0],
+                )
+            logging.info("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- %s", payment_data)
+            return Response({"message":"Payment completed.", "status": False, "result":payment_data, "status_code":200})
+        else:
+            return Response({'message':'customer not found.', 'status': False, 'result':{}, 'status_code':400})
