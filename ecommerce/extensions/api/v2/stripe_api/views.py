@@ -95,3 +95,13 @@ class PaymentView(APIView):
             return Response({"message":"Payment completed.", "status": False, "result":payment_data, "status_code":200})
         else:
             return Response({'message':'customer not found.', 'status': False, 'result':{}, 'status_code':400})
+
+class TokenView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if 'token' in user.tracking_context:
+            return Response({'message':'', 'status': True, 'result':{'token':user.tracking_context['token']}, 'status_code':200})
+        else:
+            return Response({'message':'Token not found', 'status': False, 'result':{'token': None}, 'status_code':400})

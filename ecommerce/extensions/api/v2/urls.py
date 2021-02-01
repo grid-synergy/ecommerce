@@ -74,6 +74,7 @@ CHECKOUT_URLS = [
 
 CUSTOM_STRIPE_URLS = [
     url(r'^$', custom_stripe_view.CustomStripeView.as_view(), name='create_customer'),
+    url(r'^getToken/$', custom_stripe_view.TokenView.as_view(), name='get_token'),
 ]
 
 STRIPE_PAYMENT_URLS = [
