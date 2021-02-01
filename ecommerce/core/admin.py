@@ -19,10 +19,10 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class EcommerceUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'full_name', 'first_name', 'last_name', 'is_staff')
+    list_display = ('username', 'email', 'full_name', 'first_name', 'last_name', 'is_staff', 'tracking_context')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('full_name', 'first_name', 'last_name', 'email')}),
+        (_('Personal info'), {'fields': ('full_name', 'first_name', 'last_name', 'email', 'tracking_context')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
