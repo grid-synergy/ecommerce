@@ -22,6 +22,11 @@ define([
                 }
             };
 
+            var $paymentForm = $('#paymentForm');
+            Object.keys(window.StripeConfig.customer_info).forEach(function(id) {
+                $('#' + id, $paymentForm).val(window.StripeConfig.customer_info[id]);
+            });
+
             // NOTE: We use Stripe v2 for credit card payments since v3 requires using Elements, which would force us
             // to make a custom payment form just for Stripe. Using v2 allows us to continue using the same payment form
             // regardless of the backend processor.
@@ -45,11 +50,15 @@ define([
                     id_state: 'address_state',
                     id_country: 'address_country'
                 },
-                $paymentForm = $('#paymentForm');
+                $paymentForm = $('#paymentForm'),
+                usingSavedCard = true;
 
             // Extract the form data so that it can be incorporated into our token request
             Object.keys(fieldMappings).forEach(function(id) {
                 data[fieldMappings[id]] = $('#' + id, $paymentForm).val();
+                if (data[fieldMappings[id]] != window.StripeConfig.customer_info[id]) {
+                    usingSavedCard = false;
+                }
             });
 
             data.name = $('#id_first_name').val() + ' ' + $('#id_last_name').val();
@@ -57,8 +66,12 @@ define([
             // Disable the submit button to prevent repeated clicks
             $paymentForm.find('#payment-button').prop('disabled', true);
 
-            // Request a token from Stripe
-            Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+            if (usingSavedCard){
+                this.fetchTokenFromCustomer();
+            } else {
+                // Request a token from Stripe
+                Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+            }
 
             e.preventDefault();
         },
@@ -76,6 +89,26 @@ define([
             } else {
                 this.postTokenToServer(response.id);
             }
+        },
+
+	fetchTokenFromCustomer: function() {
+            var self = this,
+                tokenUrl =  window.location.origin + '/api/v2/stripe_api/getToken/';
+
+            fetch(tokenUrl , {
+                credentials: 'include',
+                method: 'GET'
+            }).then(function(response) {
+                if (response.ok) {
+                    response.json().then(function(data) {
+                        var token = data.result["token"];
+                        self.postTokenToServer(token);
+                    });
+                } else {
+                    self.displayErrorMessage(gettext('An error occurred while processing your payment. ' +
+                        'Please try again.'));
+                }
+            });
         },
 
         postTokenToServer: function(token, paymentRequest) {

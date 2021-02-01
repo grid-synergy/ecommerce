@@ -84,7 +84,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             )
             customer_id = customer['id']
             basket.owner.tracking_context = basket.owner.tracking_context or {}
-            basket.owner.tracking_context.update({'customer_id': customer_id})
+            basket.owner.tracking_context.update({'customer_id': customer_id, 'token': token})
             basket.owner.save()
         else:
             customer_id = tracking_context.get('customer_id')
