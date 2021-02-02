@@ -77,8 +77,7 @@ define([
 
             cardHolderInfoValidation: function(event) {
                 var requiredFields = [
-                        'input[name=first_name]',
-                        'input[name=last_name]',
+                        'input[name=full_name]',
                         'input[name=city]',
                         'input[name=organization]',
                         'select[name=country]'

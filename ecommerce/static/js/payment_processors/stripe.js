@@ -43,6 +43,7 @@ define([
                     'card-expiry-month': 'exp_month',
                     'card-expiry-year': 'exp_year',
                     'card-cvn': 'cvc',
+                    id_full_name: 'name',
                     id_postal_code: 'address_zip',
                     id_address_line1: 'address_line1',
                     id_address_line2: 'address_line2',
@@ -61,7 +62,7 @@ define([
                 }
             });
 
-            data.name = $('#id_first_name').val() + ' ' + $('#id_last_name').val();
+            data.name = $('#id_full_name').val();
 
             // Disable the submit button to prevent repeated clicks
             $paymentForm.find('#payment-button').prop('disabled', true);
