@@ -613,7 +613,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             customer = stripe.Customer.retrieve(customer_id)
             card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
             customer_card_info.update({
-                'card_number': '000000000000' + card_info['last4'],
+                'card_number': 'XXXXXXXXXXXX' + card_info['last4'],
                 'card_expiry_month': str(card_info['exp_month']).zfill(2),
                 'card_expiry_year': card_info['exp_year'],
                 'card_cvn': '000',
