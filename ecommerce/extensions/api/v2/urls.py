@@ -48,6 +48,7 @@ BASKET_URLS = [
         name='retrieve_order'
     ),
     url(r'^calculate/$', basket_views.BasketCalculateView.as_view(), name='calculate'),
+    #url(r'^remove/$', basket_views.BasketDeleteItemView.as_view(), name='remove-item'),
 ]
 
 PAYMENT_URLS = [
@@ -80,6 +81,11 @@ CUSTOM_STRIPE_URLS = [
 STRIPE_PAYMENT_URLS = [
     url(r'^$', custom_stripe_view.PaymentView.as_view(), name='stripe_payment'),
 ]
+
+CUSTOM_BASKET_URLS = [
+    url(r'^$', basket_views.BasketDeleteItemView.as_view(), name='custom_baskets')
+]
+
 
 ATOMIC_PUBLICATION_URLS = [
     url(r'^$', publication_views.AtomicPublicationView.as_view(), name='create'),
@@ -132,6 +138,7 @@ urlpatterns = [
     url(r'^stripe_get_ephemeral_key/$', get_ephemeral_key, name='get_ephemeral_key'),
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
     url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
+    url(r'^custom_baskets/', include((CUSTOM_BASKET_URLS, 'custom_baskets'))),
 ]
 
 router = SimpleRouter()
