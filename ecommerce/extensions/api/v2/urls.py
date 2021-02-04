@@ -24,7 +24,7 @@ from ecommerce.extensions.api.v2.views import retirement as retirement_views
 from ecommerce.extensions.api.v2.views import stockrecords as stockrecords_views
 from ecommerce.extensions.api.v2.views import user_management as user_management_views
 from ecommerce.extensions.api.v2.views import vouchers as voucher_views
-from ecommerce.extensions.api.v2.views.gs_views import get_ephemeral_key
+from ecommerce.extensions.api.v2.views.gs_views import get_ephemeral_key, get_basket_content, BasketViewSet
 from ecommerce.extensions.api.v2.stripe_api import views as custom_stripe_view
 from ecommerce.extensions.voucher.views import CouponReportCSVView
 
@@ -77,6 +77,7 @@ CUSTOM_STRIPE_URLS = [
     url(r'^$', custom_stripe_view.CustomStripeView.as_view(), name='create_customer'),
     url(r'^getToken/$', custom_stripe_view.TokenView.as_view(), name='get_token'),
 ]
+
 
 STRIPE_PAYMENT_URLS = [
     url(r'^$', custom_stripe_view.PaymentView.as_view(), name='stripe_payment'),
@@ -139,10 +140,12 @@ urlpatterns = [
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
     url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
     url(r'^custom_baskets/', include((CUSTOM_BASKET_URLS, 'custom_baskets'))),
+    url(r'^basket_details/$', get_basket_content, name='get_basket_detail'),
 ]
 
 router = SimpleRouter()
 router.register(r'basket-details', basket_views.BasketViewSet, basename='basket')
+router.register(r'^get-basket-detail', BasketViewSet, basename='basket')
 router.register(r'catalogs', catalog_views.CatalogViewSet, basename='catalog') \
     .register(r'products', product_views.ProductViewSet, basename='catalog-product',
               parents_query_lookups=['stockrecords__catalogs'])
