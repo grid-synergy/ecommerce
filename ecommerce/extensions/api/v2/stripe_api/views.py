@@ -86,13 +86,24 @@ class PaymentView(APIView):
     def post(self, request, *args, **kwargs):
         email = request.user.email
         customer_data = stripe.Customer.list(email=email).data
+        user_basket = request.basket
         if len(customer_data) > 0:
-            payment_data = stripe.Charge.create(
-                amount=1000, currency='sgd',
-                customer=customer_data[0],
-                )
-            logging.info("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- %s", payment_data)
-            return Response({"message":"Payment completed.", "status": False, "result":payment_data, "status_code":200})
+            if user_basket.status == "Open":
+                total_ammount = int(user_basket.total_incl_tax)
+                if total_ammount > 0:
+                    payment_data = stripe.Charge.create(
+                        amount=total_ammount, currency='sgd',customer=customer_data[0],
+                        )
+                    if payment_data.paid:
+                        user_basket.status = "Submitted"
+                        user_basket.save()
+                        return Response({"message":"Payment completed.", "status": True, "result":payment_data, "status_code":200})
+                    else:
+                        return Response({"message":payment_data.failure_message, "status": False, "result":{}, "status_code":400})
+                else:
+                    return Response({"message":"Total ammount must be greater than 0.", "status": False, "result":{}, "status_code":400})
+            else:
+                return Response({"message":"No item found in cart.", "status": False, "result":{}, "status_code":400})
         else:
             return Response({'message':'customer not found.', 'status': False, 'result':{}, 'status_code':400})
 
