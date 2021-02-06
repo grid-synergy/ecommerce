@@ -94,6 +94,8 @@ def get_basket_content(request):
         id = request.GET.get('id')
         response = requests.get(url=settings.ECOMMERCE_URL_ROOT + '/api/v2/get-basket-detail/'+str(id) + '/')
         checkout_response = json.loads(response.text)
+        if not request.user.baskets.filter(id=id).exists():
+            return Response({"status": False, "message": "Basket not found", "status_code": 404})
         basket = request.user.baskets.get(id=id)
         basket.strategy = request.strategy
         for product in checkout_response['products']:
@@ -126,7 +128,7 @@ def get_basket_content(request):
                 percentage = jwt['discount_percent']
                 discount_benefit.apply(basket,'dynamic_discount_condition',offers[0],discount_percent=percentage)
 
-        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0})   
+        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})
 
         return Response(checkout_response)
     except Exception as e:
