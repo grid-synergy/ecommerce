@@ -46,6 +46,21 @@ Selector = get_class('partner.strategy', 'Selector')
 User = get_user_model()
 Voucher = get_model('voucher', 'Voucher')
 
+class BasketItemCountView(APIView):
+    """
+    View to count product from basket list
+    * Requires token authentication.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        user_basket = request.basket
+        if user_basket.status == "Open":
+            logging.info(dir(user_basket))
+            return Response({"status":False, "status_code":200, "result":{"number_of_item": user_basket.num_items}, "message":""})
+        else:
+            return Response({"status":False, "status_code":400, "result":{"number_of_item":0}, "message":"No cart found."})
+
 class BasketDeleteItemView(APIView):
     """
     View to delete product from basket list

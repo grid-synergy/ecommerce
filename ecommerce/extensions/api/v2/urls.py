@@ -84,9 +84,12 @@ STRIPE_PAYMENT_URLS = [
 ]
 
 CUSTOM_BASKET_URLS = [
-    url(r'^$', basket_views.BasketDeleteItemView.as_view(), name='custom_baskets')
+    url(r'^$', basket_views.BasketDeleteItemView.as_view(), name='custom_baskets'),
 ]
 
+BASKET_ITEM_URLS = [
+    url(r'^$', basket_views.BasketItemCountView.as_view(), name='basket_item_count'),
+]
 
 ATOMIC_PUBLICATION_URLS = [
     url(r'^$', publication_views.AtomicPublicationView.as_view(), name='create'),
@@ -140,6 +143,7 @@ urlpatterns = [
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
     url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
     url(r'^custom_baskets/', include((CUSTOM_BASKET_URLS, 'custom_baskets'))),
+    url(r'^basket_item_count/', include((BASKET_ITEM_URLS, 'basket_item_count'))),
     url(r'^basket_details/$', get_basket_content, name='get_basket_detail'),
 ]
 
