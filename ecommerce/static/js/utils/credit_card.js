@@ -21,6 +21,11 @@ define([], function() {
             return sum % 10 === 0 && sum > 0;
         },
 
+        savedCreditCardValidator: function(cardNumber){
+            var first12Digits = str.substring(0, 12);//get first 5 chars
+            return first12Digits == "000000000000"
+        },
+
             /**
              * Get the credit card type based on the card number.
              *

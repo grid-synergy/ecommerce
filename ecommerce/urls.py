@@ -68,6 +68,7 @@ urlpatterns = AUTH_URLS + WELL_KNOWN_URLS + [
     url(r'^management/', include(('ecommerce.management.urls', 'management'))),
     url(r'^offers/', include(('ecommerce.extensions.offer.urls', 'offers'))),
     url(r'^programs/', include(('ecommerce.programs.urls', 'programs'))),
+    url(r'^stripe_api/', include(('stripe_api.urls'))),
 ]
 
 # Install Oscar extension URLs

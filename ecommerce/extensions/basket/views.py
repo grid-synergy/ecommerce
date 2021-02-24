@@ -568,6 +568,9 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'sdn_check': site_configuration.enable_sdn_check
         })
 
+        cutomer_card_info = self._get_cutomer_card_info(self.request.user)
+        context.update({'cutomer_card_info': dict(cutomer_card_info)})
+
         payment_processors = site_configuration.get_payment_processors()
         if (
                 site_configuration.client_side_payment_processor and
@@ -585,6 +588,47 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'lms_url_root': site_configuration.lms_url_root,
         })
         return context
+
+    def _get_cutomer_card_info(self, user):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+        tracking_context = user.tracking_context or {}
+        customer_card_info = {}
+        if not tracking_context.get('customer_id', None):
+            customer_card_info.update({
+                'card_number': '',
+                'card_expiry_month': '',
+                'card_expiry_year': '',
+                'card_cvn': '',
+                'id_full_name': '',
+                'id_postal_code':'',
+                'id_address_line1': '',
+                'id_address_line2': '',
+                'id_city': '',
+                'id_state': '',
+                'id_country': ''
+            })
+        else:
+            customer_id = tracking_context.get('customer_id')
+            customer = stripe.Customer.retrieve(customer_id)
+            card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+            customer_card_info.update({
+                'card_number': 'XXXXXXXXXXXX' + card_info['last4'],
+                'card_expiry_month': str(card_info['exp_month']).zfill(2),
+                'card_expiry_year': card_info['exp_year'],
+                'card_cvn': '000',
+                'card_brand': card_info['brand'],
+                'id_full_name': card_info['name'],
+                'id_postal_code': card_info['address_zip'],
+                'id_address_line1': card_info['address_line1'],
+                'id_address_line2': card_info['address_line2'],
+                'id_city': card_info['address_city'],
+                'id_state': card_info['address_state'],
+                'id_country': card_info['address_country']
+            })
+        logger.info(customer_card_info)
+        logger.info(customer_card_info['id_city'])
+        return customer_card_info
 
     @newrelic.agent.function_trace()
     def _get_payment_processors_data(self, payment_processors):

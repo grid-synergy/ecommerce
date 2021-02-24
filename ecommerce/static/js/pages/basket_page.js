@@ -77,8 +77,7 @@ define([
 
             cardHolderInfoValidation: function(event) {
                 var requiredFields = [
-                        'input[name=first_name]',
-                        'input[name=last_name]',
+                        'input[name=full_name]',
                         'input[name=city]',
                         'input[name=organization]',
                         'select[name=country]'
@@ -141,9 +140,9 @@ define([
                         Math.floor(value) === value;
                 };
 
-                if (!CreditCardUtils.isValidCardNumber(cardNumber)) {
+                if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
                     BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Invalid card number'));
-                } else if (_.isUndefined(cardType) || !BasketPage.isCardTypeSupported(cardType.name)) {
+                } else if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && (_.isUndefined(cardType) || !BasketPage.isCardTypeSupported(cardType.name))) {
                     BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Unsupported card type'));
                 } else if (cvnNumber.length !== cardType.cvnLength || !Number.isInteger(Number(cvnNumber))) {
                     BasketPage.appendCardValidationErrorMsg(event, $cvn, gettext('Invalid security number'));
@@ -186,7 +185,7 @@ define([
                 if (cardNumber.length > 12) {
                     card = CreditCardUtils.getCreditCardType(cardNumber);
 
-                    if (!CreditCardUtils.isValidCardNumber(cardNumber)) {
+                    if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
                         $('.card-type-icon').attr('src', '').addClass('hidden');
                         return;
                     }
