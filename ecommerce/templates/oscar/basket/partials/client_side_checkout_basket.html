@@ -6,7 +6,6 @@
 {% load static %}
 
 {% include 'oscar/partials/alert_messages.html' %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <div id="summary" class="col-sm-5">
     <form action="." method="post" class="row">
         {% csrf_token %}
@@ -24,7 +23,8 @@
                     <div class="product-information col-sm-7 col-xs-7">
                         <p class="product-name">{{ line_data.product_title }}</p>
                         {% include 'oscar/basket/partials/seat_type.html' %}
-                        <button id="remove-course" type="button" data-courseId={{line_data.course_key}}>Remove</button>
+                        <input type="text" id="csrf-token" value={{ csrf_token }} hidden />
+                        <button class="btn btn-danger btn-sm" id="remove-course" type="button" data-courseId={{line_data.course_key}}>Remove</button>
                     </div>
                     {% if line_data.enrollment_code %}
                         <div class="col-sm-12 col-xs-12 form-inline quantity-group">
@@ -209,7 +209,7 @@
                     {# restore the name attribute to ensure this information is sent to the payment processor. #}
                     <div class="form-group col-md-6">
                         <label for="card-number" class="control-label">{% trans "Card Number (required)" as tmsg %}{{ tmsg | force_escape }}<span class="sr">, {% trans "Secure" as tmsg %}{{ tmsg | force_escape }}</span></label>
-                        <input id="card-number" type="text" class="form-control pci-field" maxlength="20" required pattern="((([X]{12})[0-9]*)|([0-9]*))"/>
+                        <input id="card-number" type="text" class="form-control pci-field" maxlength="20" required pattern="[0-9]*"/>
                         <i class="fa fa-lock" aria-hidden="true"></i>
                         <img class="card-type-icon hidden" alt="{% trans "Credit card icon" as tmsg %}{{ tmsg | force_escape }}">
                         <p class="help-block"></p>
@@ -280,12 +280,3 @@
         </div>
     </div>
 </form>
-
-<script>
-    $(document).ready(function(){
-        $("button").click(function(){
-            let courseId = $(this).attr('data-courseId');
-            alert(courseId);
-        });
-    });
-</script>
