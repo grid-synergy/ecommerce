@@ -51,6 +51,8 @@
                                 again, or {link_start}{homepage_url}{link_middle}contact {platform_name} Support{link_end}.
                             {% endblocktrans %}
                             {% interpolate_html tmsg link_start='<a href="'|safe support_url=support_url|safe platform_name=platform_name|safe link_end='</a>'|safe homepage_url=homepage_url|safe link_middle='">'|safe %}
+                            <br><br>
+                            <a href="{{ lms_url_root }}/courses" class="btn btn-primary" role="button">Explore Courses</a>
                         </div>
                     {% endblock %}
                 {% else %}
