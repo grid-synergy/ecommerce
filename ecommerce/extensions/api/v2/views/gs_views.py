@@ -108,7 +108,9 @@ def get_basket_content(request):
         basket = request.user.baskets.get(id=id)
         basket.strategy = request.strategy
         for product in checkout_response['products']:
-            course_id = product[1]['value']
+            for item in product:
+                if item['code'] == 'course_key': 
+                    course_id = item['value'] 
             lms_url = get_lms_url('/api/commerce/v2/checkout/' + course_id)
             commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
