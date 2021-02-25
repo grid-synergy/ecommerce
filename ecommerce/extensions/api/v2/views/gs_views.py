@@ -91,9 +91,20 @@ class BasketViewSet(viewsets.ReadOnlyModelViewSet):
 def get_basket_content(request):
 
     try:
-        id = request.GET.get('id')
+        checkout_response = None
+        basket = None
+        if request.GET.get('id'):
+            id = request.GET.get('id')
+        else:
+            if request.user.baskets.filter(status=Basket.OPEN).exists():
+                id = request.user.baskets.filter(status=Basket.OPEN).first().id
+            else:
+                id = -1
+
         response = requests.get(url=settings.ECOMMERCE_URL_ROOT + '/api/v2/get-basket-detail/'+str(id) + '/')
         checkout_response = json.loads(response.text)
+        if not request.user.baskets.filter(id=id).exists():
+            return Response({"status": False, "message": "Basket not found", "status_code": 404})
         basket = request.user.baskets.get(id=id)
         basket.strategy = request.strategy
         for product in checkout_response['products']:
@@ -112,7 +123,7 @@ def get_basket_content(request):
                               'discounted_price': discounted_price}
                 product.append(course_info)
 
-        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG):
+        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() > 0:
             discount_lms_url = get_lms_url('/api/discounts/')
             lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
             ck = basket.lines.first().product.course_id
@@ -126,7 +137,7 @@ def get_basket_content(request):
                 percentage = jwt['discount_percent']
                 discount_benefit.apply(basket,'dynamic_discount_condition',offers[0],discount_percent=percentage)
 
-        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0})   
+        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
         return Response(checkout_response)
     except Exception as e:
