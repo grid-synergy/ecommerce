@@ -559,7 +559,7 @@ define([
                 });
 
                 // Remove the selected course
-                $("#remove-course").click(function(){
+                $(".remove-course").click(function(){
                     let courseId = $(this).attr('data-courseId');
                     let csrf = $("#csrf-token").val();
 
