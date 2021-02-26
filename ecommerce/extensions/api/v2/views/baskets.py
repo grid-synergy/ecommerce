@@ -35,6 +35,11 @@ from ecommerce.extensions.payment import exceptions as payment_exceptions
 from ecommerce.extensions.payment.helpers import get_default_processor_class, get_processor_class_by_name
 
 from rest_framework.views import APIView
+from ecommerce.core.url_utils import get_lms_url
+import requests
+from django.conf import settings
+import json
+
 
 Applicator = get_class('offer.applicator', 'Applicator')
 Basket = get_model('basket', 'Basket')
@@ -61,12 +66,59 @@ class BasketItemCountView(APIView):
         else:
             return Response({"status":False, "status_code":400, "result":{"number_of_item":0}, "message":"No cart found."})
 
+
+class BasketBuyNow(APIView):
+    """
+    View to buy single item at the moment.
+
+    * Requires token authentication.
+    * Requires sku id to checkout.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        if request.basket.status == "Open":
+            old_basket = request.basket
+            old_basket.status = "Saved"
+            old_basket.save()
+
+        data = request.data
+        current_site = settings.ECOMMERCE_URL_ROOT
+        authorization = request.headers.get('Authorization')
+        add_item_api = current_site+"/api/v2/baskets/"
+        add_item_req = requests.post(add_item_api, headers={'Authorization': authorization}, json=data)
+        return Response(add_item_req)
+    
+    def delete(self, request, *args, **kwargs):
+        baskets = Basket.objects.filter(owner=request.user)
+        if baskets.exists():
+            last_basket = baskets.last()
+            if last_basket.status == "Open":
+                last_basket.delete()
+            saved_baskets = baskets.filter(status="Saved")
+            for basket in saved_baskets:
+                basket.status = "Open"
+                basket.save()
+            return Response({
+                "message":"Checkout has been canceled.",
+                "status_code":200,
+                "status":True,
+                "result":{}
+            })
+        else:
+            return Response({
+                "message":"No basket found for the user.",
+                "status_code":404,
+                "status":False,
+                "result":{}
+                })
+
 class BasketDeleteItemView(APIView):
     """
     View to delete product from basket list
 
     * Requires token authentication.
-    * Requires sku id to delete the item.
+    * Requires course id to delete the item.
     """
     permission_classes = (IsAuthenticated,)
 

@@ -12,6 +12,7 @@ from django.db import IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
+Basket = get_model('basket', 'Basket')
 Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
 
@@ -111,6 +112,14 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "last_4_digits_of_card": payment_response.card_number, \
                                     "card_type": payment_response.card_type}
+                        
+                        # change the status of last saved basket to open
+                        baskets = Basket.objects.filter(owner=user, status="Saved")
+                        if baskets.exists():
+                            for basket in baskets:
+                                basket.status = "Open"
+                                basket.save()
+
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
                     msg = 'Attempts to handle payment for basket ' + str(user_basket.id) + ' failed.'
