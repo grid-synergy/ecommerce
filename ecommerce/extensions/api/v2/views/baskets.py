@@ -87,7 +87,7 @@ class BasketBuyNow(APIView):
         authorization = request.headers.get('Authorization')
         add_item_api = current_site+"/api/v2/baskets/"
         add_item_req = requests.post(add_item_api, headers={'Authorization': authorization}, json=data)
-        return Response(add_item_req)
+        return Response(add_item_req.json())
     
     def delete(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user)
