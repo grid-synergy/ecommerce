@@ -77,10 +77,11 @@ class BasketBuyNow(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        if request.basket.status == "Open":
-            old_basket = request.basket
-            old_basket.status = "Saved"
-            old_basket.save()
+        baskets = Basket.objects.filter(owner=request.user, status="Open")
+        if baskets.exists():
+            last_basket = baskets.last()
+            last_basket.status = "Saved"
+            last_basket.save()
 
         data = request.data
         current_site = settings.ECOMMERCE_URL_ROOT
