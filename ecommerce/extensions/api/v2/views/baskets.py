@@ -149,6 +149,17 @@ class BasketBuyNow(APIView):
         }
 
         return response_data
+
+    def _report_bad_request(self, developer_message, user_message):
+        """Log error and create a response containing conventional error messaging."""
+        logger.error(developer_message)
+        return Response(
+            {
+                'developer_message': developer_message,
+                'user_message': user_message
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     def delete(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user)
