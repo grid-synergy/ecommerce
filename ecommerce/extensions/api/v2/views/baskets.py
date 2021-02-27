@@ -79,16 +79,76 @@ class BasketBuyNow(APIView):
     def post(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user, status="Open")
         if baskets.exists():
-            last_basket = baskets.last()
-            last_basket.status = "Frozen"
-            last_basket.save()
+            basket = baskets.last()
+            basket.status = "Frozen"
+            basket.save()
 
-        data = request.data
-        current_site = settings.ECOMMERCE_URL_ROOT
-        authorization = request.headers.get('Authorization')
-        add_item_api = current_site+"/api/v2/baskets/"
-        add_item_req = requests.post(add_item_api, headers={'Authorization': authorization}, json=data)
-        return Response(add_item_req.json())
+        return self.create_new_basket(request, *args, **kwargs)
+
+    def create_new_basket(self, request, *args, **kwargs):
+        with transaction.atomic():
+            basket = Basket.create_basket(request.site, request.user)
+            #basket = Basket.get_basket(request.user, request.site)
+            basket_id = basket.id
+
+            attribute_cookie_data(basket, request)
+
+            requested_products = request.data.get('products')
+            if requested_products:
+                is_multi_product_basket = len(requested_products) > 1
+                for requested_product in requested_products:
+                    # Ensure the requested products exist
+                    sku = requested_product.get('sku')
+                    if sku:
+                        try:
+                            product = data_api.get_product(sku)
+                        except api_exceptions.ProductNotFoundError as error:
+                            return self._report_bad_request(
+                                six.text_type(error),
+                                api_exceptions.PRODUCT_NOT_FOUND_USER_MESSAGE
+                            )
+                    else:
+                        return self._report_bad_request(
+                            api_exceptions.SKU_NOT_FOUND_DEVELOPER_MESSAGE,
+                            api_exceptions.SKU_NOT_FOUND_USER_MESSAGE
+                        )
+
+                    basket.add_product(product)
+                    logger.info('Added product with SKU [%s] to basket [%d]', sku, basket_id)
+
+                    # Call signal handler to notify listeners that something has been added to the basket
+                    basket_addition = get_class('basket.signals', 'basket_addition')
+                    basket_addition.send(sender=basket_addition, product=product, user=request.user, request=request,
+                                         basket=basket, is_multi_product_basket=is_multi_product_basket)
+            else:
+                # If no products were included in the request, we cannot checkout.
+                return self._report_bad_request(
+                    api_exceptions.PRODUCT_OBJECTS_MISSING_DEVELOPER_MESSAGE,
+                    api_exceptions.PRODUCT_OBJECTS_MISSING_USER_MESSAGE
+                )
+        response_data = self._generate_basic_response(basket)
+        return Response(response_data, status=status.HTTP_200_OK)
+        
+    def _generate_basic_response(self, basket):
+        """Create a dictionary to be used as response data.
+
+        The dictionary contains placeholders for order and payment information.
+
+        Arguments:
+            basket (Basket): The basket whose information should be included in the response data.
+
+        Returns:
+            dict: Basic response data.
+        """
+        # Note: A basket serializer could be used here, but in an effort to pare down the information
+        # returned by this endpoint, simply returning the basket ID will suffice for now.
+        response_data = {
+            'id': basket.id,
+            'order': None,
+            'payment_data': None,
+        }
+
+        return response_data
     
     def delete(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user)

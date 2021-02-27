@@ -116,9 +116,9 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                         # change the status of last saved basket to open
                         baskets = Basket.objects.filter(owner=user, status="Frozen")
                         if baskets.exists():
-                            for basket in baskets:
-                                basket.status = "Open"
-                                basket.save()
+                            last_basket = baskets.last()
+                            last_basket.status = "Open"
+                            last_basket.save()
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
