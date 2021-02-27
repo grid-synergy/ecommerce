@@ -80,7 +80,7 @@ class BasketBuyNow(APIView):
         baskets = Basket.objects.filter(owner=request.user, status="Open")
         if baskets.exists():
             last_basket = baskets.last()
-            last_basket.status = "Saved"
+            last_basket.status = "Frozen"
             last_basket.save()
 
         data = request.data
@@ -96,7 +96,7 @@ class BasketBuyNow(APIView):
             last_basket = baskets.last()
             if last_basket.status == "Open":
                 last_basket.delete()
-            saved_baskets = baskets.filter(status="Saved")
+            saved_baskets = baskets.filter(status="Frozen")
             for basket in saved_baskets:
                 basket.status = "Open"
                 basket.save()
