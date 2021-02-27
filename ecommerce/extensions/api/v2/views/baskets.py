@@ -103,15 +103,9 @@ class BasketBuyNow(APIView):
                         try:
                             product = data_api.get_product(sku)
                         except api_exceptions.ProductNotFoundError as error:
-                            return self._report_bad_request(
-                                six.text_type(error),
-                                api_exceptions.PRODUCT_NOT_FOUND_USER_MESSAGE
-                            )
+                            return Response({"developer_message": "Product not found."})
                     else:
-                        return self._report_bad_request(
-                            api_exceptions.SKU_NOT_FOUND_DEVELOPER_MESSAGE,
-                            api_exceptions.SKU_NOT_FOUND_USER_MESSAGE
-                        )
+                        return Response({"developer_message": "Product not found."})
 
                     basket.add_product(product)
                     logger.info('Added product with SKU [%s] to basket [%d]', sku, basket_id)
@@ -121,45 +115,9 @@ class BasketBuyNow(APIView):
                     basket_addition.send(sender=basket_addition, product=product, user=request.user, request=request,
                                          basket=basket, is_multi_product_basket=is_multi_product_basket)
             else:
-                # If no products were included in the request, we cannot checkout.
-                return self._report_bad_request(
-                    api_exceptions.PRODUCT_OBJECTS_MISSING_DEVELOPER_MESSAGE,
-                    api_exceptions.PRODUCT_OBJECTS_MISSING_USER_MESSAGE
-                )
-        response_data = self._generate_basic_response(basket)
-        return Response(response_data, status=status.HTTP_200_OK)
-        
-    def _generate_basic_response(self, basket):
-        """Create a dictionary to be used as response data.
+                return Response({"developer_message": "Product not found."})
 
-        The dictionary contains placeholders for order and payment information.
-
-        Arguments:
-            basket (Basket): The basket whose information should be included in the response data.
-
-        Returns:
-            dict: Basic response data.
-        """
-        # Note: A basket serializer could be used here, but in an effort to pare down the information
-        # returned by this endpoint, simply returning the basket ID will suffice for now.
-        response_data = {
-            'id': basket.id,
-            'order': None,
-            'payment_data': None,
-        }
-
-        return response_data
-
-    def _report_bad_request(self, developer_message, user_message):
-        """Log error and create a response containing conventional error messaging."""
-        logger.error(developer_message)
-        return Response(
-            {
-                'developer_message': developer_message,
-                'user_message': user_message
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"basket":basket_id})
     
     def delete(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user)
