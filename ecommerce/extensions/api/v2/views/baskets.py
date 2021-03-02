@@ -78,18 +78,19 @@ class BasketBuyNow(APIView):
 
     def post(self, request, *args, **kwargs):
         baskets = Basket.objects.filter(owner=request.user, status="Open")
+        last_open_basket = None
         if baskets.exists():
-            basket = baskets.last()
-            basket.status = "Frozen"
-            basket.save()
+            last_open_basket = baskets.last()
+            #basket.status = "Frozen"
+            #basket.save()
 
-        return self.create_new_basket(request, *args, **kwargs)
+        return self.create_new_basket(request, last_open_basket, *args, **kwargs)
 
-    def create_new_basket(self, request, *args, **kwargs):
+    def create_new_basket(self, request, old_basket, *args, **kwargs):
         with transaction.atomic():
-            basket = Basket.create_basket(request.site, request.user)
+            basket = None
             #basket = Basket.get_basket(request.user, request.site)
-            basket_id = basket.id
+            basket_id = None
 
             attribute_cookie_data(basket, request)
 
@@ -103,11 +104,13 @@ class BasketBuyNow(APIView):
                         try:
                             product = data_api.get_product(sku)
                         except api_exceptions.ProductNotFoundError as error:
-                            return Response({"developer_message": "Product not found."})
+                            return Response({"developer_message": "Can't Find Product."})
                     else:
                         return Response({"developer_message": "Product not found."})
 
+                    basket = Basket.create_basket(request.site, request.user)
                     basket.add_product(product)
+                    basket_id = basket.id
                     logger.info('Added product with SKU [%s] to basket [%d]', sku, basket_id)
 
                     # Call signal handler to notify listeners that something has been added to the basket
@@ -115,7 +118,11 @@ class BasketBuyNow(APIView):
                     basket_addition.send(sender=basket_addition, product=product, user=request.user, request=request,
                                          basket=basket, is_multi_product_basket=is_multi_product_basket)
             else:
-                return Response({"developer_message": "Product not found."})
+                return Response({"developer_message": "No product provided."})
+
+        if old_basket:
+            old_basket.status = "Frozen"
+            old_basket.save()
 
         return Response({"basket":basket_id})
     

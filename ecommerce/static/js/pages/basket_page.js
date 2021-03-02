@@ -577,8 +577,45 @@ define([
                             alert(JSON.parse(data.responseText)['detail']);
                         }
                     })
-        
                 });
+
+                var getUrlParameter = function getUrlParameter(sParam) {
+  	            var sPageURL = window.location.search.substring(1),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                    for (i = 0; i < sURLVariables.length; i++) {
+                        sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+        	    }
+    		  }
+   		   return false;
+		  };
+
+                 if(getUrlParameter('buy_now') == "true"){
+                     $('#payment-cancel-button').show();
+		 }
+
+                 $('#payment-cancel-button').click(function(){
+   		     let csrf = $('#csrf-token').val();
+
+    		     $.ajax({
+                         type:"DELETE",
+                         url: "/api/v2/basket_buy_now/",
+                         beforeSend: function(xhr) {
+                         xhr.setRequestHeader("X-CSRFToken", csrf);
+                         },
+                         success: function(response){
+                             location.reload();
+                         },
+                         error: function(data){ 
+                             alert(JSON.parse(data.responseText)['detail']);
+                     },
+   		 });
+	      });
 
                 try {
                     // local currency translation

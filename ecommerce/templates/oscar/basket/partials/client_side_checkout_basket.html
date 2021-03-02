@@ -6,6 +6,7 @@
 {% load static %}
 
 {% include 'oscar/partials/alert_messages.html' %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <div id="summary" class="col-sm-5">
     <form action="." method="post" class="row">
         {% csrf_token %}
@@ -257,14 +258,20 @@
 
                 <div class="payment-button col-sm-6 col-sm-offset-6 col-xs-12">
                 {% if free_basket %}
+                   <a href="{% url 'checkout:free-checkout' %}"
+                       class="btn btn-secondary btn-large col-sm-12 col-xs-12">Cancel
+                    </a>
+
                     <a href="{% url 'checkout:free-checkout' %}"
                        data-track-type="click"
                        data-track-event="edx.bi.ecommerce.basket.free_checkout"
                        data-track-category="checkout"
-                       class="btn btn-primary btn-large col-sm-12 col-xs-12">
+                       class="btn btn-primary btn-large col-sm-12 col-xs-12">	
                         {% trans "Place Order" as tmsg %}{{ tmsg | force_escape }}
                     </a>
                 {% else %}
+                     <button id="payment-cancel-button" type="button" class="btn btn-secondary btn-large col-sm-12 col-xs-12" style="display:none">Cancel</button>
+
                     <button id="payment-button" type="submit" class="btn btn-primary btn-large col-sm-12 col-xs-12"
                             data-track-type="click"
                             data-track-event="edx.bi.ecommerce.basket.payment_selected"
@@ -280,3 +287,45 @@
         </div>
     </div>
 </form>
+
+<script>
+$(document).ready(function(){
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+    }
+    }
+    return false;
+    };
+
+    if(getUrlParameter('buy_now') == "true"){
+        $('#payment-cancel-button').show();
+    }
+
+    $('#payment-cancel-button').click(function(){
+    let csrf = $('#csrf-token').val();
+
+    $.ajax({
+            type:"DELETE",
+            url: "/api/v2/basket_buy_now/",
+            beforeSend: function(xhr) {
+            xhr.setRequestHeader("X-CSRFToken", csrf);
+            },
+            success: function(response){
+                location.reload();
+            },
+            error: function(data){ 
+                alert(JSON.parse(data.responseText)['detail']);
+        },
+    });
+    });
+});
+</script>
