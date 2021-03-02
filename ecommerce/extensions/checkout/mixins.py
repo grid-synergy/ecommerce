@@ -116,6 +116,7 @@ class EdxOrderPlacementMixin(OrderPlacementMixin, metaclass=abc.ABCMeta):
             properties.update({'total': handled_processor_response.total, 'success': True, })
         finally:
             track_segment_event(basket.site, basket.owner, 'Payment Processor Response', properties)
+        return handled_processor_response
 
     def emit_checkout_step_events(self, basket, handled_processor_response, payment_processor):
         """ Emit events necessary to track the user in the checkout funnel. """

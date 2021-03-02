@@ -33,6 +33,8 @@ from ecommerce.extensions.partner.shortcuts import get_partner_for_site
 from ecommerce.extensions.payment import exceptions as payment_exceptions
 from ecommerce.extensions.payment.helpers import get_default_processor_class, get_processor_class_by_name
 
+from rest_framework.views import APIView
+
 Applicator = get_class('offer.applicator', 'Applicator')
 Basket = get_model('basket', 'Basket')
 logger = logging.getLogger(__name__)
@@ -43,6 +45,51 @@ Selector = get_class('partner.strategy', 'Selector')
 User = get_user_model()
 Voucher = get_model('voucher', 'Voucher')
 
+class BasketItemCountView(APIView):
+    """
+    View to count product from basket list
+    * Requires token authentication.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        user_basket = request.basket
+        if user_basket.status == "Open":
+            logging.info(dir(user_basket))
+            return Response({"status":False, "status_code":200, "result":{"number_of_item": user_basket.num_items}, "message":""})
+        else:
+            return Response({"status":False, "status_code":400, "result":{"number_of_item":0}, "message":"No cart found."})
+
+class BasketDeleteItemView(APIView):
+    """
+    View to delete product from basket list
+
+    * Requires token authentication.
+    * Requires sku id to delete the item.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user_basket = request.basket
+        lines = user_basket.all_lines()
+        found = False
+        if "course_id" in request.data:
+            course_id = request.data['course_id']
+            if user_basket.status == "Open":
+                for line in lines:
+                    product = line.product
+                    if product.course_id == course_id:
+                        lines.filter(product_id=product.id).delete()
+                        request.basket.save()
+                        found = True
+                if found:
+                    return Response({"status":True, "status_code":200, "result":{}, "message":"Item has been removed from the cart"})
+                else:
+                    return Response({"status":False, "status_code":404, "result":{}, "message":"Item not found in cart."})
+            else:
+                return Response({"status":False, "status_code":404, "result":{}, "message":"Your cart is empty."})
+        else:
+            return Response({"status":False, "status_code":400, "result":{}, "message":"No course_id provided."})
 
 class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
     """Endpoint for creating baskets.
@@ -152,7 +199,8 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
         # (baskets, then orders) to ensure that we don't leave the system in a dirty state
         # in the event of an error.
         with transaction.atomic():
-            basket = Basket.create_basket(request.site, request.user)
+            # basket = Basket.create_basket(request.site, request.user)
+            basket = Basket.get_basket(request.user, request.site)
             basket_id = basket.id
 
             attribute_cookie_data(basket, request)

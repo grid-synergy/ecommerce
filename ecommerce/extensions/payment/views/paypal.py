@@ -70,6 +70,7 @@ class PaypalPaymentExecutionView(EdxOrderPlacementMixin, View):
             Applicator().apply(basket, basket.owner, self.request)
 
             basket_add_organization_attribute(basket, self.request.GET)
+         
             return basket
         except MultipleObjectsReturned:
             logger.warning(u"Duplicate payment ID [%s] received from PayPal.", payment_id)

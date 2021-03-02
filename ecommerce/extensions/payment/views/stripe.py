@@ -1,6 +1,10 @@
 
 
 import logging
+import waffle
+from ecommerce.extensions.offer.constants import DYNAMIC_DISCOUNT_FLAG
+from ecommerce.core.url_utils import get_lms_url
+from edx_rest_api_client.client import EdxRestApiClient
 
 from django.http import JsonResponse
 from oscar.core.loading import get_class, get_model
@@ -38,9 +42,19 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
         basket = form_data['basket']
         token = form_data['stripe_token']
         order_number = basket.order_number
-
+        if waffle.flag_is_active(self.request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
+            discount_lms_url = get_lms_url('/api/discounts/')
+            lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=self.request.site.siteconfiguration.access_token)
+            ck = basket.lines.first().product.course_id
+            user_id = basket.owner.lms_user_id
+            response = lms_discount_client.course(ck).get()
+            self.request.GET = self.request.GET.copy()
+            self.request.GET['discount_jwt'] = response.get('jwt')
+            self.request.POST = self.request.POST.copy()
+            self.request.POST['discount_jwt'] = response.get('jwt')
+        Applicator().apply(basket, self.request.user, self.request)
         basket_add_organization_attribute(basket, self.request.POST)
-
+        basket.freeze()
         try:
             billing_address = self.payment_processor.get_address_from_token(token)
         except Exception:  # pylint: disable=broad-except
