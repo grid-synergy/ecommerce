@@ -558,27 +558,6 @@ define([
                     }
                 });
 
-                // Remove the selected course
-                $(".remove-course").click(function(){
-                    let courseId = $(this).attr('data-courseId');
-                    let csrf = $("#csrf-token").val();
-
-                    $.ajax({
-                        type:"POST",
-                        url: "/api/v2/custom_baskets/",
-                        data: {
-                            "course_id":courseId,
-                             csrfmiddlewaretoken: csrf
-                        },
-                        success: function(response){
-                            location.reload();
-                        },
-                        error: function(data) {
-                            alert(JSON.parse(data.responseText)['detail']);
-                        }
-                    })
-                });
-
                 var getUrlParameter = function getUrlParameter(sParam) {
   	            var sPageURL = window.location.search.substring(1),
                     sURLVariables = sPageURL.split('&'),

@@ -25,7 +25,6 @@
                         <p class="product-name">{{ line_data.product_title }}</p>
                         {% include 'oscar/basket/partials/seat_type.html' %}
                         <input type="text" id="csrf-token" value={{ csrf_token }} hidden />
-                        <button class="btn btn-danger btn-sm remove-course" type="button" data-courseId={{line_data.course_key}}>Remove</button>
                     </div>
                     {% if line_data.enrollment_code %}
                         <div class="col-sm-12 col-xs-12 form-inline quantity-group">
