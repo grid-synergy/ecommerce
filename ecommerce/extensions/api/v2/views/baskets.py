@@ -119,7 +119,7 @@ class BasketBuyNow(APIView):
                        logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basket exist")
                        last_open_basket = baskets.last()
                        logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basketID %s", last_open_basket.id)
-                       last_open_basket.status = "Frozen"
+                       last_open_basket.status = "Commited - commited basket."
                        last_open_basket.save()
                        logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basketStatus %s", last_open_basket.status)
                     basket = Basket.create_basket(request.site, request.user)
@@ -135,7 +135,7 @@ class BasketBuyNow(APIView):
                 return Response({"developer_message": "No product provided."})
 
         if old_basket:
-            old_basket.status = "Frozen"
+            old_basket.status = "Commited"
             old_basket.save()
 
         return Response({"basket":basket_id})
