@@ -319,7 +319,7 @@ $(document).ready(function(){
             xhr.setRequestHeader("X-CSRFToken", csrf);
             },
             success: function(response){
-                location.reload();
+                window.location.href = "{{ lms_url_root }}";
             },
             error: function(data){ 
                 alert(JSON.parse(data.responseText)['detail']);
