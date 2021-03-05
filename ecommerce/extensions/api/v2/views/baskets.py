@@ -96,8 +96,6 @@ class CommitedBasket(APIView):
 
                 basket = Basket.create_basket(request.site, request.user)
                 basket.strategy = Selector().strategy(user=request.user)
-                basket.status = "Commited"
-                basket.save()
                 basket_id = basket.id
 
                 for requested_product in requested_products:
@@ -121,7 +119,9 @@ class CommitedBasket(APIView):
 
         if old_basket:
             old_basket.delete()
-
+        
+        basket.status = "Commited"
+        basket.save()
         return Response({"basket":basket_id})
 
 class BasketDeleteItemView(APIView):
