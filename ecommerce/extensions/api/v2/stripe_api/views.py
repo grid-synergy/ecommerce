@@ -99,7 +99,7 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         email = user.email
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
-        user_basket = request.basket
+        user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
         if user_basket.status == "Open":
             total_amount = int(user_basket.total_incl_tax)
             if total_amount > 0:
