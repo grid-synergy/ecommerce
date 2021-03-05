@@ -93,6 +93,13 @@ class CommitedBasket(APIView):
             requested_products = request.data.get('products')
             if requested_products:
                 is_multi_product_basket = len(requested_products) > 1
+
+                basket = Basket.create_basket(request.site, request.user)
+                basket.strategy = Selector().strategy(user=request.user)
+                basket.status = "Commited"
+                basket.save()
+                basket_id = basket.id
+
                 for requested_product in requested_products:
                     # Ensure the requested products exist
                     sku = requested_product.get('sku')
@@ -104,13 +111,7 @@ class CommitedBasket(APIView):
                     else:
                         return Response({"developer_message": "Product not found."})
 
-                    basket = Basket.create_basket(request.site, request.user)
-                    basket.strategy = Selector().strategy(user=request.user)
                     basket.add_product(product)
-                    basket.status = "Commited"
-                    basket.save()
-                    basket_id = basket.id
-
                     # Call signal handler to notify listeners that something has been added to the basket
                     basket_addition = get_class('basket.signals', 'basket_addition')
                     basket_addition.send(sender=basket_addition, product=product, user=request.user, request=request,
