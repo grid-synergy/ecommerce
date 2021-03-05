@@ -67,9 +67,9 @@ class BasketItemCountView(APIView):
             return Response({"status":False, "status_code":400, "result":{"number_of_item":0}, "message":"No cart found."})
 
 
-class BasketBuyNow(APIView):
+class CommitedBasket(APIView):
     """
-    View to buy single item at the moment.
+    View that creates commited basket
 
     * Requires token authentication.
     * Requires sku id to checkout.
@@ -77,34 +77,26 @@ class BasketBuyNow(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        baskets = Basket.objects.filter(owner=request.user, status="Open")
+        baskets = Basket.objects.filter(owner=request.user, status="Commited")
         last_open_basket = None
         if baskets.exists():
             last_open_basket = baskets.last()
-            #basket.status = "Frozen"
-            #basket.save()
 
         return self.create_new_basket(request, last_open_basket, *args, **kwargs)
 
     def create_new_basket(self, request, old_basket, *args, **kwargs):
-        logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basket +_+_+_+_+_+_+_+_+_++_")
         with transaction.atomic():
-            logging.info("-=-=-=-=-=-=-=- in transactions")
             basket = None
-            #basket = Basket.get_basket(request.user, request.site)
             basket_id = None
-
             attribute_cookie_data(basket, request)
 
             requested_products = request.data.get('products')
             if requested_products:
-                logging.info("-=-=-=-=-=-=-=- in requested_products")
                 is_multi_product_basket = len(requested_products) > 1
                 for requested_product in requested_products:
                     # Ensure the requested products exist
                     sku = requested_product.get('sku')
                     if sku:
-                        logging.info("=-=-=-=-=-=-=-=-=-=-=-=- in sku")
                         try:
                             product = data_api.get_product(sku)
                         except api_exceptions.ProductNotFoundError as error:
@@ -112,20 +104,12 @@ class BasketBuyNow(APIView):
                     else:
                         return Response({"developer_message": "Product not found."})
 
-                    baskets = Basket.objects.filter(owner=request.user, status="Open")
-                    logging.info("=-=-=-=-=-=-=-=-=-=-=-=- found open baskets %s", baskets)
-                    last_open_basket = None
-                    if baskets.exists():
-                       logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basket exist")
-                       last_open_basket = baskets.last()
-                       logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basketID %s", last_open_basket.id)
-                       last_open_basket.status = "Commited - commited basket."
-                       last_open_basket.save()
-                       logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- basketStatus %s", last_open_basket.status)
                     basket = Basket.create_basket(request.site, request.user)
+                    basket.strategy = Selector().strategy(user=request.user)
                     basket.add_product(product)
+                    basket.status = "Commited"
+                    basket.save()
                     basket_id = basket.id
-                    logger.info('Added product with SKU [%s] to basket [%d]', sku, basket_id)
 
                     # Call signal handler to notify listeners that something has been added to the basket
                     basket_addition = get_class('basket.signals', 'basket_addition')
@@ -135,34 +119,9 @@ class BasketBuyNow(APIView):
                 return Response({"developer_message": "No product provided."})
 
         if old_basket:
-            old_basket.status = "Commited"
-            old_basket.save()
+            old_basket.delete()
 
         return Response({"basket":basket_id})
-    
-    def delete(self, request, *args, **kwargs):
-        baskets = Basket.objects.filter(owner=request.user)
-        if baskets.exists():
-            last_basket = baskets.last()
-            if last_basket.status == "Open":
-                last_basket.delete()
-            saved_baskets = baskets.filter(status="Frozen")
-            for basket in saved_baskets:
-                basket.status = "Open"
-                basket.save()
-            return Response({
-                "message":"Checkout has been canceled.",
-                "status_code":200,
-                "status":True,
-                "result":{}
-            })
-        else:
-            return Response({
-                "message":"No basket found for the user.",
-                "status_code":404,
-                "status":False,
-                "result":{}
-                })
 
 class BasketDeleteItemView(APIView):
     """

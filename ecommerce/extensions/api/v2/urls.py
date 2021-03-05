@@ -79,7 +79,7 @@ CUSTOM_STRIPE_URLS = [
 ]
 
 BASKET_BUYNOW_URL = [
-    url(r'^$', basket_views.BasketBuyNow.as_view(), name='basket_buy_now')
+    url(r'^$', basket_views.CommitedBasket.as_view(), name='basket_buy_now')
 ]
 
 STRIPE_PAYMENT_URLS = [
