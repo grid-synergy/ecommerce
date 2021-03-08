@@ -78,6 +78,9 @@ CUSTOM_STRIPE_URLS = [
     url(r'^getToken/$', custom_stripe_view.TokenView.as_view(), name='get_token'),
 ]
 
+BASKET_BUYNOW_URL = [
+    url(r'^$', basket_views.CommitedBasket.as_view(), name='basket_buy_now')
+]
 
 STRIPE_PAYMENT_URLS = [
     url(r'^$', custom_stripe_view.PaymentView.as_view(), name='stripe_payment'),
@@ -143,6 +146,7 @@ urlpatterns = [
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
     url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
     url(r'^custom_baskets/', include((CUSTOM_BASKET_URLS, 'custom_baskets'))),
+    url(r'^basket_buy_now/', include((BASKET_BUYNOW_URL, 'basket_buy_now'))),
     url(r'^basket_item_count/', include((BASKET_ITEM_URLS, 'basket_item_count'))),
     url(r'^basket_details/$', get_basket_content, name='get_basket_detail'),
 ]

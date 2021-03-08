@@ -1,9 +1,10 @@
 """HTTP endpoints for interacting with baskets."""
-
+from __future__ import absolute_import, unicode_literals
 
 import logging
 import warnings
 
+import six
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -34,11 +35,6 @@ from ecommerce.extensions.payment import exceptions as payment_exceptions
 from ecommerce.extensions.payment.helpers import get_default_processor_class, get_processor_class_by_name
 
 from rest_framework.views import APIView
-from ecommerce.core.url_utils import get_lms_url
-import requests
-from django.conf import settings
-import json
-
 
 Applicator = get_class('offer.applicator', 'Applicator')
 Basket = get_model('basket', 'Basket')
@@ -50,85 +46,12 @@ Selector = get_class('partner.strategy', 'Selector')
 User = get_user_model()
 Voucher = get_model('voucher', 'Voucher')
 
-class BasketItemCountView(APIView):
-    """
-    View to count product from basket list
-    * Requires token authentication.
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, *args, **kwargs):
-        user_basket = request.basket
-        if user_basket.status == "Open":
-            logging.info(dir(user_basket))
-            return Response({"status":False, "status_code":200, "result":{"number_of_item": user_basket.num_items}, "message":""})
-        else:
-            return Response({"status":False, "status_code":400, "result":{"number_of_item":0}, "message":"No cart found."})
-
-
-class CommitedBasket(APIView):
-    """
-    View that creates commited basket
-
-    * Requires token authentication.
-    * Requires sku id to checkout.
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, *args, **kwargs):
-        baskets = Basket.objects.filter(owner=request.user, status="Commited")
-        last_open_basket = None
-        if baskets.exists():
-            last_open_basket = baskets.last()
-
-        return self.create_new_basket(request, last_open_basket, *args, **kwargs)
-
-    def create_new_basket(self, request, old_basket, *args, **kwargs):
-        with transaction.atomic():
-            basket = None
-            basket_id = None
-            attribute_cookie_data(basket, request)
-
-            requested_products = request.data.get('products')
-            if requested_products:
-                is_multi_product_basket = len(requested_products) > 1
-
-                basket = Basket.create_basket(request.site, request.user)
-                basket.strategy = Selector().strategy(user=request.user)
-                basket_id = basket.id
-
-                for requested_product in requested_products:
-                    # Ensure the requested products exist
-                    sku = requested_product.get('sku')
-                    if sku:
-                        try:
-                            product = data_api.get_product(sku)
-                        except api_exceptions.ProductNotFoundError as error:
-                            return Response({"developer_message": "Can't Find Product."})
-                    else:
-                        return Response({"developer_message": "Product not found."})
-
-                    basket.add_product(product)
-                    # Call signal handler to notify listeners that something has been added to the basket
-                    basket_addition = get_class('basket.signals', 'basket_addition')
-                    basket_addition.send(sender=basket_addition, product=product, user=request.user, request=request,
-                                         basket=basket, is_multi_product_basket=is_multi_product_basket)
-            else:
-                return Response({"developer_message": "No product provided."})
-
-        if old_basket:
-            old_basket.delete()
-        
-        basket.status = "Commited"
-        basket.save()
-        return Response({"basket":basket_id})
-
 class BasketDeleteItemView(APIView):
     """
     View to delete product from basket list
 
     * Requires token authentication.
-    * Requires course id to delete the item.
+    * Requires sku id to delete the item.
     """
     permission_classes = (IsAuthenticated,)
 
@@ -153,6 +76,9 @@ class BasketDeleteItemView(APIView):
                 return Response({"status":False, "status_code":404, "result":{}, "message":"Your cart is empty."})
         else:
             return Response({"status":False, "status_code":400, "result":{}, "message":"No course_id provided."})
+
+
+
 
 class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
     """Endpoint for creating baskets.
@@ -279,7 +205,7 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
                             product = data_api.get_product(sku)
                         except api_exceptions.ProductNotFoundError as error:
                             return self._report_bad_request(
-                                str(error),
+                                six.text_type(error),
                                 api_exceptions.PRODUCT_NOT_FOUND_USER_MESSAGE
                             )
                     else:
@@ -321,7 +247,7 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
                     payment_processor = get_processor_class_by_name(payment_processor_name)
                 except payment_exceptions.ProcessorNotFoundError as error:
                     return self._report_bad_request(
-                        str(error),
+                        six.text_type(error),
                         payment_exceptions.PROCESSOR_NOT_FOUND_USER_MESSAGE
                     )
             else:
@@ -332,7 +258,7 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
             except Exception as ex:  # pylint: disable=broad-except
                 basket.delete()
                 logger.exception('Failed to initiate checkout for Basket [%d]. The basket has been deleted.', basket_id)
-                return Response({'developer_message': str(ex)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'developer_message': six.text_type(ex)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             # Return a serialized basket, if checkout was not requested.
             response_data = self._generate_basic_response(basket)
@@ -509,8 +435,8 @@ class BasketCalculateView(generics.GenericAPIView):
                     discounts.extend(basket.voucher_discounts)
 
                 response = {
-                    'total_incl_tax_excl_discounts': round(basket.total_incl_tax_excl_discounts, 2),
-                    'total_incl_tax': round(basket.total_incl_tax, 2),
+                    'total_incl_tax_excl_discounts': basket.total_incl_tax_excl_discounts,
+                    'total_incl_tax': basket.total_incl_tax,
                     'currency': basket.currency
                 }
                 raise api_exceptions.TemporaryBasketException

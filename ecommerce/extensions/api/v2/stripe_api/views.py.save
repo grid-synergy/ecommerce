@@ -8,11 +8,9 @@ import stripe
 from django.conf import settings
 from oscar.core.loading import get_model
 import logging
-from django.db import IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
-Basket = get_model('basket', 'Basket')
 Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
 
@@ -29,10 +27,10 @@ class CustomStripeView(APIView):
         if 'customer_id' in user.tracking_context:
             return Response({'message':'', 'status': True, 'result':{'customer_id':user.tracking_context['customer_id']}, 'status_code':200})
         else:
-            customer_id, token = self.create_customer_id(request)
-            if customer_id and token:
+            customer_id, toke = self.create_customer_id(request)
+            if customer_id:
                 user.tracking_context['customer_id'] = customer_id
-                user.tracking_context['token'] = token
+                user.tracking_context['token'] = request.data['token']
                 user.save()
                 return Response({'message':'', 'status': False, 'result':{'customer_id':customer_id}, 'status_code':400})
             else:
@@ -77,7 +75,7 @@ class CustomStripeView(APIView):
         address = BillingAddress(
         first_name=data['name'],    # Stripe only has a single name field
         last_name='',
-        line1=data['address_line1'] or '',
+        line1=data['address_line1'],
         line2=data.get('address_line2') or '',
         line4=data['address_city'],  # Oscar uses line4 for city
         postcode=data.get('address_zip') or '',
@@ -99,31 +97,18 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         email = user.email
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
-        user_basket = Basket.objects.filter(owner=request.user).last()
-        if user_basket.status == "Commited":
+        user_basket = request.basket
+        if user_basket.status == "Open":
             total_amount = int(user_basket.total_incl_tax)
             if total_amount > 0:
-                token = user.tracking_context['token']
                 try:
-                    with transaction.atomic():
-                        payment_response = self.handle_payment(token, user_basket)
-                        order = self.create_order(self.request, user_basket, billing_address=self.get_address_obj_from_customer(customer))
-                        self.handle_post_order(order)
-                        response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
-                                    "currency": payment_response.currency, "last_4_digits_of_card": payment_response.card_number, \
-                                    "card_type": payment_response.card_type}
-                        
-                        # change the status of last saved basket to open
-                        baskets = Basket.objects.filter(owner=user, status="Frozen")
-                        if baskets.exists():
-                            last_basket = baskets.last()
-                            last_basket.status = "Open"
-                            last_basket.save()
-
-                        return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
+                    token = user.tracking_context['token']
+                    self.handle_payment(token, user_basket)
+                    order = self.create_order(self.request, user_basket, billing_address=self.get_address_obj_from_customer(customer))
+                    self.handle_post_order(order)
+                    return Response({"message":"Payment completed.", "status": True, "result":payment_data, "status_code":200})
                 except Exception as e:
-                    msg = 'Attempts to handle payment for basket ' + str(user_basket.id) + ' failed.'
-                    return Response({"message": msg, "status": False, "result":{}, "status_code":400})
+                    return Response({"message": str(e), "status": False, "result":{}, "status_code":400})
             else:
                 return Response({"message":"Total amount must be greater than 0.", "status": False, "result":{}, "status_code":400})
         else:
@@ -143,7 +128,7 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
 
         address = BillingAddress(
         first_name=customer['name'],
-        line1=customer_address['line1'] or '',
+        line1=customer_address['line1'],
         line2=customer_address['line2'] or '',
         postcode=customer_address['postal_code'] or '',
         state=customer_address['state'] or '',

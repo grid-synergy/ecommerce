@@ -25,7 +25,8 @@
 {% endblock navbar %}
 
 {% block content %}
-<h1>Test</h1>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <div id="receipt-container"
        class="receipt container content-container"
        data-currency="{{ order.currency }}"
@@ -33,14 +34,14 @@
        data-total-amount="{{ order.total_incl_tax | unlocalize }}"
        data-back-button="{{ disable_back_button | default:0 }}">
        {% include 'oscar/partials/alert_messages.html' %}
-      <h2 class="thank-you">{% trans "Thank you for your order! _+_+_+_+_+	" as tmsg %}{{ tmsg | force_escape }}</h2>
+      <h2 class="thank-you">{% trans "Thank you for your order!" as tmsg %}{{ tmsg | force_escape }}</h2>
 
       <div class="list-info">
         <div class="info-item payment-info row">
           <div class="copy col-md-8">
             <div class="confirm-message">
               {% captureas link_start %}
-                <a data-hj-suppress href="mailto:{{ order.user.email }}">
+                <a href="mailto:{{ order.user.email }}">
               {% endcaptureas %}
               {% if has_enrollment_code_product %}
                   {% blocktrans trimmed asvar tmsg %}
@@ -59,7 +60,7 @@
             </div>
 
             {% if order.billing_address %}
-              <address data-hj-suppress class="billing-address">
+              <address class="billing-address">
                 {% for field in order.billing_address.active_address_fields %}
                   {{ field }}<br/>
                 {% endfor %}
@@ -121,7 +122,7 @@
 
                     {% if discount.voucher_code %}
                       {% with voucher=discount.voucher %}
-                        <span data-hj-suppress class="discount">{{ voucher.code }}</span>
+                        <span class="discount">{{ voucher.code }}</span>
                         <span class="discount">
                           {% filter force_escape %}
                             {% blocktrans trimmed with voucher_code=voucher.code voucher_discount_amount=voucher.benefit|benefit_discount %}
@@ -213,7 +214,6 @@
 $(document).ready(function(){
 
     let csrf = $('#csrf-token').val();
-
     $.ajax({
             type:"DELETE",
             url: "/api/v2/basket_buy_now/",
@@ -221,7 +221,7 @@ $(document).ready(function(){
             xhr.setRequestHeader("X-CSRFToken", csrf);
             },
             success: function(response){
-                location.reload();
+                console.log("Done")
             },
             error: function(data){ 
                 alert(JSON.parse(data.responseText)['detail']);

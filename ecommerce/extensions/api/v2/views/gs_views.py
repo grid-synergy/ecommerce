@@ -121,8 +121,9 @@ def get_basket_content(request):
                 media = commerce_response['result']['media']['image'] 
                 category = commerce_response['result']['new_category']
                 title = commerce_response['result']['name']
+                organization = commerce_response['result']['organization']
                 course_info = {'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
-                              'discounted_price': discounted_price}
+                              'discounted_price': discounted_price, 'organization': organization, 'code': "course_details"}
                 product.append(course_info)
 
         if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() > 0:
