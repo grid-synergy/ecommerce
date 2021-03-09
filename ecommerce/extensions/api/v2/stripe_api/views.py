@@ -102,8 +102,8 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
         user_basket.strategy = Selector().strategy(user=self.request.user)
         if user_basket.status == "Commited":
-            #total_amount = int(user_basket.total_incl_tax)
-            total_amount = 100
+            total_amount = int(user_basket.total_incl_tax)
+            #total_amount = 100
             if total_amount > 0:
                 token = user.tracking_context['token']
                 try:
@@ -152,7 +152,7 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
             country = country = Country.objects.get(iso_3166_1_a2__iexact="SG")
 
         address = BillingAddress(
-        first_name='osama',
+        first_name=customer['name'],
         line1=customer_address['line1'] or '',
         line2=customer_address['line2'] or '',
         postcode=customer_address['postal_code'] or '',
