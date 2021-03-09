@@ -13,6 +13,8 @@ PaymentProcessorResponse = get_model('payment', 'PaymentProcessorResponse')
 
 HandledProcessorResponse = namedtuple('HandledProcessorResponse',
                                       ['transaction_id', 'total', 'currency', 'card_number', 'card_type'])
+HandledMobileProcessorResponse = namedtuple('HandledProcessorResponse',
+                                      ['transaction_id', 'total', 'currency', 'card_number', 'card_type', 'client_secret'])
 
 
 class BasePaymentProcessor(six.with_metaclass(abc.ABCMeta, object)):  # pragma: no cover

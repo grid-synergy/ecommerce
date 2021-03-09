@@ -520,6 +520,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
     @newrelic.agent.function_trace()
     def get_context_data(self, **kwargs):
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_")
         try:
             basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
             basket.strategy = Selector().strategy(user=self.request.user)
@@ -530,24 +531,38 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             basket.status = "Commited"
             basket.save()
 
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_1")
         context = super(BasketSummaryView, self).get_context_data(**kwargs)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_2")
         context['voucher_form'] = super(BasketSummaryView, self).get_basket_voucher_form()
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_3")
         context['shipping_methods'] = super(BasketSummaryView, self).get_shipping_methods(basket)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_4")
         method = super(BasketSummaryView, self).get_default_shipping_method(basket)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_5")
         context['shipping_method'] = method
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_6")
         shipping_charge = method.calculate(basket)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_7")
         context['shipping_charge'] = shipping_charge
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_8")
         if method.is_discounted:
+            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_9")
             excl_discount = method.calculate_excl_discount(basket)
+            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_10")
             context['shipping_charge_excl_discount'] = excl_discount
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_11")
         context['basket_warnings'] = super(BasketSummaryView, self).get_basket_warnings(basket)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_12")
         context['upsell_messages'] = super(BasketSummaryView, self).get_upsell_messages(basket)
-
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_13")
         if self.request.user.is_authenticated:
+            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_14")
             saved_basket = basket
-
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_15")
         context['order_total'] = OrderTotalCalculator().calculate(
             basket, shipping_charge, surcharges=0)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_16")
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
@@ -579,13 +594,21 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
     @newrelic.agent.function_trace()
     def _add_to_context_data(self, context):
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 17")
         formset = context.get('formset', [])
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 18")
         #lines = context.get('line_list', [])
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 19")
         lines = Basket.objects.filter(owner=self.request.user, status="Commited").last().all_lines()
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 20")
         site_configuration = self.request.site.siteconfiguration
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 21")
         context_updates, lines_data = self.process_basket_lines(lines)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 22")
         context.update(context_updates)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 23")
         context.update(self.process_totals(context))
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 24")
 
         context.update({
             'analytics_data': prepare_analytics_data(
@@ -595,18 +618,21 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'enable_client_side_checkout': False,
             'sdn_check': site_configuration.enable_sdn_check
         })
-
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 25")
         cutomer_card_info = self._get_cutomer_card_info(self.request.user)
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 26")
         context.update({'cutomer_card_info': dict(cutomer_card_info)})
-
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 27")
         payment_processors = site_configuration.get_payment_processors()
         if (
                 site_configuration.client_side_payment_processor and
                 waffle.flag_is_active(self.request, CLIENT_SIDE_CHECKOUT_FLAG_NAME)
         ):
+            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 28")
             payment_processors_data = self._get_payment_processors_data(payment_processors)
+            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 29")
             context.update(payment_processors_data)
-
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 30")
         context.update({
             'formset_lines_data': list(six.moves.zip(formset, lines_data)),
             'homepage_url': get_lms_url(''),
@@ -616,6 +642,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'lms_url_root': site_configuration.lms_url_root,
             'basket': Basket.objects.filter(owner=self.request.user, status="Commited").last()
         })
+        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 31")
         return context
 
     def _get_cutomer_card_info(self, user):
