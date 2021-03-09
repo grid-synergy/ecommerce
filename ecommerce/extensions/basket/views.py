@@ -72,6 +72,7 @@ from ecommerce.extensions.order.exceptions import AlreadyPlacedOrderException
 from ecommerce.extensions.partner.shortcuts import get_partner_for_site
 from ecommerce.extensions.payment.constants import CLIENT_SIDE_CHECKOUT_FLAG_NAME
 from ecommerce.extensions.payment.forms import PaymentForm
+# from oscar.apps.checkout.applicator import SurchargeApplicator
 
 Basket = get_model('basket', 'basket')
 BasketAttribute = get_model('basket', 'BasketAttribute')
@@ -516,15 +517,35 @@ class BasketAddItemsView(BasketLogicMixin, APIView):
 
 
 class BasketSummaryView(BasketLogicMixin, BasketView):
+
     @newrelic.agent.function_trace()
     def get_context_data(self, **kwargs):
+        basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+        basket.strategy = Selector().strategy(user=self.request.user)
+        basket.save()
         context = super(BasketSummaryView, self).get_context_data(**kwargs)
+        context['voucher_form'] = super(BasketSummaryView, self).get_basket_voucher_form()
+        context['shipping_methods'] = super(BasketSummaryView, self).get_shipping_methods(basket)
+        method = super(BasketSummaryView, self).get_default_shipping_method(basket)
+        context['shipping_method'] = method
+        shipping_charge = method.calculate(basket)
+        context['shipping_charge'] = shipping_charge
+        if method.is_discounted:
+            excl_discount = method.calculate_excl_discount(basket)
+            context['shipping_charge_excl_discount'] = excl_discount
+        context['basket_warnings'] = super(BasketSummaryView, self).get_basket_warnings(basket)
+        context['upsell_messages'] = super(BasketSummaryView, self).get_upsell_messages(basket)
+
+        if self.request.user.is_authenticated:
+            saved_basket = basket
+
+        context['order_total'] = OrderTotalCalculator().calculate(
+            basket, shipping_charge, surcharges=0)
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
     def get(self, request, *args, **kwargs):
         basket = request.basket
-
         try:
             self.fire_segment_events(request, basket)
             self.verify_enterprise_needs(basket)
@@ -552,9 +573,9 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
     @newrelic.agent.function_trace()
     def _add_to_context_data(self, context):
         formset = context.get('formset', [])
-        lines = context.get('line_list', [])
+        #lines = context.get('line_list', [])
+        lines = Basket.objects.filter(owner=self.request.user, status="Commited").last().all_lines()
         site_configuration = self.request.site.siteconfiguration
-
         context_updates, lines_data = self.process_basket_lines(lines)
         context.update(context_updates)
         context.update(self.process_totals(context))
@@ -586,6 +607,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'max_seat_quantity': 100,
             'payment_processors': payment_processors,
             'lms_url_root': site_configuration.lms_url_root,
+            'basket': Basket.objects.filter(owner=self.request.user, status="Commited").last()
         })
         return context
 
