@@ -84,7 +84,8 @@ Product = get_model('catalogue', 'Product')
 StockRecord = get_model('partner', 'StockRecord')
 Voucher = get_model('voucher', 'Voucher')
 Selector = get_class('partner.strategy', 'Selector')
-
+BasketLineFormSet, SavedLineFormSet = get_classes(
+    'basket.formsets', ('BasketLineFormSet', 'SavedLineFormSet'))
 
 class BasketLogicMixin:
     """
@@ -557,12 +558,24 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         context['upsell_messages'] = super(BasketSummaryView, self).get_upsell_messages(basket)
         logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_13")
         if self.request.user.is_authenticated:
-            logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_14")
             saved_basket = basket
-        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_15")
+
+            try:
+                saved_basket = basket
+            except:
+                pass
+            else:
+                saved_basket.strategy = basket.strategy
+                if not saved_basket.is_empty:
+                    saved_queryset = saved_basket.all_lines()
+                    formset = SavedLineFormSet(strategy=self.request.strategy,
+                                               basket=self.request.basket,
+                                               queryset=saved_queryset,
+                                               prefix='saved')
+                    context['saved_formset'] = formset
+
         context['order_total'] = OrderTotalCalculator().calculate(
             basket, shipping_charge, surcharges=0)
-        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_16")
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
@@ -594,9 +607,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
     @newrelic.agent.function_trace()
     def _add_to_context_data(self, context):
-        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 17")
-        formset = context.get('formset', [])
-        logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 18")
+        formset = context.get('saved_formset', [])
         #lines = context.get('line_list', [])
         logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 19")
         lines = Basket.objects.filter(owner=self.request.user, status="Commited").last().all_lines()
@@ -640,7 +651,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'max_seat_quantity': 100,
             'payment_processors': payment_processors,
             'lms_url_root': site_configuration.lms_url_root,
-            'basket': Basket.objects.filter(owner=self.request.user, status="Commited").last()
+            'commited_basket': Basket.objects.filter(owner=self.request.user, status="Commited").last()
         })
         logging.info("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+ 31")
         return context
