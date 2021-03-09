@@ -520,9 +520,16 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
     @newrelic.agent.function_trace()
     def get_context_data(self, **kwargs):
-        basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
-        basket.strategy = Selector().strategy(user=self.request.user)
-        basket.save()
+        try:
+            basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+            basket.strategy = Selector().strategy(user=self.request.user)
+            basket.save()
+        except:
+            basket = Basket.create_basket(self.request.site, self.request.user)
+            basket.strategy = Selector().strategy(user=self.request.user)
+            basket.status = "Commited"
+            basket.save()
+
         context = super(BasketSummaryView, self).get_context_data(**kwargs)
         context['voucher_form'] = super(BasketSummaryView, self).get_basket_voucher_form()
         context['shipping_methods'] = super(BasketSummaryView, self).get_shipping_methods(basket)
