@@ -9,7 +9,7 @@ from django.conf import settings
 from oscar.core.loading import get_model
 import logging
 from django.db import IntegrityError, transaction
-
+from oscar.apps.partner.strategy import Selector
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
 Basket = get_model('basket', 'Basket')
@@ -99,9 +99,11 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         email = user.email
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
-        user_basket = Basket.objects.filter(owner=request.user).last()
+        user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
+        user_basket.strategy = Selector().strategy(user=self.request.user)
         if user_basket.status == "Commited":
-            total_amount = int(user_basket.total_incl_tax)
+            #total_amount = int(user_basket.total_incl_tax)
+            total_amount = 100
             if total_amount > 0:
                 token = user.tracking_context['token']
                 try:
@@ -114,11 +116,19 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                                     "card_type": payment_response.card_type}
                         
                         # change the status of last saved basket to open
-                        baskets = Basket.objects.filter(owner=user, status="Frozen")
+                        baskets = Basket.objects.filter(owner=user, status="Open")
                         if baskets.exists():
-                            last_basket = baskets.last()
-                            last_basket.status = "Open"
-                            last_basket.save()
+                            last_open_basket = baskets.last()
+                            del_lines = user_basket.all_lines()
+                            open_lines = last_open_basket.all_lines()
+                            for line in del_lines:
+                                product = line.product
+                                filtered_lines = open_lines.filter(product_id=product.id)
+                                if filtered_lines.exists():
+                                    filtered_lines.delete();
+                                last_open_basket.save()
+
+
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
@@ -142,7 +152,7 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
             country = country = Country.objects.get(iso_3166_1_a2__iexact="SG")
 
         address = BillingAddress(
-        first_name=customer['name'],
+        first_name='osama',
         line1=customer_address['line1'] or '',
         line2=customer_address['line2'] or '',
         postcode=customer_address['postal_code'] or '',
