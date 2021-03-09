@@ -23,7 +23,7 @@ BillingAddress = get_model('order', 'BillingAddress')
 Country = get_model('address', 'Country')
 NoShippingRequired = get_class('shipping.methods', 'NoShippingRequired')
 OrderTotalCalculator = get_class('checkout.calculators', 'OrderTotalCalculator')
-
+Basket = get_model('basket', 'basket')
 
 class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
     """ Stripe payment handler.
@@ -39,7 +39,10 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
 
     def form_valid(self, form):
         form_data = form.cleaned_data
-        basket = form_data['basket']
+        #basket = form_data['basket']
+        basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+        basket.strategy = self.request.strategy
+        basket.save()
         token = form_data['stripe_token']
         order_number = basket.order_number
         if waffle.flag_is_active(self.request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
