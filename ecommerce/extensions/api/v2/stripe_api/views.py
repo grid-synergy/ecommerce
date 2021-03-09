@@ -108,12 +108,12 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                 token = user.tracking_context['token']
                 try:
                     with transaction.atomic():
-                        payment_response = self.handle_payment(token, user_basket, forMobile=True)
+                        payment_response = self.handle_payment(token, user_basket)
                         order = self.create_order(self.request, user_basket, billing_address=self.get_address_obj_from_customer(customer))
                         self.handle_post_order(order)
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
-                                    "currency": payment_response.currency, "client_secret": payment_response.client_secret}
-                        
+                                    "currency": payment_response.currency, "last_4_digits_of_card": payment_response.card_number, \
+                                    "card_type": payment_response.card_type}
                         # change the status of last saved basket to open
                         baskets = Basket.objects.filter(owner=user, status="Open")
                         if baskets.exists():

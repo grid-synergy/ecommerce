@@ -96,7 +96,7 @@ class EdxOrderPlacementMixin(six.with_metaclass(abc.ABCMeta, OrderPlacementMixin
             self._payment_events = []
         self._payment_events.append(event)
 
-    def handle_payment(self, response, basket, forMobile=False):  # pylint: disable=arguments-differ
+    def handle_payment(self, response, basket):  # pylint: disable=arguments-differ
         """
         Handle any payment processing and record payment sources and events.
 
@@ -105,10 +105,7 @@ class EdxOrderPlacementMixin(six.with_metaclass(abc.ABCMeta, OrderPlacementMixin
         events (using add_payment_event) so they can be
         linked to the order when it is saved later on.
         """
-        if forMobile:
-            handled_processor_response = self.payment_processor.handle_processor_response(response, basket=basket, forMobile=True)
-        else:
-            handled_processor_response = self.payment_processor.handle_processor_response(response, basket=basket)
+        handled_processor_response = self.payment_processor.handle_processor_response(response, basket=basket)
         self.record_payment(basket, handled_processor_response)
         return handled_processor_response
 
