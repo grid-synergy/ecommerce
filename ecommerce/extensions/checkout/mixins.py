@@ -112,6 +112,10 @@ class EdxOrderPlacementMixin(six.with_metaclass(abc.ABCMeta, OrderPlacementMixin
         self.record_payment(basket, handled_processor_response)
         return handled_processor_response
 
+    def make_stripe_payment_for_mobile(self, response, basket):  # pylint: disable=arguments-differ
+        handled_processor_response = self.payment_processor.handle_processor_response(response, basket=basket, forMobile=True)
+        return handled_processor_response
+
     def emit_checkout_step_events(self, basket, handled_processor_response, payment_processor):
         """ Emit events necessary to track the user in the checkout funnel. """
 
