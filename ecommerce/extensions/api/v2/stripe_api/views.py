@@ -100,7 +100,10 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
         user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
-        user_basket.strategy = Selector().strategy(user=self.request.user)
+        if user_basket:
+            user_basket.strategy = Selector().strategy(user=self.request.user)
+        else:
+            return Response({"message":"No item found in cart.", "status": False, "result": {}, "status_code":400})
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
             #total_amount = 100
@@ -174,7 +177,10 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
         user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
-        user_basket.strategy = Selector().strategy(user=self.request.user)
+        if user_basket:
+            user_basket.strategy = Selector().strategy(user=self.request.user)
+        else:
+            return Response({"message":"No item found in cart.", "status": False, "result": {}, "status_code":400})
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
             if total_amount > 0:
