@@ -49,12 +49,12 @@
         {% if is_enrollment_code_purchase %}
             <div id="summary-header" class="row">
                 <span class="col-xs-4 col-sm-4">{% trans "Price" as tmsg %}{{ tmsg | force_escape }}</span>
-                <span class="col-xs-4 col-sm-4">{% trans "Quantity" as tmsg %}{{ tmsg | force_escape }}</span>
+                <!-- <span class="col-xs-4 col-sm-4">{% trans "Quantity" as tmsg %}{{ tmsg | force_escape }}</span> -->
                 <span class="price col-xs-4 col-sm-4" >{% trans "Subtotal" as tmsg %}{{ tmsg | force_escape }}</span>
             </div>
             <div id="line-item" class="row">
                 <span id="line-price" class="col-xs-4 col-sm-4" >{{line_price|currency:basket.currency}}</span>
-                <span id="line-quantity" class="col-xs-4 col-sm-4">{{basket.num_items}}</span>
+                <!-- <span id="line-quantity" class="col-xs-4 col-sm-4">{{basket.num_items}}</span> -->
                 <span id="line-subtotal" class="price col-xs-4 col-sm-4">{{order_total.incl_tax|currency:basket.currency}}</span>
             </div>
         {% else %}
