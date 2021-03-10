@@ -71,29 +71,29 @@
                 <span class="price col-xs-4 col-sm-4">-{{commited_basket.total_discount|currency:commited_basket.currency}}</span>
             </div>
         {% endif %}
-        <div id="offer-information" class="row">
-            {% block offers %}
-                <div class="offers">
-                    {% for offer_id, offer in commited_basket.applied_offers.items %}
-                        {% if offer.condition.enterprise_customer_name %}
-                            <p class="offer">
-                                {% filter force_escape %}
-                                {% blocktrans with enterprise_customer_name=offer.condition.enterprise_customer_name benefit=offer.benefit|benefit_discount %}
-                                    {{ benefit }} discount provided by {{ enterprise_customer_name }}.
-                                {% endblocktrans %}
-                                {% endfilter %}
-                            </p>
-                        {% elif offer.condition.name == 'dynamic_discount_condition' %}
-                            {% filter force_escape %}
-                            {% blocktrans with benefit=discount_percent %}
-                                    {{ benefit }}% discount for your first upgrade applied.
-                            {% endblocktrans %}
-                            {% endfilter %}
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% endblock offers %}
-        </div>
+       <!-- <div id="offer-information" class="row">-->
+           <!--  {% block offers %}-->
+                <!-- <div class="offers">-->
+                    <!-- {% for offer_id, offer in commited_basket.applied_offers.items %}-->
+                        <!-- {% if offer.condition.enterprise_customer_name %}-->
+                           <!--  <p class="offer">-->
+                                <!-- {% filter force_escape %}-->
+                                <!-- {% blocktrans with enterprise_customer_name=offer.condition.enterprise_customer_name benefit=offer.benefit|benefit_discount %}-->
+                                <!--     {{ benefit }} discount provided by {{ enterprise_customer_name }}.-->
+                                <!-- {% endblocktrans %}-->
+                                <!-- {% endfilter %}-->
+                            <!-- </p>-->
+                        <!-- {% elif offer.condition.name == 'dynamic_discount_condition' %}-->
+                        <!-- {% filter force_escape %}-->
+                            <!-- {% blocktrans with benefit=discount_percent %}-->
+                                 <!--    {{ benefit }}% discount for your first upgrade applied.-->
+                         <!--    {% endblocktrans %}-->
+                         <!--    {% endfilter %}-->
+                       <!--  {% endif %}-->
+                   <!--  {% endfor %}-->
+               <!--  </div>-->
+           <!--  {% endblock offers %}-->
+        <!-- </div> -->
         <div id="voucher-information" class="row">
             {% if show_voucher_form %}
                 {% block vouchers %}
