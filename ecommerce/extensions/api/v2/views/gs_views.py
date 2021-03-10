@@ -116,6 +116,7 @@ def get_basket_content(request):
             commerce_response = json.loads(commerce_response.text)
             if commerce_response['status_code'] == 200:
                 price = commerce_response['result']['modes'][0]['price']
+                sku = commerce_response['result']['modes'][0]['sku']
                 discount_applicable = commerce_response['result']['discount_applicable']
                 discounted_price = commerce_response['result']['discounted_price']
                 media = commerce_response['result']['media']['image'] 
@@ -123,7 +124,7 @@ def get_basket_content(request):
                 title = commerce_response['result']['name']
                 organization = commerce_response['result']['organization']
                 course_info = {'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
-                              'discounted_price': discounted_price, 'organization': organization, 'code': "course_details"}
+                              'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
         if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() > 0:

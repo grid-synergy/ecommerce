@@ -219,10 +219,12 @@ class StripeSubmitForm(forms.Form):
         update_basket_queryset_filter(self, user)
 
     def clean_basket(self):
-        basket = self.cleaned_data['basket']
+        #basket = self.cleaned_data['basket']
+        basket = Basket.objects.filter(owner=self.request.user, status="Commited")
 
-        if basket:
-            basket.strategy = self.request.strategy
-            Applicator().apply(basket, self.request.user, self.request)
+        if basket.exists():
+            last_basket = basket.last()
+            last_basket.strategy = self.request.strategy
+            Applicator().apply(last_basket, self.request.user, self.request)
 
         return basket

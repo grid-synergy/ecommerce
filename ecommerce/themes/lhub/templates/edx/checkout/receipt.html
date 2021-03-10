@@ -210,26 +210,6 @@
   </div>
 
 <input type="hidden" id="csrf-token" value="{{csrf_token}}" />
-<script>
-$(document).ready(function(){
-
-    let csrf = $('#csrf-token').val();
-    $.ajax({
-            type:"DELETE",
-            url: "/api/v2/basket_buy_now/",
-            beforeSend: function(xhr) {
-            xhr.setRequestHeader("X-CSRFToken", csrf);
-            },
-            success: function(response){
-                console.log("Done")
-            },
-            error: function(data){ 
-                alert(JSON.parse(data.responseText)['detail']);
-        },
-    });
-
-});
-</script>
 
 {% endblock content %}
 

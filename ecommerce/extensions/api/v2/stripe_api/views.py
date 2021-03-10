@@ -9,7 +9,7 @@ from django.conf import settings
 from oscar.core.loading import get_model
 import logging
 from django.db import IntegrityError, transaction
-
+from oscar.apps.partner.strategy import Selector
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
 Basket = get_model('basket', 'Basket')
@@ -99,9 +99,14 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         email = user.email
         customer_id = user.tracking_context['customer_id']
         customer = stripe.Customer.retrieve(customer_id)
-        user_basket = Basket.objects.filter(owner=request.user).last()
+        user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
+        if user_basket:
+            user_basket.strategy = Selector().strategy(user=self.request.user)
+        else:
+            return Response({"message":"No item found in cart.", "status": False, "result": {}, "status_code":400})
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
+            #total_amount = 100
             if total_amount > 0:
                 token = user.tracking_context['token']
                 try:
@@ -112,13 +117,20 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "last_4_digits_of_card": payment_response.card_number, \
                                     "card_type": payment_response.card_type}
-                        
                         # change the status of last saved basket to open
-                        baskets = Basket.objects.filter(owner=user, status="Frozen")
+                        baskets = Basket.objects.filter(owner=user, status="Open")
                         if baskets.exists():
-                            last_basket = baskets.last()
-                            last_basket.status = "Open"
-                            last_basket.save()
+                            last_open_basket = baskets.last()
+                            del_lines = user_basket.all_lines()
+                            open_lines = last_open_basket.all_lines()
+                            for line in del_lines:
+                                product = line.product
+                                filtered_lines = open_lines.filter(product_id=product.id)
+                                if filtered_lines.exists():
+                                    filtered_lines.delete();
+                                last_open_basket.save()
+
+
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
@@ -150,6 +162,57 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
         country=country
         )
         return address
+
+class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
+
+    @property
+    def payment_processor(self):
+        return Stripe(self.request.site)
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        email = user.email
+        customer_id = user.tracking_context['customer_id']
+        customer = stripe.Customer.retrieve(customer_id)
+        user_basket = Basket.objects.filter(owner=request.user, status="Commited").last()
+        if user_basket:
+            user_basket.strategy = Selector().strategy(user=self.request.user)
+        else:
+            return Response({"message":"No item found in cart.", "status": False, "result": {}, "status_code":400})
+        if user_basket.status == "Commited":
+            total_amount = int(user_basket.total_incl_tax)
+            if total_amount > 0:
+                token = user.tracking_context['token']
+                try:
+                    with transaction.atomic():
+                        payment_response = self.make_stripe_payment_for_mobile(token, user_basket)
+                        response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
+                                    "currency": payment_response.currency, "client_secret": payment_response.client_secret}
+                        # change the status of last saved basket to open
+                        baskets = Basket.objects.filter(owner=user, status="Open")
+                        if baskets.exists():
+                            last_open_basket = baskets.last()
+                            del_lines = user_basket.all_lines()
+                            open_lines = last_open_basket.all_lines()
+                            for line in del_lines:
+                                product = line.product
+                                filtered_lines = open_lines.filter(product_id=product.id)
+                                if filtered_lines.exists():
+                                    filtered_lines.delete();
+                                last_open_basket.save()
+
+
+
+                        return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
+                except Exception as e:
+                    msg = 'Attempts to handle payment for basket ' + str(user_basket.id) + ' failed.'
+                    return Response({"message": msg, "status": False, "result":{}, "status_code":400})
+            else:
+                return Response({"message":"Total amount must be greater than 0.", "status": False, "result":{}, "status_code":400})
+        else:
+            return Response({"message":"No item found in cart.", "status": False, "result":{}, "status_code":400})
 
 
 class TokenView(APIView):

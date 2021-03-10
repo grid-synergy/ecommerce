@@ -67,11 +67,9 @@ border: none !important;
     <div class="collapse navbar-collapse" id="main-navbar-collapse">
       <ul class="nav navbar-nav navbar-right">
         {% if user.is_authenticated %}
-           
           <li class="cart-icon">
 	     <div class="cart-item-authenticated">
-               <a id="shopping_cart_url">
-	      <!-- <a href="http://104.248.148.7/commerce/basket-view/"> -->
+	      <a id="shopping_cart_url">
 		<img class="cart-icon-img" src="{% static 'images/cart.png' %}" alt="CART">
 	      </a>
 	     </div>

@@ -116,6 +116,7 @@ class CommitedBasket(APIView):
             else:
                 return Response({"developer_message": "No product provided."})
 
+        # Deletes old committed basket.
         if old_basket:
             old_basket.delete()
         
