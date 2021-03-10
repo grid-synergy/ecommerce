@@ -5,17 +5,25 @@ from ecommerce.core.models import User
 from ecommerce.extensions.checkout.mixins import EdxOrderPlacementMixin
 from ecommerce.extensions.payment.processors.stripe import Stripe
 import stripe
+import waffle
 from django.conf import settings
 from oscar.core.loading import get_model
 import logging
 from django.db import IntegrityError, transaction
 from oscar.apps.partner.strategy import Selector
+from oscar.core.loading import get_class
+from ecommerce.extensions.offer.constants import DYNAMIC_DISCOUNT_FLAG
+from ecommerce.core.url_utils import get_lms_url
+from edx_rest_api_client.client import EdxRestApiClient
+from ecommerce.extensions.api.handlers import jwt_decode_handler
+from ecommerce.extensions.offer.dynamic_conditional_offer import DynamicPercentageDiscountBenefit
+
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
 Basket = get_model('basket', 'Basket')
 Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
-
+Applicator = get_class('offer.applicator', 'Applicator')
 
 class CustomStripeView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -181,6 +189,22 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
             user_basket.strategy = Selector().strategy(user=self.request.user)
         else:
             return Response({"message":"No item found in cart.", "status": False, "result": {}, "status_code":400})
+
+        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and user_basket.lines.count() > 0:
+            discount_lms_url = get_lms_url('/api/discounts/')
+            lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
+            ck = user_basket.lines.first().product.course_id
+            user_id = user_basket.owner.lms_user_id
+            response = lms_discount_client.course(ck).get()
+            jwt = jwt_decode_handler(response.get('jwt'))
+            if jwt['discount_applicable']:
+                offers = Applicator().get_offers(user_basket, request.user, request)
+                user_basket.strategy = request.strategy
+                discount_benefit =  DynamicPercentageDiscountBenefit()
+                percentage = jwt['discount_percent']
+                discount_benefit.apply(user_basket,'dynamic_discount_condition',offers[0],discount_percent=percentage)
+        Applicator().apply(user_basket, self.request.user, self.request)
+
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
             if total_amount > 0:
