@@ -50,26 +50,26 @@ class CustomStripeView(APIView):
         """
         This function is used to create a customer in stripe and return its customer_id.
         """
-        if 'token' in request.data:
-            token = request.data['token']
-            billing_address = self.get_address_from_token(token)
-            address = {
-            'city': billing_address.line4,
-            'country': billing_address.country,
-            'line1': billing_address.line1,
-            'line2': billing_address.line2,
-            'postal_code': billing_address.postcode,
-            'state': billing_address.state
-            }
-            customer = stripe.Customer.create(
-                source=token,
-                email=request.user.email,
-                address=address,
-                name=request.user.full_name
-            )
-            return customer['id'], token
-        else:
-            return None, None
+        #if 'token' in request.data:
+        token = request.data['token']
+        billing_address = self.get_address_from_token(token)
+        address = {
+        'city': billing_address.line4,
+        'country': billing_address.country,
+        'line1': billing_address.line1,
+        'line2': billing_address.line2,
+        'postal_code': billing_address.postcode,
+        'state': billing_address.state
+        }
+        customer = stripe.Customer.create(
+            #source=token,
+            email=request.user.email,
+            address=address,
+            name=request.user.full_name
+        )
+        return customer['id'], token
+        #else:
+        #    return None, None
 
     def get_address_from_token(self,token):
         """ Retrieves the billing address associated with token.
