@@ -148,7 +148,7 @@
                     {# restore the name attribute to ensure this information is sent to the payment processor. #}
                     <div class="form-group col-md-6">
                         <label for="card-number" class="control-label">{% trans "Card Number (required)" as tmsg %}{{ tmsg | force_escape }}<span class="sr">, {% trans "Secure" as tmsg %}{{ tmsg | force_escape }}</span></label>
-                        <input id="card-number" type="text" class="form-control pci-field" maxlength="20" required pattern="([X]{0,12})[0-9]*"/>
+                        <input id="card-number" type="text" class="form-control pci-field" maxlength="19" required pattern="([X]{0,12})[0-9 ]*"/>
                         <i class="fa fa-lock" aria-hidden="true"></i>
                         <img class="card-type-icon hidden" alt="{% trans "Credit card icon" as tmsg %}{{ tmsg | force_escape }}">
                         <p class="help-block"></p>
