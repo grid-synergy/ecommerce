@@ -22,8 +22,8 @@ define([], function() {
         },
 
         savedCreditCardValidator: function(cardNumber){
-            var first12Digits = str.substring(0, 12);//get first 5 chars
-            return first12Digits == "000000000000"
+            var first12Digits = cardNumber.substring(0, 12);//get first 5 chars
+            return first12Digits == "XXXXXXXXXXXX"
         },
 
             /**
