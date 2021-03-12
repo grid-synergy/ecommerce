@@ -41,7 +41,7 @@ class CustomStripeView(APIView):
             if customer_id:
                 user.tracking_context['customer_id'] = customer_id
                 user.save()
-                return Response({'message':'', 'status': False, 'result':{'customer_id':customer_id}, 'status_code':400})
+                return Response({'message':'', 'status': True, 'result':{'customer_id':customer_id}, 'status_code':200})
             else:
                 return  Response({'message':'customer_id not found, please provide a token to continue.', 'status': False, 'result':{}, 'status_code':400})
 
