@@ -7,6 +7,8 @@ define([], function() {
              * https://jsperf.com/credit-card-validator/7
              */
         isValidCardNumber: function(cardNumber) {
+            // Replace spaces from card number
+            cardNumber = cardNumber.replace(/\s/g, '');
             var len = cardNumber.length,
                 mul = 0,
                 prodArr = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]],
@@ -22,8 +24,8 @@ define([], function() {
         },
 
         savedCreditCardValidator: function(cardNumber){
-            var first12Digits = str.substring(0, 12);//get first 5 chars
-            return first12Digits == "000000000000"
+            var first12Digits = cardNumber.substring(0, 12);//get first 5 chars
+            return first12Digits == "XXXXXXXXXXXX"
         },
 
             /**
@@ -34,6 +36,8 @@ define([], function() {
              * @returns (object) - The credit card type name and CVN length.
              */
         getCreditCardType: function(cardNumber) {
+            //Replace spaces from card number
+            cardNumber = cardNumber.replace(/\s/g, '');
             var key,
                 matchers = {
                     amex: {
