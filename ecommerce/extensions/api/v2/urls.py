@@ -90,6 +90,10 @@ CHECKOUT_PAYMENT_INTENT = [
     url(r'^$', custom_stripe_view.CheckoutBasketMobileView.as_view(), name='checkout_payment_intent'),
 ]
 
+CONFIRM_PAYMENT_INTENT = [
+    url(r'^$', custom_stripe_view.ConfirmPaymentMobileView.as_view(), name='confirm_payment_intent'),
+]
+
 CUSTOM_BASKET_URLS = [
     url(r'^$', basket_views.BasketDeleteItemView.as_view(), name='custom_baskets'),
 ]
@@ -150,6 +154,7 @@ urlpatterns = [
     url(r'^stripe_api/', include((CUSTOM_STRIPE_URLS, 'stripe_api'))),
     url(r'^stripe_payment/', include((STRIPE_PAYMENT_URLS, 'stripe_payment'))),
     url(r'^checkout_payment_intent/', include((CHECKOUT_PAYMENT_INTENT, 'checkout_payment_intent'))),
+    url(r'^confirm_payment_intent/', include((CONFIRM_PAYMENT_INTENT, 'confirm_payment_intent'))),
     url(r'^custom_baskets/', include((CUSTOM_BASKET_URLS, 'custom_baskets'))),
     url(r'^basket_buy_now/', include((BASKET_BUYNOW_URL, 'basket_buy_now'))),
     url(r'^basket_item_count/', include((BASKET_ITEM_URLS, 'basket_item_count'))),

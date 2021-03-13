@@ -17,6 +17,7 @@ from ecommerce.core.url_utils import get_lms_url
 from edx_rest_api_client.client import EdxRestApiClient
 from ecommerce.extensions.api.handlers import jwt_decode_handler
 from ecommerce.extensions.offer.dynamic_conditional_offer import DynamicPercentageDiscountBenefit
+import json
 
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
@@ -109,6 +110,7 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "last_4_digits_of_card": payment_response.card_number, \
                                     "card_type": payment_response.card_type}
+
                         # change the status of last saved basket to open
                         baskets = Basket.objects.filter(owner=user, status="Open")
                         if baskets.exists():
@@ -121,8 +123,6 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                                 if filtered_lines.exists():
                                     filtered_lines.delete();
                                 last_open_basket.save()
-
-
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
@@ -198,6 +198,7 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
                         payment_response = self.make_stripe_payment_for_mobile(token, user_basket)
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "client_secret": payment_response.client_secret}
+
                         # change the status of last saved basket to open
                         baskets = Basket.objects.filter(owner=user, status="Open")
                         if baskets.exists():
@@ -211,7 +212,9 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
                                     filtered_lines.delete();
                                 last_open_basket.save()
 
-
+                        # Freezing basket to prevent student from getting enrolled to possibily unpaid courses
+                        user_basket.status = Basket.FROZEN
+                        user_basket.save()
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
@@ -221,6 +224,71 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
                 return Response({"message":"Total amount must be greater than 0.", "status": False, "result":{}, "status_code":400})
         else:
             return Response({"message":"No item found in cart.", "status": False, "result":{}, "status_code":400})
+
+
+class ConfirmPaymentMobileView(APIView, EdxOrderPlacementMixin):
+
+    @property
+    def payment_processor(self):
+        return Stripe(self.request.site)
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        if 'id' not in request.data:
+            return Response({"message":"Please provide payment intent id", "status": False, "result": {}, "status_code":400})
+        intent_id = request.data['id']
+        payment_intent = stripe.PaymentIntent.retrieve(id=intent_id)
+
+        if payment_intent.status != 'succeeded':
+            return Response({"message":"Please confirm payment first, through payment intent confirmation", "status": False, "result": {}, "status_code":400})
+
+        # Load and fetch basket id from payment intent
+        # This basket would be a paid and frozen basket, hence safe to be enrolled.
+        basket_id = json.loads(payment_intent.metadata.basket_id)
+        basket = Basket.objects.get(id=basket_id)
+        basket.strategy = Selector().strategy(user=self.request.user)
+
+
+        # Get billing details from payment intent (to be specific, from payment method)
+        billing_details = payment_intent.charges.data[0].billing_details
+
+        # Create order and enroll user
+        order = self.create_order(self.request, basket, billing_address=self.get_address_from_payment_intent(billing_details))
+        self.handle_post_order(order)
+
+        products = []
+        order_lines = order.lines.all()
+        for line in order_lines:
+            sku = line.partner_sku
+            course_id = line.product.course.id
+            title = line.title
+            products.append({'sku':sku, 'course_id':course_id, 'title':title})
+
+        response = {"order_number": payment_intent.description, "total": payment_intent.amount, "products": products}
+        return Response({"message":"order completed successfully", "status": True, "result": response, "status_code":200})
+
+    def get_address_from_payment_intent(self, billing_details):
+        """ Create a BillingAddress Object from intent's address
+
+        Returns:
+            BillingAddress
+        """
+        billing_details_address = billing_details['address']
+        try:
+            country = Country.objects.get(name=billing_details_address['country'])
+        except:
+            country = country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+        address = BillingAddress(
+        first_name=billing_details['name'] or '',
+        line1=billing_details_address['line1'] or '',
+        line2=billing_details_address['line2'] or '',
+        postcode=billing_details_address['postal_code'] or '',
+        state=billing_details_address['state'] or '',
+        country=country
+        )
+        return address
 
 
 class TokenView(APIView):
