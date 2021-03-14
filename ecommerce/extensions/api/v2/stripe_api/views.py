@@ -18,10 +18,13 @@ from edx_rest_api_client.client import EdxRestApiClient
 from ecommerce.extensions.api.handlers import jwt_decode_handler
 from ecommerce.extensions.offer.dynamic_conditional_offer import DynamicPercentageDiscountBenefit
 import json
+from ecommerce.extensions.api.serializers import BasketSerializer
+import requests
 
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
 Basket = get_model('basket', 'Basket')
+Order = get_model('order', 'Order')
 Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
 Applicator = get_class('offer.applicator', 'Applicator')
@@ -246,6 +249,8 @@ class ConfirmPaymentMobileView(APIView, EdxOrderPlacementMixin):
         # Load and fetch basket id from payment intent
         # This basket would be a paid and frozen basket, hence safe to be enrolled.
         basket_id = json.loads(payment_intent.metadata.basket_id)
+        if not basket_id:
+            return Response({"status": False, "message": "Basket not found", "status_code": 404})
         basket = Basket.objects.get(id=basket_id)
         basket.strategy = Selector().strategy(user=self.request.user)
 
@@ -257,15 +262,33 @@ class ConfirmPaymentMobileView(APIView, EdxOrderPlacementMixin):
         order = self.create_order(self.request, basket, billing_address=self.get_address_from_payment_intent(billing_details))
         self.handle_post_order(order)
 
-        products = []
-        order_lines = order.lines.all()
-        for line in order_lines:
-            sku = line.partner_sku
-            course_id = line.product.course.id
-            title = line.title
-            products.append({'sku':sku, 'course_id':course_id, 'title':title})
+        # Following work is to generate the require response
+        response = requests.get(url=settings.ECOMMERCE_URL_ROOT + '/api/v2/get-basket-detail/'+str(basket_id) + '/')
+        checkout_response = json.loads(response.text)
 
-        response = {"order_number": payment_intent.description, "total": payment_intent.amount, "products": products}
+        for product in checkout_response['products']:
+            for item in product:
+                if item['code'] == 'course_key': 
+                    course_id = item['value'] 
+
+            lms_url = get_lms_url('/api/commerce/v2/checkout/' + course_id)
+            commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
+            commerce_response = json.loads(commerce_response.text)
+            if commerce_response['status_code'] == 200:
+                price = commerce_response['result']['modes'][0]['price']
+                sku = commerce_response['result']['modes'][0]['sku']
+                discount_applicable = commerce_response['result']['discount_applicable']
+                discounted_price = commerce_response['result']['discounted_price']
+                media = commerce_response['result']['media']['image'] 
+                category = commerce_response['result']['new_category']
+                title = commerce_response['result']['name']
+                organization = commerce_response['result']['organization']
+                course_info = {'course_id' : course_id ,'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
+                              'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
+                product.append(course_info)
+
+        checkout_response['products'] = [i for j in checkout_response['products'] for i in j if not i['code'] in ['certificate_type', 'course_key', 'id_verification_required']]
+        response = {"order_number": payment_intent.description, "total": payment_intent.amount, "products": checkout_response['products']}
         return Response({"message":"order completed successfully", "status": True, "result": response, "status_code":200})
 
     def get_address_from_payment_intent(self, billing_details):
