@@ -15,6 +15,7 @@ import six
 import stripe
 from oscar.apps.payment.exceptions import GatewayError, TransactionDeclined
 from oscar.core.loading import get_model
+import json
 
 
 from ecommerce.extensions.payment.constants import STRIPE_CARD_TYPE_MAP
@@ -65,6 +66,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         token = response
         order_number = basket.order_number
         currency = basket.currency
+        basket_id = json.dumps(basket.id)
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
         if not tracking_context.get('customer_id', None):
@@ -97,7 +99,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
                     currency=currency,
                     customer=customer_id,
                     description=order_number,
-                    metadata={'order_number': order_number}
+                    metadata={'order_number': order_number, 'basket_id': basket_id}
                 )
                 transaction_id = charge.id
 
@@ -131,13 +133,15 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             )
 
         else:
+
             payment_intent = stripe.PaymentIntent.create(
                 amount=self._get_basket_amount(basket),
                 currency=currency,
                 customer=customer_id,
                 description=order_number,
-                metadata={'order_number': order_number}
+                metadata={'order_number': order_number, 'basket_id': basket_id}
             )
+
             client_secret = payment_intent.client_secret
             total = basket.total_incl_tax
             card_number = ""
