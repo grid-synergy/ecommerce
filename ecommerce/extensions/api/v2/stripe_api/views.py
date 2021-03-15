@@ -195,10 +195,9 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
             if total_amount > 0:
-                token = user.tracking_context['token']
                 try:
                     with transaction.atomic():
-                        payment_response = self.make_stripe_payment_for_mobile(token, user_basket)
+                        payment_response = self.make_stripe_payment_for_mobile(None, user_basket)
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "client_secret": payment_response.client_secret}
 
