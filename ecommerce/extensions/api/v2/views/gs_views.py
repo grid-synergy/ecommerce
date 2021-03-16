@@ -127,7 +127,7 @@ def get_basket_content(request):
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
-        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() > 0:
+        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
             discount_lms_url = get_lms_url('/api/discounts/')
             lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
             ck = basket.lines.first().product.course_id
@@ -189,7 +189,7 @@ def get_basket_content_mobile(request):
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
-        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() > 0:
+        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
             discount_lms_url = get_lms_url('/api/discounts/')
             lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
             ck = basket.lines.first().product.course_id
