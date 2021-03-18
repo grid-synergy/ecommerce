@@ -211,3 +211,25 @@ def get_basket_content_mobile(request):
         logging.info(e)
         return Response(str(e))
 
+
+
+
+@api_view(('GET',))
+def get_course_discount_info(request, sku):
+    product = Product.objects.get(stockrecords__partner_sku=sku)
+    product_price = product.stockrecords.first().price_excl_tax
+    discount_info = {'discount_applicable': False, 'discounted_price': product_price, 'original_price': product_price, 'discount_percentage': 0.00}
+
+    offers = Applicator().get_site_offers()
+    for offer in offers:
+        if offer.condition.range.contains_product(product):
+            if offer.benefit.type == 'Percentage':
+                discounted_price = round((product_price - (offer.benefit.value/100) * product_price ), 2)
+                discount_info.update({'discounted_price': discounted_price, 'discount_applicable': True, 'discount_percentage' : offer.benefit.value })
+            else:
+                pass
+        else:
+             pass
+
+    return Response(discount_info)
+
