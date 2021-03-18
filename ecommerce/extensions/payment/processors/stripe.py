@@ -69,6 +69,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         basket_id = json.dumps(basket.id)
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
+
         if token is None:
             customer_id = tracking_context.get('customer_id')
         elif not tracking_context.get('customer_id', None):

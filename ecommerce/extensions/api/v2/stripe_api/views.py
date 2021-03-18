@@ -220,6 +220,7 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
+                    logger.exception(e)
                     msg = 'Attempts to handle payment for basket ' + str(user_basket.id) + ' failed.'
                     return Response({"message": msg, "status": False, "result":{}, "status_code":400})
             else:
