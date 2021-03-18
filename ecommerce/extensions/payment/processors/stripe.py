@@ -69,7 +69,10 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         basket_id = json.dumps(basket.id)
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
-        if not tracking_context.get('customer_id', None):
+
+        if token is None:
+            customer_id = tracking_context.get('customer_id')
+        elif not tracking_context.get('customer_id', None):
             billing_address = self.get_address_from_token(token)
             address = {
                 'city': billing_address.line4,
@@ -89,6 +92,13 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             basket.owner.tracking_context = basket.owner.tracking_context or {}
             basket.owner.tracking_context.update({'customer_id': customer_id, 'token': token})
             basket.owner.save()
+
+        elif not tracking_context.get('token', None):
+            customer = stripe.Customer.modify(tracking_context.get('customer_id'), source=token)
+            customer_id = customer['id']
+            basket.owner.tracking_context.update({'token':token})
+            basket.owner.save()
+
         else:
             customer_id = tracking_context.get('customer_id')
 

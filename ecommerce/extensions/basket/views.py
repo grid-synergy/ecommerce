@@ -638,7 +638,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
         tracking_context = user.tracking_context or {}
         customer_card_info = {}
-        if not tracking_context.get('customer_id', None):
+        if not (tracking_context.get('customer_id', None) and tracking_context.get('token', None)):
             customer_card_info.update({
                 'card_number': '',
                 'card_expiry_month': '',
