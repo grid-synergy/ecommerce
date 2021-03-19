@@ -226,8 +226,8 @@ def get_course_discount_info(request, sku):
             if offer.benefit.type == 'Percentage':
                 discounted_price = round((product_price - (offer.benefit.value/100) * product_price ), 2)
                 discount_info.update({'discounted_price': discounted_price, 'discount_applicable': True, 'discount_percentage' : offer.benefit.value })
-            else:
-                pass
+            break
+
         else:
              pass
 
