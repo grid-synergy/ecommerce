@@ -127,19 +127,10 @@ def get_basket_content(request):
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
-        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
-            discount_lms_url = get_lms_url('/api/discounts/')
-            lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
-            ck = basket.lines.first().product.course_id
-            user_id = basket.owner.lms_user_id
-            response = lms_discount_client.course(ck).get()
-            jwt = jwt_decode_handler(response.get('jwt'))
-            if jwt['discount_applicable']:
-                offers = Applicator().get_offers(basket, request.user, request)
-                basket.strategy = request.strategy
-                discount_benefit =  DynamicPercentageDiscountBenefit()
-                percentage = jwt['discount_percent']
-                discount_benefit.apply(basket,'dynamic_discount_condition',offers[0],discount_percent=percentage)
+        offers = Applicator().get_site_offers()
+        basket.strategy = request.strategy
+        Applicator().apply_offers(basket, offers)
+        
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
         return Response(checkout_response)
@@ -189,19 +180,9 @@ def get_basket_content_mobile(request):
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
-        if waffle.flag_is_active(request, DYNAMIC_DISCOUNT_FLAG) and basket.lines.count() == 1:
-            discount_lms_url = get_lms_url('/api/discounts/')
-            lms_discount_client = EdxRestApiClient(discount_lms_url,jwt=request.site.siteconfiguration.access_token)
-            ck = basket.lines.first().product.course_id
-            user_id = basket.owner.lms_user_id
-            response = lms_discount_client.course(ck).get()
-            jwt = jwt_decode_handler(response.get('jwt'))
-            if jwt['discount_applicable']:
-                offers = Applicator().get_offers(basket, request.user, request)
-                basket.strategy = request.strategy
-                discount_benefit =  DynamicPercentageDiscountBenefit()
-                percentage = jwt['discount_percent']
-                discount_benefit.apply(basket,'dynamic_discount_condition',offers[0],discount_percent=percentage)
+        offers = Applicator().get_site_offers()
+        basket.strategy = request.strategy
+        Applicator().apply_offers(basket, offers)
         
         checkout_response['products'] = [i for j in checkout_response['products'] for i in j if not i['code'] in ['certificate_type', 'course_key', 'id_verification_required']]
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
