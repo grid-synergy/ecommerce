@@ -278,6 +278,9 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
                     if sku:
                         try:
                             product = data_api.get_product(sku)
+                            if basket.is_product_exists(product):
+                                response_data = self._generate_duplicate_product_response(basket)
+                                return Response(response_data)
                         except api_exceptions.ProductNotFoundError as error:
                             return self._report_bad_request(
                                 str(error),
@@ -407,6 +410,11 @@ class BasketCreateView(EdxOrderPlacementMixin, generics.CreateAPIView):
             'payment_data': None,
         }
 
+        return response_data
+
+    def _generate_duplicate_product_response(self, basket):
+        response_data = self._generate_basic_response(basket)
+        response_data.update({'status_code': 409, 'message': api_exceptions.PRODUCT_ALREADY_ADDED_USER_MESSAGE})
         return response_data
 
     def _report_bad_request(self, developer_message, user_message):

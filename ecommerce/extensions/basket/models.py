@@ -113,6 +113,12 @@ class Basket(AbstractBasket):
             owner=self.owner,
             num_lines=self.num_lines)
 
+    def is_product_exists(self, product):
+        product_line = self.lines.filter(product_id=product.id)
+        if product_line:
+            return True
+        return False
+
 
 class BasketAttributeType(models.Model):
     """
