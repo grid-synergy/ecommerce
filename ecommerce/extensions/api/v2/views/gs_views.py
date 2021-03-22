@@ -40,7 +40,7 @@ OrderTotalCalculator = get_class('checkout.calculators', 'OrderTotalCalculator')
 NoShippingRequired = get_class('shipping.methods', 'NoShippingRequired')
 from ecommerce.extensions.offer.dynamic_conditional_offer import DynamicPercentageDiscountBenefit
 from ecommerce.extensions.api.handlers import jwt_decode_handler
-
+from edx_rest_framework_extensions.auth.bearer.authentication import BearerAuthentication
 
 
 
@@ -196,6 +196,8 @@ def get_basket_content_mobile(request):
 
 
 @api_view(('GET',))
+#@authentication_classes((BearerAuthentication,))
+@permission_classes([IsAuthenticated])
 def get_course_discount_info(request, sku):
     product = Product.objects.get(stockrecords__partner_sku=sku)
     product_price = product.stockrecords.first().price_excl_tax
