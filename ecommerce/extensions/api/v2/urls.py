@@ -24,7 +24,7 @@ from ecommerce.extensions.api.v2.views import retirement as retirement_views
 from ecommerce.extensions.api.v2.views import stockrecords as stockrecords_views
 from ecommerce.extensions.api.v2.views import user_management as user_management_views
 from ecommerce.extensions.api.v2.views import vouchers as voucher_views
-from ecommerce.extensions.api.v2.views.gs_views import get_ephemeral_key, get_basket_content, get_basket_content_mobile,  BasketViewSet
+from ecommerce.extensions.api.v2.views.gs_views import get_ephemeral_key, get_basket_content, get_basket_content_mobile, get_course_discount_info,  BasketViewSet
 from ecommerce.extensions.api.v2.stripe_api import views as custom_stripe_view
 from ecommerce.extensions.voucher.views import CouponReportCSVView
 
@@ -160,6 +160,8 @@ urlpatterns = [
     url(r'^basket_item_count/', include((BASKET_ITEM_URLS, 'basket_item_count'))),
     url(r'^basket_details/$', get_basket_content, name='get_basket_detail'),
     url(r'^basket_details_mobile/$', get_basket_content_mobile, name='get_basket_detail_mobile'),
+    url(r'^course_discount_info/(?P<sku>[\w\-]+)/$',get_course_discount_info, name='get_course_discount_info'),
+
 ]
 
 router = SimpleRouter()

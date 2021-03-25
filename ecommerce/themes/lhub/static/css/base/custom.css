@@ -1,0 +1,9 @@
+.discount-item-list {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.discount-item-list span.label.label-success {
+padding: 8px;
+}

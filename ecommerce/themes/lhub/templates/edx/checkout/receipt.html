@@ -116,9 +116,9 @@
           {% with discounts=order.basket_discounts %}
             {% if discounts %}
               {% for discount in discounts %}
-                <div class="order-total">
+                <div class="order-total discount-item-list">
                   <div class="description">
-                    <span class="label label-success">{% trans "Discount" as tmsg %}{{ tmsg | force_escape }}</span>
+                    <!-- <span class="label label-success">{% trans "Discount" as tmsg %}{{ tmsg | force_escape }}</span> -->
 
                     {% if discount.voucher_code %}
                       {% with voucher=discount.voucher %}
@@ -143,15 +143,14 @@
                               {% trans "Discount for your first upgrade" as tmsg %}{{ tmsg | force_escape }}
                             {% else %}
                               {% filter force_escape %}
-                                {% blocktrans trimmed with type=discount.offer.offer_type %}
-                                    Discount of type {{ type }} is provided.
-                                {% endblocktrans %}
+                                     {{discount.offer.condition.range.all_products.0.title }}
                               {% endfilter %}
                             {% endif %}
                         </span>
                     {% endif %}
 
                   </div>
+                   <span class="label label-success">{% trans "Discount" as tmsg %}{{ tmsg | force_escape }}</span>
                   <div class="price">-{{ discount.amount|currency:order.currency }}</div>
                   {% enterprise_customer_for_voucher discount.voucher as enterprise_customer %}
                   {% if enterprise_customer %}
