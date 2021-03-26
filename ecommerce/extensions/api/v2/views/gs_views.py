@@ -26,6 +26,7 @@ from oscar.apps.basket.views import *
 from ecommerce.extensions.basket.utils import apply_offers_on_basket
 from ecommerce.extensions.api.serializers import BasketSerializer
 from ecommerce.extensions.api.throttles import ServiceUserThrottle
+import sys, os
 
 Applicator = get_class('offer.applicator', 'Applicator')
 Basket = get_model('basket', 'Basket')
@@ -127,9 +128,10 @@ def get_basket_content(request):
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
 
-        offers = Applicator().get_site_offers()
-        basket.strategy = request.strategy
-        Applicator().apply_offers(basket, offers)
+        if len(basket.all_lines()) > 0:
+            offers = Applicator().get_site_offers()
+            basket.strategy = request.strategy
+            Applicator().apply_offers(basket, offers)
         
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
@@ -179,10 +181,10 @@ def get_basket_content_mobile(request):
                 course_info = {'course_id' : course_id ,'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
                               'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
                 product.append(course_info)
-
-        offers = Applicator().get_site_offers()
-        basket.strategy = request.strategy
-        Applicator().apply_offers(basket, offers)
+        if len(basket.all_lines()) > 0:
+            offers = Applicator().get_site_offers()
+            basket.strategy = request.strategy
+            Applicator().apply_offers(basket, offers)
         
         checkout_response['products'] = [i for j in checkout_response['products'] for i in j if not i['code'] in ['certificate_type', 'course_key', 'id_verification_required']]
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
@@ -199,13 +201,15 @@ def get_basket_content_mobile(request):
 #@authentication_classes((BearerAuthentication,))
 @permission_classes([IsAuthenticated])
 def get_course_discount_info(request, sku):
+    if not Product.objects.filter(stockrecords__partner_sku=sku).exists():
+        return Response({"status": False, "message": "Course not found", "status_code": 404})
     product = Product.objects.get(stockrecords__partner_sku=sku)
     product_price = product.stockrecords.first().price_excl_tax
-    discount_info = {'discount_applicable': False, 'discounted_price': product_price, 'original_price': product_price, 'discount_percentage': 0.00}
+    discount_info = {'status_code':200, 'discount_applicable': False, 'discounted_price': product_price, 'original_price': product_price, 'discount_percentage': 0.00}
 
     offers = Applicator().get_site_offers()
     for offer in offers:
-        if offer.condition.range.contains_product(product):
+        if offer.condition.range and offer.condition.range.contains_product(product):
             if offer.benefit.type == 'Percentage':
                 discounted_price = round((product_price - (offer.benefit.value/100) * product_price ), 2)
                 discount_info.update({'discounted_price': discounted_price, 'discount_applicable': True, 'discount_percentage' : offer.benefit.value })
