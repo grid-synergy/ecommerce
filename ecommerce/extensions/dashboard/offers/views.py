@@ -6,6 +6,18 @@ from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
 from oscar.apps.dashboard.offers.views import OfferMetaDataView as CoreOfferMetaDataView
 from oscar.apps.dashboard.offers.views import OfferRestrictionsView as CoreOfferRestrictionsView
+from oscar.apps.dashboard.offers.views import OfferWizardStepView
+from oscar.apps.dashboard.offers.views import OfferBenefitView
+from oscar.apps.dashboard.offers.forms import BenefitForm as CoreBenefitForm
+from oscar.apps.dashboard.offers.views import OfferDetailView as CoreOfferDetailView
+from django.contrib.sites.models import Site
+from oscar.apps.dashboard.offers.views import OfferDeleteView as CoreOfferDeleteView
+from oscar.core.loading import get_model
+from django.http import HttpResponseRedirect
+
+ConditionalOffer = get_model('offer', 'ConditionalOffer')
+
+import logging
 
 
 class OfferMetaDataView(CoreOfferMetaDataView):
@@ -38,6 +50,8 @@ class OfferMetaDataView(CoreOfferMetaDataView):
         return {}
 
 
+
+
 class OfferRestrictionsView(CoreOfferRestrictionsView):
 
     def form_valid(self, form):
@@ -47,3 +61,72 @@ class OfferRestrictionsView(CoreOfferRestrictionsView):
         session_offer = self._fetch_session_offer()
         offer.partner = session_offer.site.siteconfiguration.partner
         return self.save_offer(offer)
+
+    def save_offer(self, offer):
+        response = super().save_offer(offer)
+        if len(offer.condition.range.all_products()) == 1 and offer.benefit.type == 'Percentage':
+            site = self.request.site
+            product = offer.condition.range.all_products()[0]
+            sku = product.stockrecords.first().partner_sku
+            data = {'discount_percentage': float(offer.benefit.value)}
+            commerce_api_client = site.siteconfiguration.lhub_commerce_api_client
+            update_discount_response  = commerce_api_client.update_discount(sku).post(data=data)
+        return response
+
+
+
+class OfferDetailView(CoreOfferDetailView):
+
+    def suspend(self):
+        response = super().suspend()
+        if self.offer.is_suspended:
+            offer = self.offer
+            if len(offer.condition.range.all_products()) == 1 and offer.benefit.type == 'Percentage':
+                site = Site.objects.get_current()
+                product = offer.condition.range.all_products()[0]
+                sku = product.stockrecords.first().partner_sku
+                data = {'discount_percentage': 0.00}
+                commerce_api_client = site.siteconfiguration.lhub_commerce_api_client
+                update_discount_response  = commerce_api_client.update_discount(sku).post(data=data)
+                if update_discount_response['status_code'] == 200:
+                    return response
+
+
+
+    def unsuspend(self):
+        response = super().unsuspend()
+        if not self.offer.is_suspended:
+            offer = self.offer
+            if len(offer.condition.range.all_products()) == 1 and offer.benefit.type == 'Percentage':
+                site = Site.objects.get_current()
+                product = offer.condition.range.all_products()[0]
+                sku = product.stockrecords.first().partner_sku
+                data = {'discount_percentage': float(offer.benefit.value)}
+                commerce_api_client = site.siteconfiguration.lhub_commerce_api_client
+                update_discount_response  = commerce_api_client.update_discount(sku).post(data=data)
+                if update_discount_response['status_code'] == 200:
+                    return response
+
+
+
+class OfferDeleteView(CoreOfferDeleteView):
+
+ 
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        offer = self.object
+        offer_type = offer.benefit.type
+        product = offer.condition.range.all_products()[0]
+        sku = product.stockrecords.first().partner_sku
+        delete_response = self.object.delete()
+        
+        if len(offer.condition.range.all_products()) == 1 and offer_type == 'Percentage':
+            site = Site.objects.get_current()
+            data = {'discount_percentage': 0.00}
+            commerce_api_client = site.siteconfiguration.lhub_commerce_api_client
+            update_discount_response  = commerce_api_client.update_discount(sku).post(data=data)
+            if update_discount_response['status_code'] == 200:
+               return HttpResponseRedirect(success_url)
+
+        return HttpResponseRedirect(success_url)

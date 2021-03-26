@@ -480,7 +480,11 @@ class SiteConfiguration(models.Model):
     @cached_property
     def commerce_api_client(self):
         return EdxRestApiClient(self.build_lms_url('/api/commerce/v1/'), jwt=self.access_token)
-
+    
+    @cached_property
+    def lhub_commerce_api_client(self):
+        return EdxRestApiClient(self.build_lms_url('/api/commerce/v2/'), jwt=self.access_token)
+   
     @cached_property
     def credit_api_client(self):
         return EdxRestApiClient(self.build_lms_url('/api/credit/v1/'), jwt=self.access_token)
