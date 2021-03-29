@@ -59,6 +59,7 @@ class OfferRestrictionsView(CoreOfferRestrictionsView):
 
         # Make sure to save offer.site from the session_offer
         session_offer = self._fetch_session_offer()
+        session_offer.site = Site.objects.get_current()
         offer.partner = session_offer.site.siteconfiguration.partner
         return self.save_offer(offer)
 
