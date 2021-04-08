@@ -147,3 +147,27 @@ def send_course_purchase_email(sender, order=None, request=None, **kwargs):  # p
                     order.site,
                     recipient
                 )
+
+
+
+@receiver(post_checkout, dispatch_uid='send_completed_order_email')
+@silence_exceptions("Failed to send order completion email.")
+def send_confirm_purchase_email(sender, order=None, request=None, **kwargs):
+    product = order.lines.first().product
+    recipient = request.POST.get('req_bill_to_email', order.user.email) if request else order.user.email
+    receipt_page_url = get_receipt_page_url(
+        order_number=order.number,
+        site_configuration=order.site.siteconfiguration
+    )
+    send_notification(
+        order.user,
+        'CREDIT_RECEIPT',
+        {
+            'course_title': "Test",
+            'receipt_page_url': receipt_page_url,
+            'credit_hours': 20,
+            'credit_provider': "test",
+        },
+            order.site,
+            recipient
+    )

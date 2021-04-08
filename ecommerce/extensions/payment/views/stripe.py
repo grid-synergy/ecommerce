@@ -15,6 +15,7 @@ from ecommerce.extensions.checkout.utils import get_receipt_page_url
 from ecommerce.extensions.payment.forms import StripeSubmitForm
 from ecommerce.extensions.payment.processors.stripe import Stripe
 from ecommerce.extensions.payment.views import BasePaymentSubmitView
+from ecommerce.extensions.checkout.signals import send_confirm_purchase_email
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,7 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
 
         try:
             order = self.create_order(self.request, committed_basket, billing_address=billing_address)
+            send_confirm_purchase_email(None, user=self.request.user, order=order)
         except Exception:  # pylint: disable=broad-except
             logger.exception('An error occurred while processing the Stripe payment for basket [%d].', committed_basket.id)
             return JsonResponse({}, status=400)

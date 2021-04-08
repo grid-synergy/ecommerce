@@ -20,6 +20,7 @@ from ecommerce.extensions.offer.dynamic_conditional_offer import DynamicPercenta
 import json
 from ecommerce.extensions.api.serializers import BasketSerializer
 import requests
+from ecommerce.extensions.checkout.signals import send_confirm_purchase_email
 
 logger = logging.getLogger(__name__)
 BillingAddress = get_model('order', 'BillingAddress')
@@ -126,6 +127,14 @@ class PaymentView(APIView, EdxOrderPlacementMixin):
                                 if filtered_lines.exists():
                                     filtered_lines.delete();
                                 last_open_basket.save()
+
+                        # send's payment confirmation mail to user
+                        try:
+                            order = order.objects.get(basket=basket)
+                            user = order.user
+                            send_confirm_purchase_email(None, user=request.user, order=order)
+                        except:
+                            pass
 
                         return Response({"message":"Payment completed.", "status": True, "result": response, "status_code":200})
                 except Exception as e:
