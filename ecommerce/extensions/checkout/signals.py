@@ -100,53 +100,53 @@ def send_course_purchase_email(sender, order=None, request=None, **kwargs):  # p
     """
     Send seat purchase notification email
     """
-    if waffle.switch_is_active('ENABLE_NOTIFICATIONS'):
-        if len(order.lines.all()) != ORDER_LINE_COUNT:
-            logger.info('Currently support receipt emails for order with one item.')
-            return
+    #if waffle.switch_is_active('ENABLE_NOTIFICATIONS'):
+    #    if len(order.lines.all()) != ORDER_LINE_COUNT:
+    #        logger.info('Currently support receipt emails for order with one item.')
+    #        return
 
-        product = order.lines.first().product
-        if product.is_seat_product or product.is_course_entitlement_product:
-            recipient = request.POST.get('req_bill_to_email', order.user.email) if request else order.user.email
-            receipt_page_url = get_receipt_page_url(
-                order_number=order.number,
-                site_configuration=order.site.siteconfiguration
-            )
-            credit_provider_id = getattr(product.attr, 'credit_provider', None)
-            if credit_provider_id:
-                provider_data = get_credit_provider_details(
-                    credit_provider_id=credit_provider_id,
-                    site_configuration=order.site.siteconfiguration
-                )
+    #    product = order.lines.first().product
+    #    if product.is_seat_product or product.is_course_entitlement_product:
+    #        recipient = request.POST.get('req_bill_to_email', order.user.email) if request else order.user.email
+    #        receipt_page_url = get_receipt_page_url(
+    #            order_number=order.number,
+    #            site_configuration=order.site.siteconfiguration
+    #        )
+    #        credit_provider_id = getattr(product.attr, 'credit_provider', None)
+    #        if credit_provider_id:
+    #            provider_data = get_credit_provider_details(
+    #                credit_provider_id=credit_provider_id,
+    #                site_configuration=order.site.siteconfiguration
+    #            )
 
-                if provider_data:
-                    send_notification(
-                        order.user,
-                        'CREDIT_RECEIPT',
-                        {
-                            'course_title': product.title,
-                            'receipt_page_url': receipt_page_url,
-                            'credit_hours': product.attr.credit_hours,
-                            'credit_provider': provider_data['display_name'],
-                        },
-                        order.site,
-                        recipient
-                    )
-            elif getattr(product.attr, 'certificate_type', None) == 'credit':
-                logger.error(
-                    'Failed to send credit receipt notification. Credit seat product [%s] has no provider.', product.id
-                )
-            elif order.basket.total_incl_tax != 0:
-                send_notification(
-                    order.user,
-                    'COURSE_PURCHASED',
-                    {
-                        'course_title': product.title,
-                        'receipt_page_url': receipt_page_url,
-                    },
-                    order.site,
-                    recipient
-                )
+    #            if provider_data:
+    #                send_notification(
+    #                    order.user,
+    #                    'CREDIT_RECEIPT',
+    #                    {
+    #                        'course_title': product.title,
+    #                        'receipt_page_url': receipt_page_url,
+    #                        'credit_hours': product.attr.credit_hours,
+    #                        'credit_provider': provider_data['display_name'],
+    #                    },
+    #                    order.site,
+    #                    recipient
+    #                )
+    #        elif getattr(product.attr, 'certificate_type', None) == 'credit':
+    #            logger.error(
+    #                'Failed to send credit receipt notification. Credit seat product [%s] has no provider.', product.id
+    #            )
+    #        elif order.basket.total_incl_tax != 0:
+    #            send_notification(
+    #                order.user,
+    #                'COURSE_PURCHASED',
+    #                {
+    #                    'course_title': product.title,
+    #                    'receipt_page_url': receipt_page_url,
+    #                },
+    #                order.site,
+    #                recipient
+    #            )
 
 
 
