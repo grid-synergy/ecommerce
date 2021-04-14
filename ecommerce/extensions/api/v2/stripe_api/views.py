@@ -206,24 +206,35 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
             if total_amount > 0:
                 try:
                     with transaction.atomic():
+                        logging.info("====================== Inside try ==========================")
                         payment_response = self.make_stripe_payment_for_mobile(None, user_basket)
+                        logging.info("=========== ========================== payment_response: %s", payment_response.__dict__)
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "client_secret": payment_response.client_secret}
 
                         # change the status of last saved basket to open
                         baskets = Basket.objects.filter(owner=user, status="Open")
+                        logging.info("==================================== baskets: %s", baskets.__dict__)
                         if baskets.exists():
                             last_open_basket = baskets.last()
+                            logging.info("==================================== last_open_basket: %s", last_open_basket)
                             del_lines = user_basket.all_lines()
+                            logging.info("==================================== del_lines: %s", del_lines)
                             open_lines = last_open_basket.all_lines()
+                            logging.info("==================================== open_lines: %s", open_lines)
                             for line in del_lines:
+                                logging.info("====================== Inside for loop  ==========================")
                                 product = line.product
+                                logging.info("==================================== product: %s", product)
                                 filtered_lines = open_lines.filter(product_id=product.id)
+                                logging.info("==================================== filtered_lines: %s", filtered_lines)
                                 if filtered_lines.exists():
+                                    logging.info("====================== Inside if  ==========================")
                                     filtered_lines.delete();
                                 last_open_basket.save()
 
                         # Freezing basket to prevent student from getting enrolled to possibily unpaid courses
+                                logging.info("====================== Inside for loop  ==========================")
                         user_basket.status = Basket.FROZEN
                         user_basket.save()
 
