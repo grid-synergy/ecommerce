@@ -298,3 +298,37 @@ class ReceiptResponseView(ThankYouView):
             messages.add_message(request, messages.INFO, message, extra_tags='safe')
             return learner_portal_url
         return None
+
+
+class CardSelection(TemplateView, RedirectView):
+
+    template_name = 'edx/checkout/card_selection.html'
+
+    def dispatch(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        return super(CardSelection, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+        customer_id = self.request.user.tracking_context["customer_id"]
+        logging.info(customer_id)
+        stripe_response = stripe.PaymentMethod.list(
+            customer = customer_id,
+            type = "card",
+        )
+        context = super(CardSelection, self).get_context_data(**kwargs)
+        context["stripe_response"] = stripe_response["data"]
+
+        return context
+
+    def render_to_response(self, context):
+
+        if "customer_id" not in self.request.user.tracking_context.keys():
+            return redirect(reverse('basket:summary'))
+
+        return super(CardSelection, self).render_to_response(context)
+
+
+
+

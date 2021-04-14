@@ -91,7 +91,7 @@ class BasketViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(('GET',))
 def get_basket_content(request):
 
-    try:
+    if True:
         checkout_response = None
         basket = None
         if request.GET.get('id'):
@@ -113,7 +113,11 @@ def get_basket_content(request):
                 if item['code'] == 'course_key': 
                     course_id = item['value'] 
             lms_url = get_lms_url('/api/commerce/v2/checkout/' + course_id)
-            commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
+            logging.info('============================')
+            access_token = str(request.site.siteconfiguration.access_token)
+            logging.info('============================')
+            logging.info(access_token)
+            commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' +  access_token})
             commerce_response = json.loads(commerce_response.text)
             if commerce_response['status_code'] == 200:
                 price = commerce_response['result']['modes'][0]['price']
@@ -136,16 +140,16 @@ def get_basket_content(request):
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
         return Response(checkout_response)
-    except Exception as e:
-        logging.info(e)
-        return Response(str(e))
+    #except Exception as e:
+    #    logging.info(e)
+    #    return Response(str(e))
 
 
 
 @api_view(('GET',))
 def get_basket_content_mobile(request):
 
-    try:
+    if True:
         checkout_response = None
         basket = None
         if request.GET.get('id'):
@@ -190,9 +194,9 @@ def get_basket_content_mobile(request):
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
        
         return Response(checkout_response)
-    except Exception as e:
-        logging.info(e)
-        return Response(str(e))
+    #except Exception as e:
+    #    logging.info(e)
+    #    return Response(str(e))
 
 
 
