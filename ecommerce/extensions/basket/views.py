@@ -634,7 +634,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
         tracking_context = user.tracking_context or {}
         customer_card_info = {}
-        if not (tracking_context.get('customer_id', None) and tracking_context.get('token', None)):
+        if not self.kwargs.get("pm_id"):
             customer_card_info.update({
                 'card_number': '',
                 'card_expiry_month': '',
@@ -649,23 +649,43 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
                 'id_country': ''
             })
         else:
-            customer_id = tracking_context.get('customer_id')
-            customer = stripe.Customer.retrieve(customer_id)
-            card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
+            # customer_id = tracking_context.get('customer_id')
+            # customer = stripe.Customer.retrieve(customer_id)
+            # card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
+            # customer_card_info.update({
+            #     'card_number': 'XXXXXXXXXXXX' + card_info['last4'],
+            #     'card_expiry_month': str(card_info['exp_month']).zfill(2),
+            #     'card_expiry_year': card_info['exp_year'],
+            #     'card_cvn': '000',
+            #     'card_brand': card_info['brand'],
+            #     'id_full_name': card_info['name'],
+            #     'id_postal_code': card_info['address_zip'],
+            #     'id_address_line1': card_info['address_line1'],
+            #     'id_address_line2': card_info['address_line2'],
+            #     'id_city': card_info['address_city'],
+            #     'id_state': card_info['address_state'],
+            #     'id_country': card_info['address_country']
+            # })
+
+            payment_id = self.kwargs.get("pm_id")
+            payment_info = stripe.PaymentMethod.retrieve(payment_id)
             customer_card_info.update({
-                'card_number': 'XXXXXXXXXXXX' + card_info['last4'],
-                'card_expiry_month': str(card_info['exp_month']).zfill(2),
-                'card_expiry_year': card_info['exp_year'],
+                'card_number': 'XXXXXXXXXXXX' + payment_info['card']['last4'],
+                'card_expiry_month': str(payment_info['card']['exp_month']).zfill(2),
+                'card_expiry_year': payment_info['card']['exp_year'],
                 'card_cvn': '000',
-                'card_brand': card_info['brand'],
-                'id_full_name': card_info['name'],
-                'id_postal_code': card_info['address_zip'],
-                'id_address_line1': card_info['address_line1'],
-                'id_address_line2': card_info['address_line2'],
-                'id_city': card_info['address_city'],
-                'id_state': card_info['address_state'],
-                'id_country': card_info['address_country']
+                'card_brand': payment_info['card']['brand'],
+                'id_full_name': payment_info['billing_details']['name'],
+                'id_postal_code': payment_info['billing_details']['address']['postal_code'],
+                'id_address_line1': payment_info['billing_details']['address']['line1'],
+                'id_address_line2': payment_info['billing_details']['address']['line2'],
+                'id_city': payment_info['billing_details']['address']['city'],
+                'id_state': payment_info['billing_details']['address']['state'],
+                'id_country': payment_info['billing_details']['address']['country']
             })
+
         logger.info(customer_card_info)
         logger.info(customer_card_info['id_city'])
         return customer_card_info
