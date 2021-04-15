@@ -70,19 +70,20 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
 
-        if tracking_context.get('customer_id'):
+        if tracking_context.get('customer_id') and not forMobile:
             token_data = stripe.Token.retrieve(
                token,
             )
+            selected_card = tracking_context.get('selected_payment_card_id', None)
 
-            try:
+            if selected_card:
                card_retrieve = stripe.Customer.retrieve_source(
                   tracking_context.get('customer_id'),
-                  token_data["card"]["id"],
+                  selected_card,
                )
-               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= token_data["card"]["id"])
+               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= selected_card)
 
-            except stripe.error.InvalidRequestError as e:
+            else:
                src = stripe.Customer.create_source(
                   tracking_context.get('customer_id'),
                   source=token
