@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title></title>
+{% extends 'edx/base.html' %}
 
+
+{% block content %}
 	<style>
 .payment-card-sec {
 	display: flex;
@@ -77,6 +76,7 @@ img.credit-cards-img {
 
 .pay-card-opt-ls {
 	display: flex;
+	position: relative;
 	margin: 0px auto;
 	align-items: center;
 	justify-content: flex-start;
@@ -86,12 +86,13 @@ img.credit-cards-img {
 }
 
 .credit-cards-name {
-	font-size: 18px;
-	font-weight: 600;
-	font-family: 'Poppins';
-	margin-left: 5%;
-	color: #bfbfbf;
-	text-transform: uppercase;
+	font-size: 16px;
+    font-weight: 600;
+    font-family: 'Poppins';
+    margin-bottom: 0px;
+    margin-left: 5%;
+    color: #bfbfbf;
+    text-transform: uppercase;
 }
 
 span.credit-cards-num {
@@ -100,26 +101,30 @@ span.credit-cards-num {
 
 .add-pay-card-btn {
 	display: flex;
-	margin: 25px auto 0px auto;
+    justify-content: space-between;
+    padding: 30px 35px 0px 35px;
 }
 
 .add-pay-card-btn a {
 	background: #1a345c;
-	color: #ffffff;
-	padding: 15px 35px;
-	display: flex;
-	align-items: center;
-	text-decoration: none !important;
-	font-size: 12px;
-	font-weight: 600;
-	font-family: 'Poppins';
-	border-radius: 5px;
+    color: #ffffff;
+    max-width: 149px;
+    width: 100%;
+    padding: 4px 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Poppins';
+    border-radius: 5px;
 }
 
 .add-pay-card-btn span {
-	font-size: 28px;
-	font-weight: 400;
-	margin-right: 7px;
+	font-size: 24px;
+    font-weight: 600;
+    margin-right: 7px;
 }
 
 .payment-card label {
@@ -133,70 +138,62 @@ span.credit-cards-num {
 }
 
 .payment-card input {
-	opacity: 0;
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	z-index: -1;
-}
-
-.payment-card .design {
-	width: 16px;
-	height: 16px;
-	border: 1px solid #1a345c;
-	border-radius: 100%;
-	margin-right: 16px;
-	position: relative;
-}
-
-.payment-card .design::before,
-.payment-card .design::after {
-	content: "";
-	display: block;
-	width: inherit;
-	height: inherit;
-	border-radius: inherit;
-	position: absolute;
-	transform: scale(0);
-	transform-origin: center center;
-}
-
-.payment-card .design:before {
-	background: var(--other);
-	opacity: 0;
-	transition: .3s;
-}
-
-.payment-card .design::after {
-	background: #1a345c;
-	opacity: .4;
-	transition: .6s;
-}
-
-.payment-card input:checked+.design::before {
 	opacity: 1;
-	transform: scale(.6);
+    position: relative;
+    top: 0;
+    z-index: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0px;
 }
 
-.payment-card input:hover+.design:before,
-.payment-card input:focus+.design:before {
-	background: #1a345c;
+.pay-card-opt-ls input:before {
+  content: " ";
+  display: inline-block;
+  position: relative;
+  top: 0px;
+  margin: 0 5px 0 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 11px;
+  border: 2px solid #18355e;
+  background-color: transparent;
 }
 
-.payment-card input:focus+.design::after,
-.payment-card input:active+.design::after {
-	opacity: .1;
-	transform: scale(2.6);
+.pay-card-opt-ls input[type=radio]:checked:after {
+  border-radius: 11px;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  content: " ";
+  display: block;
+  background: #18355e;
 }
 
 .add-pay-card-btn a:hover {
 	color: #ffffff;
 	background: #1a2e4e;
 }
+
+p.default-mark {
+    margin: 0px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #33aa65;
+    border: 1px solid #33aa65;
+    padding: 4px 10px;
+    border-radius: 5px;
+    position: absolute;
+    right: 0;
+}
+
+.add-pay-card-btn i {
+    font-size: 14px;
+    margin-left: 12px;
+}
 	</style>
-</head>
-<body>
 <div class="payment-card-sec">
    <div class="payment-card">
 	{% csrf_token %}
@@ -206,33 +203,44 @@ span.credit-cards-num {
       </div>
       <div class="pay-card-opt">
 		{% for cards in stripe_response %}
+			{% if customer_default_card == cards.id %}
 			<div class="pay-card-opt-ls">
 				<div>
 					<label>
-				<input type="radio" name="light" checked="" id="{{ cards.id }}">
-				<span class="design"></span>
-				</label>
+						<input type="radio" name="light" checked id="{{ cards.id }}">
+					</label>
+				</div>
+				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
+				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+				<p class="default-mark">Default Selected Card</p>
+			</div>
+			{% else %}
+			<div class="pay-card-opt-ls">
+				<div>
+					<label>
+						<input type="radio" name="light" id="{{ cards.id }}">
+					</label>
 				</div>
 				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
 				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
 			</div>
+			{% endif %}
 		 {% endfor %}
          <div class="add-pay-card-btn">
-            <a href="#" onclick="continue_to_basket();"> Continue</a>
-         </div>
-         <div class="add-pay-card-btn">
-            <a href="/basket/"><span>+</span> Add New Card</a>
+			 <a href="/basket/"><span>+</span> Add New Card</a>
+            <a href="#" onclick="continue_to_basket();"> Continue<i class="fa fa-arrow-right"></i></a>
          </div>
       </div>
    </div>
 </div>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-	<script>
-		function continue_to_basket(){
-			var selected_value = document.querySelector('input[name="light"]:checked').id;
-			var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	function continue_to_basket(){
+		var selected_value = document.querySelector('input[name="light"]:checked').id;
+		var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
 			window.location.replace(host);
 		}
-	</script>
-</body>
-</html>
+		</script>
+
+{% endblock content %}
