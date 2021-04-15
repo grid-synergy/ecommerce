@@ -635,6 +635,10 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         tracking_context = user.tracking_context or {}
         customer_card_info = {}
         if not self.kwargs.get("pm_id"):
+            tracking_context.pop("selected_payment_card_id", None)
+            user.tracking_context = tracking_context
+            user.save()
+
             customer_card_info.update({
                 'card_number': '',
                 'card_expiry_month': '',
@@ -670,6 +674,8 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             # })
 
             payment_id = self.kwargs.get("pm_id")
+            user.tracking_context["selected_payment_card_id"] = payment_id
+            user.save()
             payment_info = stripe.PaymentMethod.retrieve(payment_id)
             customer_card_info.update({
                 'card_number': 'XXXXXXXXXXXX' + payment_info['card']['last4'],

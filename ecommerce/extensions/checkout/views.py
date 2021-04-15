@@ -311,6 +311,8 @@ class CardSelection(TemplateView, RedirectView):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
 
+        if "customer_id" not in self.request.user.tracking_context.keys():
+            return super(CardSelection, self).get_context_data(**kwargs)
         customer_id = self.request.user.tracking_context["customer_id"]
         logging.info(customer_id)
         stripe_response = stripe.PaymentMethod.list(
