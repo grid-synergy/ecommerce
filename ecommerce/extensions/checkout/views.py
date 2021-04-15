@@ -317,8 +317,13 @@ class CardSelection(TemplateView, RedirectView):
             customer = customer_id,
             type = "card",
         )
+
+        customer = stripe.Customer.retrieve(customer_id)
+        card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
         context = super(CardSelection, self).get_context_data(**kwargs)
         context["stripe_response"] = stripe_response["data"]
+        context["customer_default_card"] = card_info["id"]
 
         return context
 
