@@ -70,6 +70,29 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
 
+        if tracking_context.get('customer_id'):
+            token_data = stripe.Token.retrieve(
+               token,
+            )
+
+            try:
+               card_retrieve = stripe.Customer.retrieve_source(
+                  tracking_context.get('customer_id'),
+                  token_data["card"]["id"],
+               )
+               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= token_data["card"]["id"])
+
+            except stripe.error.InvalidRequestError as e:
+               src = stripe.Customer.create_source(
+                  tracking_context.get('customer_id'),
+                  source=token
+               )
+               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= src["id"])
+
+            customer_id = customer['id']
+            basket.owner.tracking_context.update({'token':token})
+            basket.owner.save()
+
         if token is None:
             customer_id = tracking_context.get('customer_id')
         elif not tracking_context.get('customer_id', None):
@@ -91,12 +114,6 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             customer_id = customer['id']
             basket.owner.tracking_context = basket.owner.tracking_context or {}
             basket.owner.tracking_context.update({'customer_id': customer_id, 'token': token})
-            basket.owner.save()
-
-        elif not tracking_context.get('token', None):
-            customer = stripe.Customer.modify(tracking_context.get('customer_id'), source=token)
-            customer_id = customer['id']
-            basket.owner.tracking_context.update({'token':token})
             basket.owner.save()
 
         else:
