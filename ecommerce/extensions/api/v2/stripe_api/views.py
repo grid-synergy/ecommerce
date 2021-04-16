@@ -210,19 +210,6 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
                         response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
                                     "currency": payment_response.currency, "client_secret": payment_response.client_secret}
 
-                        # change the status of last saved basket to open
-                        baskets = Basket.objects.filter(owner=user, status="Open")
-                        if baskets.exists():
-                            last_open_basket = baskets.last()
-                            del_lines = user_basket.all_lines()
-                            open_lines = last_open_basket.all_lines()
-                            for line in del_lines:
-                                product = line.product
-                                filtered_lines = open_lines.filter(product_id=product.id)
-                                if filtered_lines.exists():
-                                    filtered_lines.delete();
-                                last_open_basket.save()
-
                         # Freezing basket to prevent student from getting enrolled to possibily unpaid courses
                         user_basket.status = Basket.FROZEN
                         user_basket.save()
@@ -263,7 +250,6 @@ class ConfirmPaymentMobileView(APIView, EdxOrderPlacementMixin):
         basket = Basket.objects.get(id=basket_id)
         basket.strategy = Selector().strategy(user=self.request.user)
 
-
         # Get billing details from payment intent (to be specific, from payment method)
         billing_details = payment_intent.charges.data[0].billing_details
 
@@ -298,6 +284,21 @@ class ConfirmPaymentMobileView(APIView, EdxOrderPlacementMixin):
 
         checkout_response['products'] = [i for j in checkout_response['products'] for i in j if not i['code'] in ['certificate_type', 'course_key', 'id_verification_required']]
         response = {"order_number": payment_intent.description, "total": payment_intent.amount, "products": checkout_response['products']}
+
+        # change the status of last saved basket to open
+        baskets = Basket.objects.filter(owner=self.request.user, status="Open")
+        if baskets.exists():
+            last_open_basket = baskets.last()
+            del_lines = basket.all_lines()
+            open_lines = last_open_basket.all_lines()
+            for line in del_lines:
+                product = line.product
+                filtered_lines = open_lines.filter(product_id=product.id)
+                if filtered_lines.exists():
+                    filtered_lines.delete();
+            last_open_basket.save()
+
+
         return Response({"message":"order completed successfully", "status": True, "result": response, "status_code":200})
 
     def get_address_from_payment_intent(self, billing_details):
