@@ -4,6 +4,8 @@ from django.conf.urls import url
 from oscar.apps.checkout import apps
 from oscar.core.loading import get_class
 
+from django.contrib.auth.decorators import login_required
+
 
 class CheckoutConfig(apps.CheckoutConfig):
     name = 'ecommerce.extensions.checkout'
@@ -19,6 +21,7 @@ class CheckoutConfig(apps.CheckoutConfig):
         self.cancel_checkout = get_class('checkout.views', 'CancelCheckoutView')
         self.checkout_error = get_class('checkout.views', 'CheckoutErrorView')
         self.receipt_response = get_class('checkout.views', 'ReceiptResponseView')
+        self.card_selection = get_class('checkout.views', 'CardSelection')
 
     def get_urls(self):
         urls = [
@@ -53,5 +56,9 @@ class CheckoutConfig(apps.CheckoutConfig):
             url(r'preview/$',
                 self.payment_details_view.as_view(preview=True),
                 name='preview'),
+
+            # Card Selection View
+            url(r'^card-selection/', login_required(self.card_selection.as_view()), name='card-selection'),
+
         ]
         return self.post_process_urls(urls)

@@ -13,6 +13,7 @@ SKU_NOT_FOUND_USER_MESSAGE = _("We couldn't locate the identification code neces
 
 PRODUCT_NOT_FOUND_DEVELOPER_MESSAGE = u"Catalog does not contain a product with SKU [{sku}]"
 PRODUCT_NOT_FOUND_USER_MESSAGE = _("We couldn't find one of the products you're looking for.")
+PRODUCT_ALREADY_ADDED_USER_MESSAGE = _("Product already added.")
 
 PRODUCT_UNAVAILABLE_DEVELOPER_MESSAGE = u"Product with SKU [{sku}] is [{availability}]"
 PRODUCT_UNAVAILABLE_USER_MESSAGE = _("One of the products you're trying to order is unavailable.")

@@ -72,6 +72,7 @@ from ecommerce.extensions.order.exceptions import AlreadyPlacedOrderException
 from ecommerce.extensions.partner.shortcuts import get_partner_for_site
 from ecommerce.extensions.payment.constants import CLIENT_SIDE_CHECKOUT_FLAG_NAME
 from ecommerce.extensions.payment.forms import PaymentForm
+# from oscar.apps.checkout.applicator import SurchargeApplicator
 
 Basket = get_model('basket', 'basket')
 BasketAttribute = get_model('basket', 'BasketAttribute')
@@ -83,7 +84,9 @@ Product = get_model('catalogue', 'Product')
 StockRecord = get_model('partner', 'StockRecord')
 Voucher = get_model('voucher', 'Voucher')
 Selector = get_class('partner.strategy', 'Selector')
-
+BasketLineFormSet, SavedLineFormSet = get_classes(
+    'basket.formsets', ('BasketLineFormSet', 'SavedLineFormSet'))
+Applicator = get_class('offer.applicator', 'Applicator')
 
 class BasketLogicMixin:
     """
@@ -165,7 +168,6 @@ class BasketLogicMixin:
         # TODO This ValueError handling no longer seems to be required and could probably be removed
         except ValueError:  # pragma: no cover
             total_benefit_object = None
-
         num_of_items = self.request.basket.num_items
 
         discount_jwt = None
@@ -512,15 +514,55 @@ class BasketAddItemsView(BasketLogicMixin, APIView):
 
 
 class BasketSummaryView(BasketLogicMixin, BasketView):
+
     @newrelic.agent.function_trace()
     def get_context_data(self, **kwargs):
+        try:
+            basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+            basket.strategy = Selector().strategy(user=self.request.user)
+            basket.save()
+        except:
+            basket = Basket.create_basket(self.request.site, self.request.user)
+            basket.strategy = Selector().strategy(user=self.request.user)
+            basket.status = "Commited"
+            basket.save()
         context = super(BasketSummaryView, self).get_context_data(**kwargs)
+        context['voucher_form'] = super(BasketSummaryView, self).get_basket_voucher_form()
+        context['shipping_methods'] = super(BasketSummaryView, self).get_shipping_methods(basket)
+        method = super(BasketSummaryView, self).get_default_shipping_method(basket)
+        context['shipping_method'] = method
+        shipping_charge = method.calculate(basket)
+        context['shipping_charge'] = shipping_charge
+        if method.is_discounted:
+            excl_discount = method.calculate_excl_discount(basket)
+            context['shipping_charge_excl_discount'] = excl_discount
+        context['basket_warnings'] = super(BasketSummaryView, self).get_basket_warnings(basket)
+        context['upsell_messages'] = super(BasketSummaryView, self).get_upsell_messages(basket)
+        if self.request.user.is_authenticated:
+            saved_basket = basket
+
+            try:
+                saved_basket = basket
+            except:
+                pass
+            else:
+                saved_basket.strategy = basket.strategy
+                if not saved_basket.is_empty:
+                    saved_queryset = saved_basket.all_lines()
+                    formset = SavedLineFormSet(strategy=self.request.strategy,
+                                               basket=basket,
+                                               queryset=saved_queryset,
+                                               prefix='saved')
+                    context['saved_formset'] = formset
+        
+        Applicator().apply(basket, basket.owner, self.request)
+        context['order_total'] = OrderTotalCalculator().calculate(
+            basket, shipping_charge, surcharges=0)
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
     def get(self, request, *args, **kwargs):
         basket = request.basket
-
         try:
             self.fire_segment_events(request, basket)
             self.verify_enterprise_needs(basket)
@@ -547,10 +589,14 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
     @newrelic.agent.function_trace()
     def _add_to_context_data(self, context):
-        formset = context.get('formset', [])
-        lines = context.get('line_list', [])
+        formset = context.get('saved_formset', [])
+        #lines = context.get('line_list', [])
+        commited_basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+        commited_basket.strategy = self.request.strategy
+        commited_basket.save()
+        Applicator().apply(commited_basket, commited_basket.owner, self.request)
+        lines = commited_basket.all_lines()
         site_configuration = self.request.site.siteconfiguration
-
         context_updates, lines_data = self.process_basket_lines(lines)
         context.update(context_updates)
         context.update(self.process_totals(context))
@@ -563,7 +609,8 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'enable_client_side_checkout': False,
             'sdn_check': site_configuration.enable_sdn_check
         })
-
+        cutomer_card_info = self._get_cutomer_card_info(self.request.user)
+        context.update({'cutomer_card_info': dict(cutomer_card_info)})
         payment_processors = site_configuration.get_payment_processors()
         if (
                 site_configuration.client_side_payment_processor and
@@ -571,7 +618,6 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         ):
             payment_processors_data = self._get_payment_processors_data(payment_processors)
             context.update(payment_processors_data)
-
         context.update({
             'formset_lines_data': list(zip(formset, lines_data)),
             'homepage_url': get_lms_url(''),
@@ -579,8 +625,76 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'max_seat_quantity': 100,
             'payment_processors': payment_processors,
             'lms_url_root': site_configuration.lms_url_root,
+            'commited_basket': commited_basket
         })
         return context
+
+    def _get_cutomer_card_info(self, user):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+        tracking_context = user.tracking_context or {}
+        customer_card_info = {}
+        if not self.kwargs.get("pm_id"):
+            tracking_context.pop("selected_payment_card_id", None)
+            user.tracking_context = tracking_context
+            user.save()
+
+            customer_card_info.update({
+                'card_number': '',
+                'card_expiry_month': '',
+                'card_expiry_year': '',
+                'card_cvn': '',
+                'id_full_name': '',
+                'id_postal_code':'',
+                'id_address_line1': '',
+                'id_address_line2': '',
+                'id_city': '',
+                'id_state': '',
+                'id_country': ''
+            })
+        else:
+
+            # customer_id = tracking_context.get('customer_id')
+            # customer = stripe.Customer.retrieve(customer_id)
+            # card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
+            # customer_card_info.update({
+            #     'card_number': 'XXXXXXXXXXXX' + card_info['last4'],
+            #     'card_expiry_month': str(card_info['exp_month']).zfill(2),
+            #     'card_expiry_year': card_info['exp_year'],
+            #     'card_cvn': '000',
+            #     'card_brand': card_info['brand'],
+            #     'id_full_name': card_info['name'],
+            #     'id_postal_code': card_info['address_zip'],
+            #     'id_address_line1': card_info['address_line1'],
+            #     'id_address_line2': card_info['address_line2'],
+            #     'id_city': card_info['address_city'],
+            #     'id_state': card_info['address_state'],
+            #     'id_country': card_info['address_country']
+            # })
+
+            payment_id = self.kwargs.get("pm_id")
+            user.tracking_context["selected_payment_card_id"] = payment_id
+            user.save()
+            payment_info = stripe.PaymentMethod.retrieve(payment_id)
+            customer_card_info.update({
+                'card_number': 'XXXXXXXXXXXX' + payment_info['card']['last4'],
+                'card_expiry_month': str(payment_info['card']['exp_month']).zfill(2),
+                'card_expiry_year': payment_info['card']['exp_year'],
+                'card_cvn': '000',
+                'card_brand': payment_info['card']['brand'],
+                'id_full_name': payment_info['billing_details']['name'],
+                'id_postal_code': payment_info['billing_details']['address']['postal_code'],
+                'id_address_line1': payment_info['billing_details']['address']['line1'],
+                'id_address_line2': payment_info['billing_details']['address']['line2'],
+                'id_city': payment_info['billing_details']['address']['city'],
+                'id_state': payment_info['billing_details']['address']['state'],
+                'id_country': payment_info['billing_details']['address']['country']
+            })
+
+        logger.info(customer_card_info)
+        logger.info(customer_card_info['id_city'])
+        return customer_card_info
 
     @newrelic.agent.function_trace()
     def _get_payment_processors_data(self, payment_processors):

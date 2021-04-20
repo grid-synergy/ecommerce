@@ -18,7 +18,7 @@ from ecommerce.extensions.offer.mixins import (
 Condition = get_model('offer', 'Condition')
 PercentageDiscountBenefit = get_model('offer', 'PercentageDiscountBenefit')
 ZERO_DISCOUNT = get_class('offer.results', 'ZERO_DISCOUNT')
-
+import logging
 
 def get_decoded_jwt_discount_from_request():
     request = crum.get_current_request()
@@ -66,7 +66,7 @@ class DynamicPercentageDiscountBenefit(BenefitWithoutRangeMixin, PercentageDisco
         """
         if not waffle.flag_is_active(crum.get_current_request(), DYNAMIC_DISCOUNT_FLAG):
             return ZERO_DISCOUNT
-        percent = self.benefit_class_value
+        percent = discount_percent if discount_percent else self.benefit_class_value
         if percent:
             application_result = super(DynamicPercentageDiscountBenefit, self).apply(
                 basket,

@@ -77,8 +77,7 @@ define([
 
             cardHolderInfoValidation: function(event) {
                 var requiredFields = [
-                        'input[name=first_name]',
-                        'input[name=last_name]',
+                        'input[name=full_name]',
                         'input[name=city]',
                         'input[name=organization]',
                         'select[name=country]'
@@ -141,9 +140,9 @@ define([
                         Math.floor(value) === value;
                 };
 
-                if (!CreditCardUtils.isValidCardNumber(cardNumber)) {
+                if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
                     BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Invalid card number'));
-                } else if (_.isUndefined(cardType) || !BasketPage.isCardTypeSupported(cardType.name)) {
+                } else if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && (_.isUndefined(cardType) || !BasketPage.isCardTypeSupported(cardType.name))) {
                     BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Unsupported card type'));
                 } else if (cvnNumber.length !== cardType.cvnLength || !Number.isInteger(Number(cvnNumber))) {
                     BasketPage.appendCardValidationErrorMsg(event, $cvn, gettext('Invalid security number'));
@@ -186,7 +185,7 @@ define([
                 if (cardNumber.length > 12) {
                     card = CreditCardUtils.getCreditCardType(cardNumber);
 
-                    if (!CreditCardUtils.isValidCardNumber(cardNumber)) {
+                    if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
                         $('.card-type-icon').attr('src', '').addClass('hidden');
                         return;
                     }
@@ -558,6 +557,44 @@ define([
                         $btn.prev('disabled', true);
                     }
                 });
+
+                var getUrlParameter = function getUrlParameter(sParam) {
+  	            var sPageURL = window.location.search.substring(1),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                    for (i = 0; i < sURLVariables.length; i++) {
+                        sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+        	    }
+    		  }
+   		   return false;
+		  };
+
+                 if(getUrlParameter('buy_now') == "true"){
+                     $('#payment-cancel-button').show();
+		 }
+
+                 $('#payment-cancel-button').click(function(){
+   		     let csrf = $('#csrf-token').val();
+
+    		     $.ajax({
+                         type:"DELETE",
+                         url: "/api/v2/basket_buy_now/",
+                         beforeSend: function(xhr) {
+                         xhr.setRequestHeader("X-CSRFToken", csrf);
+                         },
+                         success: function(response){
+                             location.reload();
+                         },
+                         error: function(data){ 
+                             alert(JSON.parse(data.responseText)['detail']);
+                     },
+   		 });
+	      });
 
                 try {
                     // local currency translation

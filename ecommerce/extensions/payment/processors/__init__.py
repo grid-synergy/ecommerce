@@ -12,6 +12,8 @@ PaymentProcessorResponse = get_model('payment', 'PaymentProcessorResponse')
 
 HandledProcessorResponse = namedtuple('HandledProcessorResponse',
                                       ['transaction_id', 'total', 'currency', 'card_number', 'card_type'])
+HandledMobileProcessorResponse = namedtuple('HandledProcessorResponse',
+                                      ['transaction_id', 'total', 'currency', 'card_number', 'card_type', 'client_secret'])
 
 
 class BasePaymentProcessor(metaclass=abc.ABCMeta):  # pragma: no cover
