@@ -1,0 +1,246 @@
+{% extends 'edx/base.html' %}
+
+
+{% block content %}
+	<style>
+.payment-card-sec {
+	display: flex;
+	align-items: center;
+	float: left;
+	justify-content: center;
+	width: 100%;
+	height: 90vh;
+}
+
+.payment-card {
+	max-width: 540px;
+	width: 100%;
+	position: relative;
+	height: auto;
+	border-radius: 5px;
+	box-shadow: 0 1px 10px 0 rgb(0 0 0 / 13%), inset 0 0 0 1px rgb(255 255 255 / 75%);
+	background: #fff;
+}
+
+h3.pay-title {
+	font-size: 26px;
+	font-family: 'Poppins';
+	font-weight: bolder;
+	text-align: center;
+	color: #1a345c;
+	margin: 25px auto;
+}
+
+button.pay-close-btn {
+	background: #bc1010;
+	border: none;
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	display: flex;
+	box-shadow: none;
+	justify-content: center;
+	align-items: self-end;
+	width: 12px;
+	height: 12px;
+	padding: 11px;
+	text-shadow: none;
+	border-radius: 50%;
+}
+
+button.pay-close-btn span {
+	font-size: 24px;
+	font-weight: bold;
+	line-height: 0;
+}
+
+button.pay-close-btn:hover {
+	background: #e74747;
+}
+
+.pay-card-opt {
+	position: relative;
+	width: 100%;
+	padding-bottom: 20px;
+	height: 100%;
+	display: inline-flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+img.credit-cards-img {
+	width: 40px;
+	height: 40px;
+	margin-left: 4%;
+}
+
+.pay-card-opt-ls {
+	display: flex;
+	position: relative;
+	margin: 0px auto;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 10px 0px;
+	width: 82%;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+.credit-cards-name {
+	font-size: 16px;
+    font-weight: 600;
+    font-family: 'Poppins';
+    margin-bottom: 0px;
+    margin-left: 5%;
+    color: #bfbfbf;
+    text-transform: uppercase;
+}
+
+span.credit-cards-num {
+	color: #1a345c;
+}
+
+.add-pay-card-btn {
+	display: flex;
+    justify-content: space-between;
+    padding: 30px 35px 0px 35px;
+}
+
+.add-pay-card-btn a {
+	background: #1a345c;
+    color: #ffffff;
+    max-width: 149px;
+    width: 100%;
+    padding: 4px 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Poppins';
+    border-radius: 5px;
+}
+
+.add-pay-card-btn span {
+	font-size: 24px;
+    font-weight: 600;
+    margin-right: 7px;
+}
+
+.payment-card label {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	flex-wrap: nowrap;
+	margin: 12px 0;
+	cursor: pointer;
+	position: relative;
+}
+
+.payment-card input {
+	opacity: 1;
+    position: relative;
+    top: 0;
+    z-index: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0px;
+}
+
+.pay-card-opt-ls input:before {
+  content: " ";
+  display: inline-block;
+  position: relative;
+  top: 0px;
+  margin: 0 5px 0 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 11px;
+  border: 2px solid #18355e;
+  background-color: transparent;
+}
+
+.pay-card-opt-ls input[type=radio]:checked:after {
+  border-radius: 11px;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  content: " ";
+  display: block;
+  background: #18355e;
+}
+
+.add-pay-card-btn a:hover {
+	color: #ffffff;
+	background: #1a2e4e;
+}
+
+p.default-mark {
+    margin: 0px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #33aa65;
+    border: 1px solid #33aa65;
+    padding: 4px 10px;
+    border-radius: 5px;
+    position: absolute;
+    right: 0;
+}
+
+.add-pay-card-btn i {
+    font-size: 14px;
+    margin-left: 12px;
+}
+	</style>
+<div class="payment-card-sec">
+   <div class="payment-card">
+	{% csrf_token %}
+	<input id="web_csrf_token" value="{{ csrf_token }}" type="hidden"/>
+	      <div>
+         <h3 class="pay-title">Payment Method</h3>
+      </div>
+      <div class="pay-card-opt">
+		{% for cards in stripe_response %}
+			{% if customer_default_card == cards.id %}
+			<div class="pay-card-opt-ls">
+				<div>
+					<label>
+						<input type="radio" name="light" checked id="{{ cards.id }}">
+					</label>
+				</div>
+				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
+				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+				<p class="default-mark">Default Selected Card</p>
+			</div>
+			{% else %}
+			<div class="pay-card-opt-ls">
+				<div>
+					<label>
+						<input type="radio" name="light" id="{{ cards.id }}">
+					</label>
+				</div>
+				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
+				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+			</div>
+			{% endif %}
+		 {% endfor %}
+         <div class="add-pay-card-btn">
+			 <a href="/basket/"><span>+</span> Add New Card</a>
+            <a href="#" onclick="continue_to_basket();"> Continue<i class="fa fa-arrow-right"></i></a>
+         </div>
+      </div>
+   </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	function continue_to_basket(){
+		var selected_value = document.querySelector('input[name="light"]:checked').id;
+		var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
+			window.location.replace(host);
+		}
+		</script>
+
+{% endblock content %}

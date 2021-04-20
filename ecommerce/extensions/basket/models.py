@@ -19,6 +19,18 @@ class Basket(AbstractBasket):
     site = models.ForeignKey(
         'sites.Site', verbose_name=_("Site"), null=True, blank=True, default=None, on_delete=models.SET_NULL
     )
+    OPEN, MERGED, SAVED, FROZEN, SUBMITTED, COMMITED = (
+        "Open", "Merged", "Saved", "Frozen", "Submitted", "Commited")
+    STATUS_CHOICES = (
+        (OPEN, _("Open - currently active")),
+        (MERGED, _("Merged - superceded by another basket")),
+        (SAVED, _("Saved - for items to be purchased later")),
+        (FROZEN, _("Frozen - the basket cannot be modified")),
+        (SUBMITTED, _("Submitted - has been ordered at the checkout")),
+        (COMMITED, _("Commited - has been commited")),
+    )
+    status = models.CharField(
+        _("Status"), max_length=128, default=OPEN, choices=STATUS_CHOICES)
 
     @property
     def order_number(self):
@@ -100,6 +112,12 @@ class Basket(AbstractBasket):
             status=self.status,
             owner=self.owner,
             num_lines=self.num_lines)
+
+    def is_product_exists(self, product):
+        product_line = self.lines.filter(product_id=product.id)
+        if product_line:
+            return True
+        return False
 
 
 class BasketAttributeType(models.Model):

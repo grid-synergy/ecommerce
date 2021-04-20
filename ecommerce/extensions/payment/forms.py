@@ -56,12 +56,7 @@ class PaymentForm(forms.Form):
         self.helper.layout = Layout(
             Div('basket'),
             Div(
-                Div('first_name'),
-                HTML('<p class="help-block"></p>'),
-                css_class='form-item col-md-6'
-            ),
-            Div(
-                Div('last_name'),
+                Div('full_name'),
                 HTML('<p class="help-block"></p>'),
                 css_class='form-item col-md-6'
             ),
@@ -100,14 +95,14 @@ class PaymentForm(forms.Form):
             # https://www.w3.org/WAI/tutorials/forms/validation/#validating-required-input
             if hasattr(bound_field, 'field') and bound_field.field.required:
                 # Translators: This is a string added next to the name of the required
-                # fields on the payment form. For example, the first name field is
-                # required, so this would read "First name (required)".
+                # fields on the payment form. For example, the full_name field is
+                # required, so this would read "Name on the Card (required)".
                 self.fields[bound_field.name].label = _('{label} (required)').format(label=bound_field.label)
                 bound_field.field.widget.attrs['required'] = 'required'
 
                 if self.basket_has_enrollment_code_product and 'organization' not in self.fields:
                     # If basket has any enrollment code items then we will add an organization
-                    # field next to "last_name."
+                    # field next to "full_name."
                     self.fields['organization'] = forms.CharField(max_length=60, label=_('Organization (required)'))
                     organization_div = Div(
                         Div(
@@ -117,7 +112,7 @@ class PaymentForm(forms.Form):
                         ),
                         css_class='row'
                     )
-                    self.helper.layout.fields.insert(list(self.fields.keys()).index('last_name') + 1, organization_div)
+                    self.helper.layout.fields.insert(list(self.fields.keys()).index('full_name') + 1, organization_div)
                     # Purchased on behalf of an enterprise or for personal use
                     self.fields[PURCHASER_BEHALF_ATTRIBUTE] = forms.BooleanField(
                         required=False,
@@ -141,8 +136,7 @@ class PaymentForm(forms.Form):
             'invalid_choice': _('There was a problem retrieving your basket. Refresh the page to try again.'),
         }
     )
-    first_name = forms.CharField(max_length=60, label=_('First Name (required)'))
-    last_name = forms.CharField(max_length=60, label=_('Last Name (required)'))
+    full_name = forms.CharField(max_length=60, label=_('Name on the Card (required)'))
     address_line1 = forms.CharField(max_length=60, label=_('Address (required)'), required=False)
     address_line2 = forms.CharField(max_length=29, required=False, label=_('Suite/Apartment Number'))
     city = forms.CharField(max_length=32, label=_('City (required)'))
@@ -225,10 +219,12 @@ class StripeSubmitForm(forms.Form):
         update_basket_queryset_filter(self, user)
 
     def clean_basket(self):
-        basket = self.cleaned_data['basket']
+        #basket = self.cleaned_data['basket']
+        basket = Basket.objects.filter(owner=self.request.user, status="Commited")
 
-        if basket:
-            basket.strategy = self.request.strategy
-            Applicator().apply(basket, self.request.user, self.request)
+        if basket.exists():
+            last_basket = basket.last()
+            last_basket.strategy = self.request.strategy
+            Applicator().apply(last_basket, self.request.user, self.request)
 
         return basket
