@@ -8,6 +8,12 @@ from opaque_keys.edx.keys import CourseKey
 register = template.Library()
 
 
+
+@register.filter(name='subtract')
+def subtract(value, arg):
+    return value - arg
+
+
 @register.simple_tag
 def settings_value(name):
     """

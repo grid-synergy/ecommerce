@@ -12,6 +12,10 @@ DEBUG = True
 INTERNAL_IPS = ['127.0.0.1']
 ENABLE_AUTO_AUTH = True
 
+
+ECOMMERCE_URL_ROOT = 'http://192.168.0.197:18130'
+
+
 # The django server cannot handle https calls
 PROTOCOL = 'http'
 
@@ -112,9 +116,12 @@ SAILTHRU_KEY = 'abc123'
 SAILTHRU_SECRET = 'top_secret'
 
 REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] + ('rest_framework.renderers.BrowsableAPIRenderer',)
-
+OSCAR_OFFERS_INCL_TAX = True
 #####################################################################
 # Lastly, see if the developer has any local overrides.
 if os.path.isfile(join(dirname(abspath(__file__)), 'private.py')):
     # noinspection PyUnresolvedReferences
     from .private import *  # pylint: disable=import-error
+
+
+LHUB_TAX_PERCENTAGE = 7

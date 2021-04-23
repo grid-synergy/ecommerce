@@ -194,6 +194,32 @@ class ReceiptResponseView(ThankYouView):
             'has_enrollment_code_product': has_enrollment_code_product,
             'disable_back_button': self.request.GET.get('disable_back_button', 0),
         })
+        print(">>>>>>>>>>>>>>>>>>>")
+        pricee = context['order']
+        logging.info(pricee.__dict__)
+
+        excl_amount = pricee.total_before_discounts_excl_tax - pricee.total_excl_tax
+
+        logging.info(excl_amount)
+
+
+        for i in pricee.basket_discounts:
+            tax = i.amount * Decimal(settings.LHUB_TAX_PERCENTAGE/100)
+            amount = i.amount - tax 
+            if excl_amount != amount:
+                i.amount = excl_amount
+                i.save()
+            logging.info(i.amount)
+        # pricee.basket_discounts[index].amount = amount
+        
+        logging.info(pricee.basket_discounts)
+        context['order'] = pricee
+
+        pricee = context['order']
+        for i in pricee.basket_discounts:
+            logging.info(i.amount)
+
+
         return context
 
     def get_object(self):

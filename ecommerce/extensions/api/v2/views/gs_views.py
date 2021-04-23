@@ -137,7 +137,8 @@ def get_basket_content(request):
             basket.strategy = request.strategy
             Applicator().apply_offers(basket, offers)
         
-        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
+        tax = basket.total_incl_tax - basket.total_excl_tax
+        checkout_response.update({'basket_total': basket.total_incl_tax, 'basket_total_excl_tax': basket.total_excl_tax, 'tax': tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
         return Response(checkout_response)
     #except Exception as e:

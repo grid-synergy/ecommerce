@@ -526,6 +526,10 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             basket.strategy = Selector().strategy(user=self.request.user)
             basket.status = "Commited"
             basket.save()
+        Applicator().apply(basket, basket.owner, self.request)
+        basket.discount_excl_tax = basket.total_excl_tax_excl_discounts - basket.total_excl_tax    
+        print('=======excl tax')
+        print(basket.discount_excl_tax)
         context = super(BasketSummaryView, self).get_context_data(**kwargs)
         context['voucher_form'] = super(BasketSummaryView, self).get_basket_voucher_form()
         context['shipping_methods'] = super(BasketSummaryView, self).get_shipping_methods(basket)

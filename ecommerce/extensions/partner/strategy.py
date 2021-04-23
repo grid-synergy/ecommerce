@@ -1,11 +1,13 @@
-
+# from future import absolute_import
 
 from django.utils import timezone
 from oscar.apps.partner import availability, strategy
 from oscar.core.loading import get_model
 
 from ecommerce.core.constants import SEAT_PRODUCT_CLASS_NAME
-
+from decimal import Decimal as D
+import logging
+from django.conf import settings
 
 class CourseSeatAvailabilityPolicyMixin(strategy.StockRequired):
     """
@@ -33,11 +35,25 @@ class CourseSeatAvailabilityPolicyMixin(strategy.StockRequired):
         return availability.Unavailable()
 
 
-class DefaultStrategy(strategy.UseFirstStockRecord, CourseSeatAvailabilityPolicyMixin,
-                      strategy.NoTax, strategy.Structured):
+class DefaultStrategy1(strategy.UseFirstStockRecord, CourseSeatAvailabilityPolicyMixin,
+strategy.NoTax, strategy.Structured):
+    """ Default Strategy """
+
+
+
+class FixedRateTax(strategy.FixedRateTax):
+    rate = D(settings.LHUB_TAX_PERCENTAGE/100)
+
+
+    def get_rate(self, product, stockrecord):
+        return self.rate
+
+
+
+class DefaultStrategy(strategy.UseFirstStockRecord, strategy.StockRequired, FixedRateTax, strategy.Structured):
     """ Default Strategy """
 
 
 class Selector:
-    def strategy(self, request=None, user=None, **kwargs):  # pylint: disable=unused-argument
+    def strategy(self, request=None, user=None, **kwargs): # pylint: disable=unused-argument
         return DefaultStrategy(request if hasattr(request, 'user') else None)
