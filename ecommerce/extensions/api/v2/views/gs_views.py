@@ -6,7 +6,7 @@ import stripe
 from django.conf import settings
 from oscar.core.loading import get_model
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import	 IsAuthenticated
+from rest_framework.permissions import   IsAuthenticated
 import stripe
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 import logging
@@ -91,7 +91,7 @@ class BasketViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(('GET',))
 def get_basket_content(request):
 
-    if True:
+    try:
         checkout_response = None
         basket = None
         if request.GET.get('id'):
@@ -113,11 +113,7 @@ def get_basket_content(request):
                 if item['code'] == 'course_key': 
                     course_id = item['value'] 
             lms_url = get_lms_url('/api/commerce/v2/checkout/' + course_id)
-            logging.info('============================')
-            access_token = str(request.site.siteconfiguration.access_token)
-            logging.info('============================')
-            logging.info(access_token)
-            commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' +  access_token})
+            commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
             if commerce_response['status_code'] == 200:
                 price = commerce_response['result']['modes'][0]['price']
@@ -138,19 +134,21 @@ def get_basket_content(request):
             Applicator().apply_offers(basket, offers)
         
         tax = basket.total_incl_tax - basket.total_excl_tax
-        checkout_response.update({'basket_total': basket.total_incl_tax, 'basket_total_excl_tax': basket.total_excl_tax, 'tax': tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
+        tax_percent = settings.LHUB_TAX_PERCENTAGE
+
+        checkout_response.update({'basket_total': basket.total_incl_tax, 'basket_total_excl_tax': basket.total_excl_tax, 'tax': tax,'tax_percent': tax_percent, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
 
         return Response(checkout_response)
-    #except Exception as e:
-    #    logging.info(e)
-    #    return Response(str(e))
+    except Exception as e:
+        logging.info(e)
+        return Response(str(e))
 
 
 
 @api_view(('GET',))
 def get_basket_content_mobile(request):
 
-    if True:
+    try:
         checkout_response = None
         basket = None
         if request.GET.get('id'):
@@ -195,9 +193,9 @@ def get_basket_content_mobile(request):
         checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
        
         return Response(checkout_response)
-    #except Exception as e:
-    #    logging.info(e)
-    #    return Response(str(e))
+    except Exception as e:
+        logging.info(e)
+        return Response(str(e))
 
 
 
