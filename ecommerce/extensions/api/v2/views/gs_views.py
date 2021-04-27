@@ -134,10 +134,13 @@ def get_basket_content(request):
             Applicator().apply_offers(basket, offers)
         
         tax = basket.total_incl_tax - basket.total_excl_tax
-        tax_percent = settings.LHUB_TAX_PERCENTAGE
+        if settings.LHUB_TAX_PERCENTAGE:
+            tax_percent = settings.LHUB_TAX_PERCENTAGE
+        else:
+            tax_percent = 7
 
+        
         checkout_response.update({'basket_total': basket.total_incl_tax, 'basket_total_excl_tax': basket.total_excl_tax, 'tax': tax,'tax_percent': tax_percent, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
-
         return Response(checkout_response)
     except Exception as e:
         logging.info(e)
@@ -222,4 +225,3 @@ def get_course_discount_info(request, sku):
              pass
 
     return Response(discount_info)
-

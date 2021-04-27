@@ -64,19 +64,19 @@
                 <span class="col-xs-4 col-sm-4"></span>
                 <span class="price col-xs-4 col-sm-4">{{commited_basket.total_excl_tax_excl_discounts|currency:commited_basket.currency}}</span>
             </div>
-            <div id="line-price" class="amount row">
-                <span class="description col-xs-4 col-sm-4">{% trans "Tax (7% GST)" as tmsg %}{{ tmsg | force_escape }}</span>
-                <span class="col-xs-4 col-sm-4"></span>
-                <span class="price col-xs-4 col-sm-4">+{{commited_basket.total_tax|currency:commited_basket.currency}}</span>
-            </div>
-        {% endif %}
-        {% if commited_basket.total_discount %}
+            {% if commited_basket.total_discount %}
             <div id="line-discount" class="amount row">
                 <span class="description">{% trans "Discounts applied" as tmsg %}{{ tmsg | force_escape }}</span>
                 <span class="col-xs-4 col-sm-4"></span>
                 <span class="price col-xs-4 col-sm-4">-{{ commited_basket.total_excl_tax_excl_discounts|subtract:commited_basket.total_excl_tax|currency:commited_basket.currency}}</span>
             </div>
         {% endif %}
+            <div id="line-price" class="amount row">
+                <span class="description col-xs-4 col-sm-4">{{ commited_basket.total_tax|tax_percent }}</span>
+                <span class="col-xs-4 col-sm-4"></span>
+                <span class="price col-xs-4 col-sm-4">+{{commited_basket.total_tax|currency:commited_basket.currency}}</span>
+            </div>
+        {% endif %}   
         <div id="voucher-information" class="row">
             {% if show_voucher_form %}
                 {% block vouchers %}
