@@ -119,10 +119,21 @@ class CommitedBasket(APIView):
         # Deletes old committed basket.
         if old_basket:
             old_basket.delete()
-        
+        offers = Applicator().get_site_offers()
+        basket.strategy = request.strategy
+        Applicator().apply_offers(basket, offers)
+
+        tax = settings.LHUB_TAX_PERCENTAGE
+        gst_tax = str(tax) + "%"
         basket.status = "Commited"
+        basket_total = str("%.2f"%basket.total_incl_tax)
+        basket_total_excl_tax = str("%.2f"%basket.total_excl_tax)
+        gst_amount = basket.total_incl_tax - basket.total_excl_tax
+        gst_amount = str("%.2f"%gst_amount)
         basket.save()
-        return Response({"basket":basket_id})
+
+
+        return Response({"basket":basket_id, 'total':basket_total, 'sub_total':basket_total_excl_tax, 'gst_tax': gst_tax, 'gst_amount': gst_amount })
 
 class BasketDeleteItemView(APIView):
     """
