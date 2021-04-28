@@ -14,6 +14,8 @@ class BasketConfig(apps.BasketConfig):
         super().ready()
         self.basket_add_items_view = get_class('basket.views', 'BasketAddItemsView')
         self.summary_view = get_class('basket.views', 'BasketSummaryView')
+        self.delete_card_view = get_class('basket.views', 'DeleteCardApiView')
+        self.update_card_view = get_class('basket.views', 'UpdateCardApiView')
 
     def get_urls(self):
         urls = [
@@ -24,5 +26,7 @@ class BasketConfig(apps.BasketConfig):
             url(r'^vouchers/(?P<pk>\d+)/remove/$', self.remove_voucher_view.as_view(), name='vouchers-remove'),
             url(r'^saved/$', login_required(self.saved_view.as_view()), name='saved'),
             url(r'^add/$', self.basket_add_items_view.as_view(), name='basket-add'),
+            url(r'^card-delete-source/', self.delete_card_view.as_view(), name='card-delete-source'),
+            url(r'^card-update-source/', self.update_card_view.as_view(), name='card-update-source'),
         ]
         return self.post_process_urls(urls)

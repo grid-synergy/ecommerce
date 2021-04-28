@@ -137,7 +137,8 @@
                 {% if sdn_check %}
                     <input type="hidden" name="sdn-check" value="enabled">
                 {% endif %}
-                {% crispy payment_form %}
+                <!-- {% crispy payment_form %} -->
+                {% include 'oscar/basket/partials/card_selection.html' %} 
             </div>
         </div>
         {% endif %}

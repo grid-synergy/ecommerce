@@ -7,6 +7,8 @@ import urllib
 from collections import OrderedDict
 from datetime import datetime
 from decimal import Decimal
+from rest_framework import status
+
 
 import dateutil.parser
 import newrelic.agent
@@ -628,6 +630,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'lms_url_root': site_configuration.lms_url_root,
             'commited_basket': commited_basket
         })
+        self.card_selection_data(context)
         return context
 
     def _get_cutomer_card_info(self, user):
@@ -733,6 +736,30 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
                   'site configuration [{sc}]'.format(processor=site_configuration.client_side_payment_processor,
                                                      sc=site_configuration.id)
             raise SiteConfigurationError(msg)
+    
+    def card_selection_data(self, context):
+
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+    
+        if "customer_id" not in self.request.user.tracking_context.keys():
+            return 
+        customer_id = self.request.user.tracking_context["customer_id"]
+        customer_id = "cus_JGoPTmvRKrjSyy"
+        logging.info(customer_id)
+        stripe_response = stripe.PaymentMethod.list(
+            customer = customer_id,
+            type = "card",
+        )
+
+        customer = stripe.Customer.retrieve(customer_id)
+        card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
+        context["stripe_response"] = stripe_response["data"]
+        context["customer_default_card"] = card_info["id"]
+        return context
+
+
 
 
 class CaptureContextApiLogicMixin:  # pragma: no cover
@@ -1217,3 +1244,64 @@ class VoucherRemoveApiView(PaymentApiLogicMixin, APIView):
 
         self.reload_basket()
         return self.get_payment_api_response()
+
+
+class DeleteCardApiView(APIView):
+
+    # Api for deleting card from stripe
+
+    # permission_classes = (IsAuthenticated,)
+
+    def delete(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+
+
+        card_delete_response = request.POST
+
+        logging.info(card_delete_response["id"])
+        cust_id = "cus_JGoPTmvRKrjSyy"
+        card_id = card_delete_response["id"]
+        try:
+            stripe.Customer.delete_source(
+                cust_id,
+                card_id,
+            )
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+        
+      
+class UpdateCardApiView(APIView):
+
+    # Api for updating card from stripe
+
+    # permission_classes = (IsAuthenticated,)
+
+    def post(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+        card_update_response = request.POST
+
+        logging.info(card_update_response["id"])
+        cust_id = "cus_JGoPTmvRKrjSyy"
+        card_id = card_update_response["id"]
+
+
+        try:
+            customer = stripe.Customer.modify(cust_id, default_source= card_id)
+
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print('=======')
+            print(e)
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+        
+
+
+
+
+
+
