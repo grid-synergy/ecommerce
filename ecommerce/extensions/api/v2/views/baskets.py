@@ -126,10 +126,9 @@ class CommitedBasket(APIView):
         tax = settings.LHUB_TAX_PERCENTAGE
         gst_tax = str(tax) + "%"
         basket.status = "Commited"
-        basket_total = str("%.2f"%basket.total_incl_tax)
-        basket_total_excl_tax = str("%.2f"%basket.total_excl_tax)
-        gst_amount = basket.total_incl_tax - basket.total_excl_tax
-        gst_amount = str("%.2f"%gst_amount)
+        basket_total = str("%.2f" % basket.total_incl_tax)
+        basket_total_excl_tax = str("%.2f" % basket.total_excl_tax)
+        gst_amount = str("%.2f" % basket.total_tax)
         basket.save()
 
 
