@@ -176,10 +176,10 @@ def get_basket_content_mobile(request):
             commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
             if commerce_response['status_code'] == 200:
-                price = commerce_response['result']['modes'][0]['price']
+                price = str("%.2f" % commerce_response['result']['modes'][0]['price'])
                 sku = commerce_response['result']['modes'][0]['sku']
                 discount_applicable = commerce_response['result']['discount_applicable']
-                discounted_price = commerce_response['result']['discounted_price']
+                discounted_price = str("%.2f" % commerce_response['result']['discounted_price'])
                 media = commerce_response['result']['media']['image'] 
                 category = commerce_response['result']['new_category']
                 title = commerce_response['result']['name']
