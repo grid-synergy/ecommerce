@@ -176,10 +176,10 @@ def get_basket_content_mobile(request):
             commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
             if commerce_response['status_code'] == 200:
-                price = commerce_response['result']['modes'][0]['price']
+                price = str("%.2f" % commerce_response['result']['modes'][0]['price'])
                 sku = commerce_response['result']['modes'][0]['sku']
                 discount_applicable = commerce_response['result']['discount_applicable']
-                discounted_price = commerce_response['result']['discounted_price']
+                discounted_price = str("%.2f" % commerce_response['result']['discounted_price'])
                 media = commerce_response['result']['media']['image'] 
                 category = commerce_response['result']['new_category']
                 title = commerce_response['result']['name']
@@ -191,10 +191,19 @@ def get_basket_content_mobile(request):
             offers = Applicator().get_site_offers()
             basket.strategy = request.strategy
             Applicator().apply_offers(basket, offers)
-        
+        gst_amount = basket.total_incl_tax - basket.total_excl_tax
+        if settings.LHUB_TAX_PERCENTAGE:
+            tax_percent = settings.LHUB_TAX_PERCENTAGE
+        else:
+            tax_percent = 7
+        tax_percent = str(tax_percent) + "%"
+        gst_amount = str(round(gst_amount,2))
+        basket_total_excl_tax_string = basket.total_excl_tax 
+        basket_total_excl_tax_string = str(round(basket_total_excl_tax_string, 2))
+        basket_total_incl_tax_string = basket.total_incl_tax
+        basket_total_incl_tax_string = str(round(basket_total_incl_tax_string ,2))
         checkout_response['products'] = [i for j in checkout_response['products'] for i in j if not i['code'] in ['certificate_type', 'course_key', 'id_verification_required']]
-        checkout_response.update({'basket_total': basket.total_incl_tax, 'shipping_fee': 0.0, 'status': True, "status_code": 200})   
-       
+        checkout_response.update({'basket_total': basket_total_incl_tax_string, 'basket_subtotal': basket_total_excl_tax_string , 'gst_tax': tax_percent ,'gst_amount': gst_amount ,'shipping_fee': 0.0, 'status': True, "status_code": 200})
         return Response(checkout_response)
     except Exception as e:
         logging.info(e)
