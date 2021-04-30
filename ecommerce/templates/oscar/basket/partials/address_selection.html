@@ -79,7 +79,7 @@ img.address-icon {
 	display: flex;
 	position: relative;
 	align-items: center;
-	justify-content: flex-start;
+	justify-content: space-between;
 	min-width: 100%;
 	padding: 10px 0px;
 	border-bottom: 1px solid #f2f2f2;
@@ -232,18 +232,7 @@ h2.title {
 	color: #919191;
 }
 
-.modale:before {
-	content: "";
-	display: none;
-	background: rgba(0, 0, 0, 0.6);
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 0;
-}
-
+.addaddressmodale:before,
 .editmodale:before {
 	content: "";
 	display: none;
@@ -264,7 +253,8 @@ h2.title {
 	-webkit-transform: translate(0, 0);
 	-ms-transform: translate(0, 0);
 	transform: translate(0, 0);
-	top: 15%;
+	top: 10%;
+	left: 50%;
 }
 
 .modal-dialog {
@@ -374,7 +364,7 @@ a:focus,
     z-index: -1;
 }
 
-.modale.modal-cont.opened {
+.addaddressmodale.modal-cont.opened {
     z-index: 1;
 }
 
@@ -384,6 +374,10 @@ a:focus,
 
 .user-hidden-info {
     display: none;
+}
+.select-address {
+    width: 100%;
+    display: flex;
 }
 
 </style>
@@ -405,6 +399,7 @@ a:focus,
 			{% for address in user_addresses %}
 				{% if address.is_default_for_billing %}
 					<div id="{{ forloop.counter }}" class="address-details-cont-ls">
+						<div class="select-address">
 						<div>
 							<label>
 								<input type="radio" name="light" checked id="{{ address.id }}">
@@ -429,6 +424,7 @@ a:focus,
 							</div>
 							<p class="default-mark">Default Selected Address</p>
 						</div>
+					</div>
 						<div class="edit-delete-btns">
 							<a href="#" onclick="open_edit_modal({{ forloop.counter }});"> Edit </a>
 							<a href="#" onclick="delete_address({{ address.id }}, {{ address.id }});"> Delete </a>
@@ -436,6 +432,7 @@ a:focus,
 					</div>
 				{% else %}
 					<div id="{{ forloop.counter }}" class="address-details-cont-ls">
+						<div class="select-address">
 						<div>
 							<label>
 								<input type="radio" name="light" id="{{ address.id }}">
@@ -459,6 +456,7 @@ a:focus,
 								</div>
 							</div>
 						</div>
+					</div>
 						<div class="edit-delete-btns">
 						<a href="#" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
 						<a href="#" onclick="delete_address({{ address.id }});"> Delete </a>
@@ -467,7 +465,7 @@ a:focus,
 				{% endif %}
 			{% endfor %}
 			<div class="add-address-btn">
-				<a href="#" class="openmodale"><span>+</span> Add New Address </a>
+				<a href="#" class="openaddressmodale"><span>+</span> Add New Address </a>
 			</div>
 		  </div>
 	   </div>
@@ -479,7 +477,7 @@ a:focus,
 
 <!-- ADD NEW ADDRESS FORM STARTS HERE -->
 
-<div class="modale modal-cont" aria-hidden="true" id="add-new-address">
+<div class="addaddressmodale modal-cont" aria-hidden="true" id="add-new-address">
 	<div class="modal-dialog">
 	   <div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">×</a> </div>
 	   <div class="heading">
@@ -712,14 +710,14 @@ a:focus,
 //You may use vanilla JS, I just chose jquery
 
 // ***** Add New Address Modal *****
-$('.openmodale').click(function (e) {
+$('.openaddressmodale').click(function (e) {
     e.preventDefault();
-    $('.modale').addClass('opened');
+    $('.addaddressmodale').addClass('opened');
 });
 
 $('.closemodale').click(function (e) {
     e.preventDefault();
-    $('.modale').removeClass('opened');
+    $('.addaddressmodale').removeClass('opened');
 });
 
 

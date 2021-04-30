@@ -272,8 +272,6 @@ body {
 	margin-left: -250px;
 	text-align: center;
 	position: fixed;
-	left: 50%;
-	top: -100%;
 	z-index: 11;
 	width: 520px;
 	box-shadow: 0 5px 10px rgba(0,0,0,0.3);
@@ -292,15 +290,27 @@ h2.title {
     font-family: 'Poppins';
 }
 
+.modal-cont {
+	position: absolute;
+	left: -20%;
+	top: -70px;
+	z-index: -2;
+}
 
-#view-card .modal-footer {
+.modale.modal-cont.opened {
+	z-index: 2;
+}
+
+#view-card .modal-footer ,
+#add-new-card .modal-footer {
 	padding: 0px 40px 20px 40px;
 	display: flex;
 	justify-content: flex-end;
 	border: none;
 }
 
-#view-card .modal-header {
+#view-card .modal-header,
+#add-new-card .modal-header {
 	border: none;
 }
 
@@ -317,6 +327,22 @@ h2.title {
 	align-items: center;
 }
 
+#add-new-card .cardNumber label {
+	width: 23%;
+	text-align: left;
+}
+
+#add-new-card .add-card-form div {
+	flex-direction: row;
+	margin: 10px auto;
+	justify-content: center;
+	text-align: left;
+}
+
+#add-new-card .add-card-form {
+	padding: 15px 30px;
+}
+
 #view-card .set-default-card-radio {
 	justify-content: flex-start !important;
 	margin: 15px auto !important;
@@ -325,6 +351,10 @@ h2.title {
 #view-card .set-default-card-radio input {
 	margin: 0px;
 	margin-right: 3%;
+}
+
+#add-new-card .cardNumber .inputcardNumber {
+	width: 77%;
 }
 
 #view-card .set-default-card-radio label {
@@ -342,12 +372,91 @@ h2.title {
 .viewmodale.modal-cont.opened {
     z-index: 3 !important;
 }
+#add-new-card .month-year {
+	display: flex;
+	width: 100%;
+	align-items: center;
+}
+
+#add-new-card .cvc {
+	display: flex;
+	align-items: center;
+}
+
+#add-new-card .modal-footer button {
+	margin-left: 3%;
+}
+
+#add-new-card .add-card-form div label {
+	margin-right: 10px;
+}
+
+.opened .modal-dialog {
+	-webkit-transform: translate(0, 0);
+	-ms-transform: translate(0, 0);
+	transform: translate(0, 0);
+	top: 10%;
+	left: 50%;
+}
+
+.add-new-card-cont {
+	padding: 0px 40px;
+}
+
+.add-new-card-cont>div {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px auto !important;
+	align-items: center;
+}
+
+.set-default-card-radio {
+	justify-content: flex-start !important;
+}
+
+.set-default-card-radio input {
+	margin-right: 3%;
+}
+
+#add-new-card .month-year select {
+	margin-right: 3%;
+	width: auto;
+}
+
+#add-new-card .month-year label {
+	display: block;
+	width: auto;
+}
+
+.card-year-sec label {
+	margin: 0px;
+	margin-right: 10px;
+}
+
+.add-new-card-cont input,
+.add-new-card-cont select {
+	min-height: 28px;
+}
+
+.add-new-card-cont select {
+	font-size: 14px;
+}
+
+.set-default-card-radio input {
+	margin: 0px;
+	margin-right: 3%;
+}
+
+.set-default-card-radio label {
+	margin: 0px;
+}
+
 	</style>
 	
 
 
 <!-- #################################################################################### -->
-<!-- CARD INFORMATION ENDS HERE -->
+<!-- CARD INFORMATION STARTS HERE -->
 
 <div>
 	<div>
@@ -408,73 +517,62 @@ h2.title {
 	   </div>
 	</div>
  </div>
-
+ 
 <!-- CARD INFORMATION ENDS HERE -->
 <!-- #################################################################################### -->
 
 
-<!-- ADD NEW CARD MODALE STARTS HERE -->
-<form> 
-	<div class="modale" aria-hidden="true" id="add-new-card">
-		<div class="modal-dialog">
-			<div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">&times;</a> </div>
-			<div class="heading">
-				<h2>Add New Card</h2> </div>
-				<form class="add-card-form">
-					<div class="cardNumber">
-						<label for="cardNumber">Card Number</label>
-						<input type="text" class="inputcardNumber" id="cardNumber"> </div>
-					<div class="month-year">
-						<label>Date of Expiry</label>
-						<select class="months">
-							<option value="00">MM</option>
-							<option value="01">January</option>
-							<option value="02">February </option>
-							<option value="03">March</option>
-							<option value="04">April</option>
-							<option value="05">May</option>
-							<option value="06">June</option>
-							<option value="07">July</option>
-							<option value="08">August</option>
-							<option value="09">September</option>
-							<option value="10">October</option>
-							<option value="11">November</option>
-							<option value="12">December</option>
-						</select>
-						<select class="year">
-							<option value="YY"> YYYY</option>
-							<option value="15"> 2015</option>
-							<option value="16"> 2016</option>
-							<option value="17"> 2017</option>
-							<option value="18"> 2018</option>
-							<option value="19"> 2019</option>
-							<option value="20"> 2020</option>
-							<option value="21"> 2021</option>
-							<option value="22"> 2022</option>
-						</select>
-					</div>
-					<div class="cvc">
-						<label for="cvc">CVC</label>
-						<input type="text" class="inputcvc" id="cvc"> </div>
-					<div>
-						<input type="radio" id="radio" name="radio" class="checkmark ">
-						<label for="radio">Set as Default Card</label>
-					</div>
-					<button type="submit" class="btn btn-primary">Save</button>
-				</form>
-
-			<div class="modal-footer">
-				<!-- <button type="submit" class="btn btn-primary">Save</button> -->
-				<button type="submit" class="btn btn-default">Cancel</button>
-			</div>
-		</div>
+<!-- ADD CARD MODALE STARTS HERE -->
+ 
+<div class="modale modal-cont" aria-hidden="true" id="add-new-card">
+	<div class="modal-dialog" role="document">
+	   <div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">×</a> </div>
+	   <div class="heading">
+		  <h2>Add New Card</h2>
+	   </div>
+	   <div class="add-new-card-cont">
+		  <div class="cardNumber">
+			 <label for="cardNumber">Card Number</label>
+			 <input type="text" class="inputcardNumber" id="cardNumber"> 
+		  </div>
+		  <div class="card-year-sec">
+			 <div class="month-year">
+				<label>Date of Expiry</label>
+				<select class="months" id="month_dropdown">
+				   <option value="00">MM</option>
+				   {% for month in months %}
+                        <option value="{{forloop.counter|stringformat:'02d'}}">{{month}}</option>
+                    {% endfor %}
+				</select>
+				<select class="year" id="year_dropdown">
+				   <option value="YY"> YYYY</option>
+				   {% for year in years %}
+                        <option value="{{year}}">{{year}}</option>
+                    {% endfor %}
+				</select>
+			 </div>
+			 <div class="cvc">
+				<label for="cvc">CVC</label>
+				<input type="text" class="inputcvc" id="cvc"> 
+			 </div>
+		  </div>
+		  <div class="set-default-card-radio">
+			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
+			 <label type="checkbox">Set as Default Card</label>
+		  </div>
+	   </div>
+	   <div class="modal-footer">
+		  <button class="btn btn-primary" type = "button" onclick="add_card()" >Save</button>
+		  <button class="btn btn-default">Cancel</button>
+	   </div>
 	</div>
-</form>
-<!-- ADD NEW CARD MODALE ENDS HERE -->
+ </div>
 
+<!-- ADD CARD MODALE ENDS HERE -->
 
-
+ 
 <!-- VIEW CARD MODALE STARTS HERE -->
+ 
 <div class="viewmodale modal-cont" aria-hidden="true" id="view-card">
 	<div class="modal-dialog" role="document">
 	   <div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
@@ -505,7 +603,8 @@ h2.title {
 	   </div>
 	</div>
  </div>
- <!-- VIEW CARD MODALE ENDS HERE -->
+
+<!-- VIEW CARD MODALE ENDS HERE -->
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -541,4 +640,38 @@ $('.closeviewmodale').click(function (e) {
     $('.viewmodale').removeClass('opened');
 });
 </script>
-
+<script>
+	function add_card() {
+			let csrf = $('#csrf-token').val();
+			data_dictionary = {
+				"number":$("#cardNumber").val(),
+				"exp_month":$('#month_dropdown option:selected').text(),
+				"exp_year":$('#year_dropdown option:selected').text(),
+				"cvc":$("#cvc").val(),	
+				"is_default":$("#radio").is(":checked")		
+				}
+			$.ajax({
+				url: '/basket/card-add-source/',
+				method: 'POST',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'X-CSRFToken': csrf
+				},
+				data: JSON.stringify(data_dictionary),
+				success: function(response){
+					if (response['status'] == 'Success')
+					{
+					window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+					}
+					else 
+					{
+					  alert('some error has occured')	
+					}
+				},
+				error: function(data){ 
+					alert('some error has occured')
+				},
+			});
+		}
+</script>

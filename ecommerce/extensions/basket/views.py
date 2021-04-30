@@ -1331,40 +1331,31 @@ class AddCardApiView(APIView):
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
 
         #card_add_response = request.POST
-        token_create_response = request.POST
-        logging.info(token_create_response["number"])
+        data = request.data
+        logging.info(data["number"])
         cust_id = "cus_JOFKknSNVVTSjM" 
-        card_number = token_create_response["number"]
-        expiry_month = token_create_response["exp_month"]
-        expiry_year = token_create_response["exp_year"]
-        security_code = token_create_response["cvc"]
-        token = stripe.Token.create(
-            card={
-               card_number,
-               expiry_month,
-               expiry_year,
-               security_code
-               
-                 },
-            )
-       
-        # logging.info(card_add_response["id"])
+        card_number = data["number"]
+        expiry_month = data["exp_month"]
+        expiry_year = data["exp_year"]
+        security_code = data["cvc"]
+        is_default = data['is_default']
+        token = stripe.Token.create(card={"number": card_number , "exp_month": expiry_month, "exp_year":expiry_year, "cvc":security_code },)
         cust_id = "cus_JOFKknSNVVTSjM"
-        # card_id = card_add_response["id"]
-        # request.POST.get(print("card number",number))
-        token = self.request.POST.get("stripe_token")
-
         try:
-            Customer = stripe.Customer.create_source(
+            card = stripe.Customer.create_source(
             cust_id,
-            source="tok_1IlpcnCWEv86Pz7XMzxh6Alh"
+            source= token["id"]
             )
+            if is_default:
+                customer = stripe.Customer.modify(cust_id, default_source= card['id'])
 
             return Response({'status': 'Success'}, status=status.HTTP_200_OK)
         
         except:
-    
             return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+
+
+
 class AddressAddNewView(APIView):
     """ Api for adding a new address to user's address table in ecommerce. """
 
