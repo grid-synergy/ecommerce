@@ -233,7 +233,6 @@ body {
 	background: url(https://subtlepatterns.com/patterns/crossword.png);
 	font-family: sans-serif;
 	color: #333;
-	text-align: center;
 }
 
 .btn-close {
@@ -250,7 +249,7 @@ body {
 	color: #919191;
 }
 
-.modale:before {
+.modale:before, .viewmodale:before {
 	content: "";
 	display: none;
 	background: rgba(0, 0, 0, 0.6);
@@ -264,13 +263,6 @@ body {
 
 .opened:before {
 	display: block;
-}
-
-.opened .modal-dialog {
-	-webkit-transform: translate(0, 0);
-	-ms-transform: translate(0, 0);
-	transform: translate(0, 0);
-	top: 26%;
 }
 
 .modal-dialog {
@@ -294,79 +286,73 @@ body {
 	transition: transform 0.3s ease-out;
 }
 
+h2.title {
+    color: #18355e !important;
+    font-size: 22px !important;
+    font-family: 'Poppins';
+}
 
 
-/* Fron Here
-
-#add-new-card .modal-footer {
-	padding: 20px 40px;
+#view-card .modal-footer {
+	padding: 0px 40px 20px 40px;
 	display: flex;
 	justify-content: flex-end;
+	border: none;
 }
 
-#add-new-card .modal-header {
-	border-bottom: #eeeeee solid 1px;
+#view-card .modal-header {
+	border: none;
 }
 
-#add-new-card .modal-header h2 {
-	font-size: 20px;
+#view-card .modal-footer button {
+	margin-left: 3%;
 }
 
-#add-new-card .heading {
-	padding-top: 12px;
+#view-card .view-card-cont {
+	padding: 0px 40px;
 }
 
-#add-new-card .cardNumber label {
-	margin-right: 12px;
-	width: auto;
+#view-card .view-card-cont>div {
+	display: flex;
+	align-items: center;
 }
 
-#add-new-card .add-card-form div {
-	flex-direction: row;
-	margin: 10px auto;
-	justify-content: center;
-	text-align: left;
+#view-card .set-default-card-radio {
+	justify-content: flex-start !important;
+	margin: 15px auto !important;
 }
 
-#add-new-card .add-card-form {
-	padding: 15px 30px;
+#view-card .set-default-card-radio input {
+	margin: 0px;
+	margin-right: 3%;
 }
 
-#add-new-card .inputcvc {
-	width: 50px;
+#view-card .set-default-card-radio label {
+	margin: 0px;
 }
 
-#add-new-card .cardNumber .inputcardNumber {
-	width: 70%;
+#view-card .view-card-cont p {
+    margin: 0px;
 }
 
-#add-new-card select.months {
-	width: 50px;
+#view-card .modal-dialog {
+    width: 440px;
 }
 
-#add-new-card .month-year {
-	display: inline-block;
-	float: left;
+.viewmodale.modal-cont.opened {
+    z-index: 3 !important;
 }
-
-#add-new-card .cvc {
-	display: inline-block;
-	float: none;
-}
-
-#add-new-card .modal-footer button {
-    margin-left: 3%;
-}
-
-#add-new-card .add-card-form div label {
-    margin-right: 10px;
-} */
-
 	</style>
 	
 
 
+<!-- #################################################################################### -->
+<!-- CARD INFORMATION ENDS HERE -->
+
 <div>
+	<div>
+		<h2 class="title">Card Information</h2>
+	 </div>
 	<div>
 	   <h3 class="pay-title">Card Number (required)</h3>
 	</div>
@@ -393,7 +379,7 @@ body {
 				<div class="card-dft">
 				   <p class="default-mark">Default Selected Card</p>
 				   <div class="card-delete-btn">
-					<a href="#/" class="view-card">View</a><a href="#/" class="delete-btn"> Delete</a>
+					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
 				 </div>
 				   
 				</div>
@@ -410,7 +396,7 @@ body {
 				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
 			</div>
 				<div class="card-delete-btn">
-					<a href="#/" class="view-card">View</a><a href="#/" class="delete-btn"> Delete</a>
+					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
 				 </div>
 			</div>
 			{% endif %}
@@ -422,7 +408,12 @@ body {
 	   </div>
 	</div>
  </div>
- 
+
+<!-- CARD INFORMATION ENDS HERE -->
+<!-- #################################################################################### -->
+
+
+<!-- ADD NEW CARD MODALE STARTS HERE -->
 <form> 
 	<div class="modale" aria-hidden="true" id="add-new-card">
 		<div class="modal-dialog">
@@ -479,6 +470,44 @@ body {
 		</div>
 	</div>
 </form>
+<!-- ADD NEW CARD MODALE ENDS HERE -->
+
+
+
+<!-- VIEW CARD MODALE STARTS HERE -->
+<div class="viewmodale modal-cont" aria-hidden="true" id="view-card">
+	<div class="modal-dialog" role="document">
+	   <div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
+	   <div class="heading">
+		  <h2>View Card</h2>
+	   </div>
+	   <div class="view-card-cont">
+		  <div>
+			 <p class="month-year">
+			   Credit Card
+				<span>VISA</span>
+			 </p>
+		  </div>
+		  <div >
+			 <p>
+				Credit Card
+				<span>42424-42424-42424</span>
+			 </p>
+		  </div>
+		  <div class="set-default-card-radio">
+			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
+			 <label type="checkbox">Set as Default Card</label>
+		  </div>
+	   </div>
+	   <div class="modal-footer">
+		  <button class="btn btn-primary">Save</button>
+		  <button class="btn btn-default closeviewmodale">Cancel</button>
+	   </div>
+	</div>
+ </div>
+ <!-- VIEW CARD MODALE ENDS HERE -->
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 <script>
@@ -492,6 +521,7 @@ body {
 <script>
 	//You may use vanilla JS, I just chose jquery
 
+// Add New Card Modale
 $('.openmodale').click(function (e) {
     e.preventDefault();
     $('.modale').addClass('opened');
@@ -499,6 +529,16 @@ $('.openmodale').click(function (e) {
 $('.closemodale').click(function (e) {
     e.preventDefault();
     $('.modale').removeClass('opened');
+});
+
+// View Modale
+$('.openviewmodale').click(function (e) {
+    e.preventDefault();
+    $('.viewmodale').addClass('opened');
+});
+$('.closeviewmodale').click(function (e) {
+    e.preventDefault();
+    $('.viewmodale').removeClass('opened');
 });
 </script>
 

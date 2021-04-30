@@ -8,10 +8,11 @@
 	width: 100%;
 	padding-left: 15px;
 	margin-top: 20px !important;
+	margin-bottom: 40px;
 }
 
 .add-address {
-	max-width: 450px;
+	max-width: 550px;
 	width: 100%;
 	padding: 10px 20px;
 	position: relative;
@@ -93,7 +94,7 @@ img.address-icon {
 .add-address-btn a {
 	background: #1a345c;
 	color: #ffffff;
-	max-width: 149px;
+	max-width: 170px;
 	width: 100%;
 	padding: 4px 15px;
 	display: flex;
@@ -354,13 +355,6 @@ h2.title {
 	max-height: 30px;
 }
 
-/* #add-new-address {
-	position: absolute;
-	width: 100%;
-	height: 100vh;
-	top: 0;
-} */
-
 a:hover,
 .link:hover,
 .btn-link:hover,
@@ -388,9 +382,14 @@ a:focus,
     z-index: 1;
 }
 
+.user-hidden-info {
+    display: none;
+}
+
 </style>
 
 <!-- #################################################################################### -->
+<!-- ADDRESS INFORMATION STARTS HERE -->
 <div>
 	<div>
 		<h2 class="title">Billing Information</h2>
@@ -424,8 +423,8 @@ a:focus,
 									<span id="{{ address.state }}" class="user-location user-address-detail"> {{ address.state }} </span>
 									<span id="{{ address.postcode }}" class="user-location user-address-detail"> {{ address.postcode }} </span>
 									<span id="{{ address.country.iso_3166_1_a2 }}" class="user-location user-address-detail"> {{ address.country.printable_name }} </span>
-									<span id="{{ address.first_name }}" class="user-location" style="visibility: hidden;"> {{ address.first_name }} </span>
-									<span id="{{ address.is_default_for_billing }}" class="user-location" style="visibility: hidden;"> {{ address.is_default_for_billing }} </span>
+									<span id="{{ address.first_name }}" class="user-location user-hidden-info"> {{ address.first_name }} </span>
+									<span id="{{ address.is_default_for_billing }}" class="user-location user-hidden-info"> {{ address.is_default_for_billing }} </span>
 								</div>
 							</div>
 							<p class="default-mark">Default Selected Address</p>
@@ -455,8 +454,8 @@ a:focus,
 									<span id="{{ address.state }}" class="user-location user-address-detail"> {{ address.state }} </span>
 									<span id="{{ address.postcode }}" class="user-location user-address-detail"> {{ address.postcode }} </span>
 									<span id="{{ address.country.iso_3166_1_a2 }}" class="user-location user-address-detail"> {{ address.country.printable_name }} </span>
-									<span id="{{ address.first_name }}" class="user-location" style="visibility: hidden;"> {{ address.first_name }} </span>
-									<span id="{{ address.is_default_for_billing }}" class="user-location" style="visibility: hidden;"> {{ address.is_default_for_billing }} </span>
+									<span id="{{ address.first_name }}" class="user-location user-hidden-info"> {{ address.first_name }} </span>
+									<span id="{{ address.is_default_for_billing }}" class="user-location user-hidden-info"> {{ address.is_default_for_billing }} </span>
 								</div>
 							</div>
 						</div>
@@ -468,12 +467,13 @@ a:focus,
 				{% endif %}
 			{% endfor %}
 			<div class="add-address-btn">
-				<a href="#" class="openmodale"><span>+</span> Add New Card</a>
+				<a href="#" class="openmodale"><span>+</span> Add New Address </a>
 			</div>
 		  </div>
 	   </div>
 	</div>
  </div>
+<!-- ADDRESS INFORMATION ENDS HERE -->
 <!-- #################################################################################### -->
 
 
