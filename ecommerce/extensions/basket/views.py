@@ -1279,11 +1279,9 @@ class DeleteCardApiView(APIView):
 
 
 
-        card_delete_response = request.POST
-
-        logging.info(card_delete_response["id"])
+        data = request.data
         cust_id = "cus_JGoPTmvRKrjSyy"
-        card_id = card_delete_response["id"]
+        card_id = data["card_id"]
         try:
             stripe.Customer.delete_source(
                 cust_id,

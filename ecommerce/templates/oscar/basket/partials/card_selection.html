@@ -488,7 +488,7 @@ h2.title {
 				<div class="card-dft">
 				   <p class="default-mark">Default Selected Card</p>
 				   <div class="card-delete-btn">
-					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
+					<a href="#/" class="view-card openviewmodale" >View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 				 </div>
 				   
 				</div>
@@ -504,8 +504,8 @@ h2.title {
 				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
 				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
 			</div>
-				<div class="card-delete-btn">
-					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
+				<div class="card-delete-btn"  >
+					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 				 </div>
 			</div>
 			{% endif %}
@@ -674,4 +674,37 @@ $('.closeviewmodale').click(function (e) {
 				},
 			});
 		}
+
+	function delete_card(card_id) {
+			let csrf = $('#csrf-token').val();
+			data_dictionary = {
+				"card_id": card_id	
+				}
+			$.ajax({
+				url: '/basket/card-delete-source/',
+				method: 'DELETE',
+				contentType: 'application/json; charset=utf-8',
+				dataType: 'json',
+				headers: {
+					'X-CSRFToken': csrf
+				},
+				data: JSON.stringify(data_dictionary),
+				success: function(response){
+					if (response['status'] == 'Success')
+					{
+					window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+					}
+					else 
+					{
+					  alert('some error has occured')	
+					}
+				},
+				error: function(data){ 
+					alert('some error has occured')
+				},
+			});
+		}
+
+		
+
 </script>
