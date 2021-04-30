@@ -131,16 +131,17 @@
 
     <div id="payment-information" class="col-sm-7">
         {% if not free_basket %}
-        <div id="card-holder-information" class="form-input-elements placeholder row">
+        <!-- <div id="card-holder-information" class="form-input-elements placeholder row">
             <div role="region" aria-labelledby="card-holder-information-region">
-                <h2 id="card-holder-information-region" class="title">{% trans "card holder information" as tmsg %}{{ tmsg | force_escape }}</h2>
+                <h2 id="card-holder-information-region" class="title">{% trans "Billing Information" as tmsg %}{{ tmsg | force_escape }}</h2>
                 {% if sdn_check %}
                     <input type="hidden" name="sdn-check" value="enabled">
                 {% endif %}
                 <!-- {% crispy payment_form %} -->
                 {% include 'oscar/basket/partials/card_selection.html' %} 
             </div>
-        </div>
+        </div> -->
+        {% include 'oscar/basket/partials/address_selection.html' %}
         {% endif %}
         <div class="form-input-elements placeholder">
             <div role="region" {% if not free_basket %}aria-labelledby="billing-information-region"{% endif %}>
@@ -149,7 +150,7 @@
                 {% if not paypal_enabled %}
                     <img aria-hidden="true" class="credit-card-list" src="/static/images/credit_card_options.png" alt="{% trans "Credit cards" as tmsg %}{{ tmsg | force_escape }}">
                 {% endif %}
-                <div class="pci-fields row">
+                <!-- <div class="pci-fields row">
                     {# NOTE: The PCI fields should NOT have name attributes by default. This ensures the fields are #}
                     {# not posted to the server if JavaScript is disabled/fails. The processor-specific JS should #}
                     {# restore the name attribute to ensure this information is sent to the payment processor. #}
@@ -198,7 +199,7 @@
                         </select>
                         <p class="help-block"></p>
                     </div>
-                </div>
+                </div> -->
                 {% endif %}
 
                 <div class="payment-button col-sm-6 col-sm-offset-6 col-xs-12">
@@ -262,7 +263,7 @@ $(document).ready(function(){
             type:"DELETE",
             url: "/api/v2/basket_buy_now/",
             beforeSend: function(xhr) {
-            xhr.setRequestHeader("X-CSRFToken", csrf);
+                xhr.setRequestHeader("X-CSRFToken", csrf);
             },
             success: function(response){
                 window.location.href = "{{ lms_url_root }}";

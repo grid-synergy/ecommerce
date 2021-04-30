@@ -1,0 +1,737 @@
+<style>
+
+.add-address-sec {
+	display: flex;
+	align-items: center;
+	float: left;
+	justify-content: flex-start;
+	width: 100%;
+	padding-left: 15px;
+	margin-top: 20px !important;
+}
+
+.add-address {
+	max-width: 450px;
+	width: 100%;
+	padding: 10px 20px;
+	position: relative;
+	height: auto;
+	border-radius: 12px;
+	box-shadow: 0 1px 10px 0 rgb(0 0 0 / 13%), inset 0 0 0 1px rgb(255 255 255 / 75%);
+	background: #fff;
+}
+
+h3.address-title {
+	font-size: 16px;
+	font-family: 'Poppins';
+	font-weight: 600;
+	color: #7f7f7f;
+	margin: 0px;
+	padding-left: 15px;
+}
+
+button.address-close-btn {
+	background: #bc1010;
+	border: none;
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	display: flex;
+	box-shadow: none;
+	justify-content: center;
+	align-items: self-end;
+	width: 12px;
+	height: 12px;
+	padding: 11px;
+	text-shadow: none;
+	border-radius: 50%;
+}
+
+button.address-close-btn span {
+	font-size: 24px;
+	font-weight: bold;
+	line-height: 0;
+}
+
+button.address-close-btn:hover {
+	background: #e74747;
+}
+
+.address-details-cont {
+	position: relative;
+	width: 100%;
+	padding-bottom: 10px;
+	height: 100%;
+	display: inline-flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+img.address-icon {
+	width: 11px;
+    margin-right: 2%;
+    margin-left: 4%;
+    align-self: baseline
+}
+
+.address-details-cont-ls {
+	display: flex;
+	position: relative;
+	align-items: center;
+	justify-content: flex-start;
+	min-width: 100%;
+	padding: 10px 0px;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+.add-address-btn {
+	display: flex;
+	justify-content: center;
+	padding-top: 20px;
+}
+
+.add-address-btn a {
+	background: #1a345c;
+	color: #ffffff;
+	max-width: 149px;
+	width: 100%;
+	padding: 4px 15px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-decoration: none !important;
+	font-size: 12px;
+	font-weight: 600;
+	font-family: 'Poppins';
+	border-radius: 5px;
+}
+
+.add-address-btn span {
+	font-size: 24px;
+	font-weight: 600;
+	margin-right: 7px;
+}
+
+.add-address label {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	flex-wrap: nowrap;
+	margin: 12px 0;
+	cursor: pointer;
+	position: relative;
+}
+
+.add-address input {
+	opacity: 1;
+	position: relative;
+	top: 0;
+	z-index: 0;
+	width: 20px;
+	height: 20px;
+	margin: 0px;
+}
+
+.address-details-cont-ls input:before {
+	content: " ";
+	display: inline-block;
+	position: relative;
+	top: 0px;
+	margin: 0 5px 0 0;
+	width: 20px;
+	height: 20px;
+	border-radius: 11px;
+	border: 2px solid #18355e;
+	background-color: transparent;
+}
+
+.address-details-cont-ls input[type=radio]:checked:after {
+	border-radius: 11px;
+	width: 12px;
+	height: 12px;
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	content: " ";
+	display: block;
+	background: #18355e;
+}
+
+.add-address-btn a:hover {
+	color: #ffffff;
+	background: #1a2e4e;
+}
+
+p.default-mark {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	font-size: 10px;
+	max-width: 145px;
+	display: block;
+	font-weight: 600;
+	color: #33aa65;
+	border: 1px solid #33aa65;
+	padding: 4px 10px;
+	border-radius: 5px;
+}
+
+.add-address-btn i {
+	font-size: 14px;
+	margin-left: 12px;
+}
+
+.user-address-detail {
+    color: #707070;
+    font-size: 13px;
+}
+
+.user-location-num {
+	color: #707070;
+	margin-left: 2%;
+	font-size: 14px;
+}
+
+.address-line-1 {
+    font-size: 14px;
+    color: #000000;
+    font-weight: 900;
+}
+
+.edit-delete-btns a {
+	font-size: 12px;
+	color: red;
+	border: none;
+	text-decoration: underline;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.edit-delete-btns {
+	display: block;
+	width: 20%;
+}
+
+h2.title {
+    color: #18355e !important;
+    font-size: 22px !important;
+    font-family: 'Poppins';
+}
+
+#add-new-address .btn-close {
+	color: #aaaaaa;
+	font-size: 20px;
+	text-decoration: none;
+	padding: 10px;
+	position: absolute;
+	right: 7px;
+	top: 0;
+}
+
+#add-new-address .btn-close:hover {
+	color: #919191;
+}
+
+.modale:before {
+	content: "";
+	display: none;
+	background: rgba(0, 0, 0, 0.6);
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 0;
+}
+
+.editmodale:before {
+	content: "";
+	display: none;
+	background: rgba(0, 0, 0, 0.6);
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 0;
+}
+
+.opened:before {
+	display: block;
+}
+
+.opened .modal-dialog {
+	-webkit-transform: translate(0, 0);
+	-ms-transform: translate(0, 0);
+	transform: translate(0, 0);
+	top: 15%;
+}
+
+.modal-dialog {
+	background: #fefefe;
+	border: #333333 solid 0px;
+	border-radius: 5px;
+	text-align: center;
+	z-index: 999;
+	width: 480px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+	-webkit-transform: translate(0, -500%);
+	-ms-transform: translate(0, -500%);
+	transform: translate(0, -500%);
+	-webkit-transition: -webkit-transform 0.3s ease-out;
+	-moz-transition: -moz-transform 0.3s ease-out;
+	-o-transition: -o-transform 0.3s ease-out;
+	transition: transform 0.3s ease-out;
+}
+
+#add-new-address .modal-footer {
+	padding: 0px 0px 20px 120px;
+}
+
+#add-new-address .modal-header h2 {
+	font-size: 20px;
+}
+
+#add-new-address .heading {
+	padding-top: 12px;
+}
+
+#add-new-address label {
+	margin-right: 12px;
+	font-weight: 600;
+}
+
+#add-new-address .add-address-form div {
+	display: flex;
+	margin: 12px auto;
+	justify-content: space-between;
+	width: 100%;
+	align-items: center;
+}
+
+#add-new-address .add-address-form {
+	padding: 10px 40px;
+}
+
+#add-new-address .add-address-form div label,
+#add-new-address .add-address-form div input,
+#add-new-address .add-address-form div select  {
+	width: 50%;
+	text-align: left;
+}
+
+#add-new-address .add-address-form .dft-addr-radio-btn label,
+#add-new-address .add-address-form .dft-addr-radio-btn input {
+	width: auto;
+	margin-right: 3%;
+}
+
+
+#add-new-address .add-address-form div label {
+    margin: 0px;
+}
+#add-new-address .dft-addr-radio-btn {
+    justify-content: flex-start !important;
+    align-items: center !important;
+}
+
+#add-new-address .add-address-form div input {
+	min-height: 22px;
+}
+
+#add-new-address .modal-footer button {
+	margin-left: 3%;
+}
+
+#add-new-address .modal-footer {
+	padding: 0px 40px 25px 40px;
+	display: flex;
+	justify-content: flex-end;
+	border: none;
+}
+
+#add-new-address .modal-header {
+	border: none;
+	max-height: 30px;
+}
+
+/* #add-new-address {
+	position: absolute;
+	width: 100%;
+	height: 100vh;
+	top: 0;
+} */
+
+a:hover,
+.link:hover,
+.btn-link:hover,
+a:active,
+.link:active,
+.btn-link:active,
+a:focus,
+.link:focus,
+.btn-link:focus {
+	border: none;
+}
+
+.modal-cont {
+    position: absolute;
+    left: -20%;
+    top: -70px;
+    z-index: -1;
+}
+
+.modale.modal-cont.opened {
+    z-index: 1;
+}
+
+.editmodale.modal-cont.opened {
+    z-index: 1;
+}
+
+</style>
+
+<!-- #################################################################################### -->
+<div>
+	<div>
+		<h2 class="title">Billing Information</h2>
+	 </div>
+	 <div>
+	   <h3 class="address-title">Address</h3>
+	</div>
+	<div class="add-address-sec">
+	   <div class="add-address">
+		{% csrf_token %}
+		<input id="web_csrf_token" value="{{ csrf_token }}" type="hidden"/>
+		  <div class="address-details-cont">
+			{% for address in user_addresses %}
+				{% if address.is_default_for_billing %}
+					<div id="{{ forloop.counter }}" class="address-details-cont-ls">
+						<div>
+							<label>
+								<input type="radio" name="light" checked id="{{ address.id }}">
+							</label>
+						</div>
+						<img class="address-icon" src="https://i.ibb.co/fH4zzTZ/Layer-0.png" alt="Credit Cards">
+						<div>
+							<div class="user-location">
+								<div>
+									<span id="{{ address.line1 }}" class="user-location address-line-1">{{ address.line1 }} </span>
+									<span class="user-location-num"> 98754258 </span>
+								</div>
+								<div>
+									<span id="{{ address.line2 }}" class="user-location user-address-detail"> {{ address.line2 }} </span>
+									<span id="{{ address.line4 }}" class="user-location user-address-detail"> {{ address.line4 }} </span>
+									<span id="{{ address.state }}" class="user-location user-address-detail"> {{ address.state }} </span>
+									<span id="{{ address.postcode }}" class="user-location user-address-detail"> {{ address.postcode }} </span>
+									<span id="{{ address.country.iso_3166_1_a2 }}" class="user-location user-address-detail"> {{ address.country.printable_name }} </span>
+									<span id="{{ address.first_name }}" class="user-location" style="visibility: hidden;"> {{ address.first_name }} </span>
+									<span id="{{ address.is_default_for_billing }}" class="user-location" style="visibility: hidden;"> {{ address.is_default_for_billing }} </span>
+								</div>
+							</div>
+							<p class="default-mark">Default Selected Address</p>
+						</div>
+						<div class="edit-delete-btns">
+							<a href="#" onclick="open_edit_modal({{ forloop.counter }});"> Edit </a>
+							<a href="#" onclick="delete_address({{ address.id }}, {{ address.id }});"> Delete </a>
+						</div>
+					</div>
+				{% else %}
+					<div id="{{ forloop.counter }}" class="address-details-cont-ls">
+						<div>
+							<label>
+								<input type="radio" name="light" id="{{ address.id }}">
+							</label>
+						</div>
+						<img class="address-icon" src="https://i.ibb.co/fH4zzTZ/Layer-0.png" alt="Credit Cards">
+						<div>
+							<div class="user-location">
+								<div>
+									<span id="{{ address.line1 }}" class="user-location address-line-1">{{ address.line1 }} </span>
+									<span class="user-location-num"> 98754258 </span>
+								</div>
+								<div>
+									<span id="{{ address.line2 }}" class="user-location user-address-detail"> {{ address.line2 }} </span>
+									<span id="{{ address.line4 }}" class="user-location user-address-detail"> {{ address.line4 }} </span>
+									<span id="{{ address.state }}" class="user-location user-address-detail"> {{ address.state }} </span>
+									<span id="{{ address.postcode }}" class="user-location user-address-detail"> {{ address.postcode }} </span>
+									<span id="{{ address.country.iso_3166_1_a2 }}" class="user-location user-address-detail"> {{ address.country.printable_name }} </span>
+									<span id="{{ address.first_name }}" class="user-location" style="visibility: hidden;"> {{ address.first_name }} </span>
+									<span id="{{ address.is_default_for_billing }}" class="user-location" style="visibility: hidden;"> {{ address.is_default_for_billing }} </span>
+								</div>
+							</div>
+						</div>
+						<div class="edit-delete-btns">
+						<a href="#" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
+						<a href="#" onclick="delete_address({{ address.id }});"> Delete </a>
+						</div>
+					</div>
+				{% endif %}
+			{% endfor %}
+			<div class="add-address-btn">
+				<a href="#" class="openmodale"><span>+</span> Add New Card</a>
+			</div>
+		  </div>
+	   </div>
+	</div>
+ </div>
+<!-- #################################################################################### -->
+
+
+<!-- ADD NEW ADDRESS FORM STARTS HERE -->
+
+<div class="modale modal-cont" aria-hidden="true" id="add-new-address">
+	<div class="modal-dialog">
+	   <div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">×</a> </div>
+	   <div class="heading">
+		  <h2>Add New Address</h2>
+	   </div>
+	   <div class="add-address-form">
+		  <form>
+			 <div>
+				<label for="fname">Name</label>
+				<input type="text" id="fname" name="fname"> 
+			 </div>
+			 <div>
+				<label for="address1">Address Line 1</label>
+				<input type="text" id="address1" name="address1"> 
+			 </div>
+			 <div>
+				<label for="address2">Address Line 2</label>
+				<input type="text" id="address2" name="address2"> 
+			 </div>
+			 <div>
+				<label for="zip">Zip Code</label>
+				<input id="zip" name="zip" type="text"> 
+			 </div>
+			 <div>
+				<label for="city">City</label>
+				<input type="text" id="city" name="city"> 
+			 </div>
+			 <div>
+				<label for="state">State</label>
+				<input type="text" id="state" name="state"> 
+			 </div>
+			 <div>
+				<label for="state">Country</label>
+				<select class="country-selection" id="country" name="country">
+					<option value="sc"> ---select a country--- </option>
+					{% for country in countries %}
+						<option value="{{ country.iso_3166_1_a2 }}"> {{ country.printable_name }} </option>
+					{% endfor %}
+				</select> 
+			</div>
+		 <div class="dft-addr-radio-btn">
+				<input type="checkbox" id="radio" name="radio">
+				<label for="checkbox">Set as Default Address</label>
+			 </div>
+		  </form>
+	   </div>
+	   <div class="modal-footer">
+		  <button type="button" class="btn btn-primary" onclick="add_new_address();">Save</button>
+		  <button type="submit" class="btn btn-default closemodale">Cancel</button>
+	   </div>
+	</div>
+ </div>
+ 
+ <!-- ADD NEW ADDRESS FORM ENDS HERE -->
+
+ 
+ <!-- EDIT ADDRESS FORM STARTS HERE -->
+
+ <div class="editmodale modal-cont" aria-hidden="true" id="add-new-address">
+	<div class="modal-dialog">
+	   <div class="modal-header"> <a href="#" class="btn-close closeeditmodale" aria-hidden="true">×</a> </div>
+	   <div class="heading">
+		  <h2>Edit Address</h2>
+	   </div>
+	   <div class="add-address-form">
+		  <form>
+			 <div>
+				<label for="fname">Name</label>
+				<input type="text" id="edit_fname" name="fname">
+			 </div>
+			 <div>
+				<label for="address1">Address Line 1</label>
+				<input type="text" id="edit_address1" name="address1"> 
+			 </div>
+			 <div>
+				<label for="address2">Address Line 2</label>
+				<input type="text" id="edit_address2" name="address2"> 
+			 </div>
+			 <div>
+				<label for="zip">Zip Code</label>
+				<input id="edit_zip" name="zip" type="number"> 
+			 </div>
+			 <div>
+				<label for="city">City</label>
+				<input type="text" id="edit_city" name="city"> 
+			 </div>
+			 <div>
+				<label for="state">State</label>
+				<input type="text" id="edit_state" name="state"> 
+			 </div>
+			 <div>
+				<label for="state">Country</label>
+				<select class="country-selection" id="edit_country" name="country">
+					<option value="sc"> ---select a country--- </option>
+					{% for country in countries %}
+						<option value="{{ country.iso_3166_1_a2 }}"> {{ country.printable_name }} </option>
+					{% endfor %}
+				</select> 
+			</div>
+			<div>
+				<input type="text" id="edit_address_id" name="address_id" style="visibility: hidden;"> 
+			</div>
+		 <div class="dft-addr-radio-btn">
+				<input type="checkbox" id="edit_radio" name="edit_radio">
+				<label for="checkbox">Set as Default Address</label>
+			 </div>
+		  </form>
+	   </div>
+	   <div class="modal-footer">
+		  <button type="button" class="btn btn-primary" onclick="edit_address();">Save</button>
+		  <button type="submit" class="btn btn-default closeeditmodale">Cancel</button>
+	   </div>
+	</div>
+ </div>
+ 
+<!-- ADD NEW ADDRESS FORM ENDS HERE -->
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+<script>
+	function continue_to_basket() {
+		var selected_value = document.querySelector('input[name="light"]:checked').id;
+		var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
+			window.location.replace(host);
+		};
+
+	function add_new_address() {
+		let csrf = $('#csrf-token').val();
+		data = {
+			"first_name": document.getElementById("fname").value,
+			"address_line1": document.getElementById("address1").value,
+			"address_line2": document.getElementById("address2").value,
+			"address_city": document.getElementById("city").value,
+			"address_state": document.getElementById("state").value,
+			"address_postal_code": document.getElementById("zip").value,
+			"address_country": document.getElementById("country").value,
+			"is_default_for_billing": document.querySelector('input[name="radio"]:checked') ? true : false,
+		};
+
+		$.ajax({
+			url: '/basket/address-add-new/',
+			method: 'POST',
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			data: JSON.stringify(data),
+			success: function(response){
+                window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+			},
+			error: function(data){ 
+				window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+	        },
+		});
+	}
+
+	function show_info(index, address_id) {
+		var counter = (index - 1) * 9;
+		$("#edit_fname").val($('.user-location')[7 + counter].id);
+		$("#edit_address1").val($('.user-location')[1 + counter].id);
+		$("#edit_address2").val($('.user-location')[2 + counter].id);
+		$("#edit_city").val($('.user-location')[3 + counter].id);
+		$("#edit_state").val($('.user-location')[4 + counter].id);
+		$("#edit_zip").val($('.user-location')[5 + counter].id);
+		$("#edit_country").val($('.user-location')[6 + counter].id);
+
+		var is_default = ($('.user-location')[8 + counter].id) == "True" ? true : false;
+		$("#edit_radio").prop("checked", is_default);
+
+		$("#edit_address_id").val(address_id);
+	}
+
+	function edit_address() {
+		let csrf = $('#csrf-token').val();
+		
+		data = {
+			"id": document.getElementById("edit_address_id").value,
+			"first_name": document.getElementById("edit_fname").value,
+			"address_line1": document.getElementById("edit_address1").value,
+			"address_line2": document.getElementById("edit_address2").value,
+			"address_city": document.getElementById("edit_city").value,
+			"address_state": document.getElementById("edit_state").value,
+			"address_postal_code": document.getElementById("edit_zip").value,
+			"address_country": document.getElementById("edit_country").value,
+			"is_default_for_billing": document.querySelector('input[name="edit_radio"]:checked') ? true : false,
+		};
+
+		$.ajax({
+			url: '/basket/address-edit/',
+			method: 'POST',
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			data: JSON.stringify(data),
+			success: function(response){
+                window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+			},
+			error: function(data){ 
+				window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+	        },
+		});
+	}
+
+	function delete_address(address_id) {
+		let csrf = $('#csrf-token').val();
+		$.ajax({
+			url: '/basket/address-delete/',
+			method: 'DELETE',
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			data: JSON.stringify(address_id),
+			success: function(response){
+                window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+			},
+			error: function(data){ 
+				window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+	        },
+		});
+	}
+</script>
+<script>
+//You may use vanilla JS, I just chose jquery
+
+// ***** Add New Address Modal *****
+$('.openmodale').click(function (e) {
+    e.preventDefault();
+    $('.modale').addClass('opened');
+});
+
+$('.closemodale').click(function (e) {
+    e.preventDefault();
+    $('.modale').removeClass('opened');
+});
+
+
+// ***** Edit Address Modal *****
+function open_edit_modal(counter, address_id) {
+	$('.editmodale').addClass('opened');
+	show_info(counter, address_id);
+}
+
+$('.closeeditmodale').click(function (e) {
+    e.preventDefault();
+    $('.editmodale').removeClass('opened');
+});
+
+</script>

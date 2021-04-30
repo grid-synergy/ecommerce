@@ -8,8 +8,6 @@ from collections import OrderedDict
 from datetime import datetime
 from decimal import Decimal
 from rest_framework import status
-
-
 import dateutil.parser
 import newrelic.agent
 import waffle
@@ -23,6 +21,8 @@ from opaque_keys.edx.keys import CourseKey
 from oscar.apps.basket.signals import voucher_removal
 from oscar.apps.basket.views import VoucherAddView as BaseVoucherAddView
 from oscar.apps.basket.views import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from django.core.exceptions import ObjectDoesNotExist
+from oscar.core.loading import get_class, get_model
 from oscar.core.prices import Price
 from requests.exceptions import ConnectionError as ReqConnectionError
 from requests.exceptions import Timeout
@@ -30,6 +30,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from slumber.exceptions import SlumberBaseException
+from django.views.generic import TemplateView
+
 
 from ecommerce.core.exceptions import SiteConfigurationError
 from ecommerce.core.url_utils import absolute_redirect, get_lms_course_about_url, get_lms_url
@@ -74,6 +76,7 @@ from ecommerce.extensions.order.exceptions import AlreadyPlacedOrderException
 from ecommerce.extensions.partner.shortcuts import get_partner_for_site
 from ecommerce.extensions.payment.constants import CLIENT_SIDE_CHECKOUT_FLAG_NAME
 from ecommerce.extensions.payment.forms import PaymentForm
+from django.contrib.auth import get_user_model
 # from oscar.apps.checkout.applicator import SurchargeApplicator
 
 Basket = get_model('basket', 'basket')
@@ -89,6 +92,11 @@ Selector = get_class('partner.strategy', 'Selector')
 BasketLineFormSet, SavedLineFormSet = get_classes(
     'basket.formsets', ('BasketLineFormSet', 'SavedLineFormSet'))
 Applicator = get_class('offer.applicator', 'Applicator')
+UserAddress = get_model('address', 'UserAddress')
+ShippingAddress = get_class('order.models', 'ShippingAddress')
+BillingAddress = get_model('order', 'BillingAddress')
+Country = get_model('address', 'Country')
+User = get_user_model()
 
 class BasketLogicMixin:
     """
@@ -561,6 +569,16 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         Applicator().apply(basket, basket.owner, self.request)
         context['order_total'] = OrderTotalCalculator().calculate(
             basket, shipping_charge, surcharges=0)
+
+        context = self._get_addresses_data(context)
+        # logging.info("===================================")
+        countries = Country.objects.all()
+        # for country in countries:
+        #     logging.info(country.printable_name)
+        #     logging.info(country.iso_3166_1_a2)
+        # logging.info("===================================")
+        context["countries"] = countries
+
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
@@ -636,13 +654,10 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
     def _get_cutomer_card_info(self, user):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+        
         tracking_context = user.tracking_context or {}
         customer_card_info = {}
         if not self.kwargs.get("pm_id"):
-            tracking_context.pop("selected_payment_card_id", None)
-            user.tracking_context = tracking_context
-            user.save()
-
             customer_card_info.update({
                 'card_number': '',
                 'card_expiry_month': '',
@@ -678,8 +693,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             # })
 
             payment_id = self.kwargs.get("pm_id")
-            user.tracking_context["selected_payment_card_id"] = payment_id
-            user.save()
+            user.tracking_context["select_card"] = payment_id
             payment_info = stripe.PaymentMethod.retrieve(payment_id)
             customer_card_info.update({
                 'card_number': 'XXXXXXXXXXXX' + payment_info['card']['last4'],
@@ -761,6 +775,13 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
 
 
 
+
+    def _get_addresses_data(self, context):
+        user_id = self.request.user.id
+        user_address_data = UserAddress.objects.filter(user = user_id)
+        context["user_addresses"] = user_address_data
+
+        return context
 
 class CaptureContextApiLogicMixin:  # pragma: no cover
     """
@@ -1344,3 +1365,151 @@ class AddCardApiView(APIView):
         except:
     
             return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+class AddressAddNewView(APIView):
+    """ Api for adding a new address to user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        address = self._get_address_object(request.data)
+        is_added = self._add_user_address(request.user, address, request.data)
+
+        if (is_added):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_403_FORBIDDEN)
+
+
+    def _add_user_address(self, user, addr, data):
+        """ Update the user's address book based on the new shipping address """
+
+        try:
+            user_address = user.addresses.get(
+                hash=addr.generate_hash())
+
+            return False
+
+        except ObjectDoesNotExist:
+            # Create a new user address
+            user_address = UserAddress(user=user)
+            addr.populate_alternative_model(user_address)
+
+            if data["is_default_for_billing"]:
+                self._remove_default_for_billing()
+            user_address.is_default_for_billing=data["is_default_for_billing"]
+
+            user_address.save()
+
+            return True
+
+
+    def _get_address_object(self, data):
+        """ Retrieves the billing address associated with token.
+
+        Returns:
+            BillingAddress
+        """
+
+
+        try:
+            country = Country.objects.get(iso_3166_1_a2__iexact=data['address_country'])
+        except:
+            country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+
+        address = BillingAddress(
+            first_name=data['first_name'],      # Stripe only has a single name field
+            last_name='',
+            line1=data['address_line1'] or '',
+            line2=data.get('address_line2') or '',
+            line4=data['address_city'],         # Oscar uses line4 for city
+            postcode=data.get('address_postal_code') or '',
+            state=data.get('address_state') or '',
+            country=country
+        )
+
+        return address
+
+
+    def _remove_default_for_billing(self):
+        default_address = UserAddress.objects.filter(is_default_for_billing = True)
+        default_address[0].is_default_for_billing = False
+        default_address[0].save
+
+
+class AddressEditView(APIView):
+    """ Api for editing an address from user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        is_updated = self._update_user_address(request.user, request.data)
+
+        if (is_updated):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def _update_user_address(self, user, data):
+        """ Update the user's address book based on the new booking address """
+
+        user_address_data = UserAddress.objects.filter(user = user.id)
+        for address in user_address_data:
+            if address.id is int(data["id"]):
+                try:
+                    country = Country.objects.get(iso_3166_1_a2__iexact=data["address_country"])
+                except:
+                    country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+                address.first_name = data["first_name"]
+                address.line1 = data["address_line1"]
+                address.line2 = data["address_line2"]
+                address.line4 = data["address_city"]    # Oscar uses line4 for city
+                address.postcode = data["address_postal_code"]
+                address.state = data["address_state"]
+                address.country = country
+
+                if data["is_default_for_billing"]:
+                    self._remove_default_for_billing()
+                    address.is_default_for_billing = data["is_default_for_billing"]
+
+                address.save()
+
+                return True
+
+        return False
+
+
+    def _remove_default_for_billing(self):
+        default_address = UserAddress.objects.filter(is_default_for_billing = True)
+        default_address[0].is_default_for_billing = False
+        default_address[0].save
+
+
+
+class AddressDeleteView(APIView):
+    """ Api for deleting an address from user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request):
+        is_deleted = self._delete_user_address(request.user.id, request.data)
+
+        if (is_deleted):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def _delete_user_address(self, user_id, address_id):
+        """ Delete the user's address from address book based on the given id """
+
+        user_address_data = UserAddress.objects.filter(user = user_id)
+        for address in user_address_data:
+            if address.id is address_id:
+                address.delete()
+
+                return True
+
+        return False
