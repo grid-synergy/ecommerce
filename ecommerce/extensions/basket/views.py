@@ -1300,8 +1300,47 @@ class UpdateCardApiView(APIView):
             return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
         
 
+class AddCardApiView(APIView):
+    # Api for Adding card from stripe
 
+    # permission_classes = (IsAuthenticated,)
 
+    def post(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
 
+        #card_add_response = request.POST
+        token_create_response = request.POST
+        logging.info(token_create_response["number"])
+        cust_id = "cus_JOFKknSNVVTSjM" 
+        card_number = token_create_response["number"]
+        expiry_month = token_create_response["exp_month"]
+        expiry_year = token_create_response["exp_year"]
+        security_code = token_create_response["cvc"]
+        token = stripe.Token.create(
+            card={
+               card_number,
+               expiry_month,
+               expiry_year,
+               security_code
+               
+                 },
+            )
+       
+        # logging.info(card_add_response["id"])
+        cust_id = "cus_JOFKknSNVVTSjM"
+        # card_id = card_add_response["id"]
+        # request.POST.get(print("card number",number))
+        token = self.request.POST.get("stripe_token")
 
+        try:
+            Customer = stripe.Customer.create_source(
+            cust_id,
+            source="tok_1IlpcnCWEv86Pz7XMzxh6Alh"
+            )
 
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        
+        except:
+    
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
