@@ -122,6 +122,8 @@
     {% endif %}
 </div>
 
+{% include 'oscar/basket/partials/address_selection.html' %}
+{% include 'oscar/basket/partials/card_selection.html' %}
 
 <form id="paymentForm" class="payment-form form-horizontal" method="post" aria-live="polite">
     {% csrf_token %}
@@ -140,8 +142,6 @@
                  {% crispy payment_form %}
             </div>
         </div> -->
-        {% include 'oscar/basket/partials/address_selection.html' %}
-        {% include 'oscar/basket/partials/card_selection.html' %} 
         {% endif %}
         <div class="form-input-elements placeholder">
             <div role="region" {% if not free_basket %}aria-labelledby="billing-information-region"{% endif %}>
