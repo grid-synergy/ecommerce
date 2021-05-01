@@ -1,18 +1,54 @@
 <style>
 
+.bill-info-addr-sec {
+position: relative;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+width: 45%;
+padding-left: 5%;
+}
+
+.bill-info-card-sec {
+position: relative;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+padding-left: 5%;
+}
+
+#summary {
+width: 45%;
+padding-right: 5%;
+}
+
+
+#summary:after {
+	content: '';
+	width: 2px;
+	height: 110vh;
+	background: #bfbfbf;
+	position: absolute;
+	right: 0;
+	top: -10px;
+}
+
+
+
+
 .add-address-sec {
 	display: flex;
 	align-items: center;
 	float: left;
 	justify-content: flex-start;
 	width: 100%;
-	padding-left: 15px;
 	margin-top: 20px !important;
 	margin-bottom: 40px;
 }
 
+
 .add-address {
-	max-width: 550px;
+	min-width: 535px;
 	width: 100%;
 	padding: 10px 20px;
 	position: relative;
@@ -28,7 +64,6 @@ h3.address-title {
 	font-weight: 600;
 	color: #7f7f7f;
 	margin: 0px;
-	padding-left: 15px;
 }
 
 button.address-close-btn {
@@ -384,7 +419,7 @@ a:focus,
 
 <!-- #################################################################################### -->
 <!-- ADDRESS INFORMATION STARTS HERE -->
-<div>
+<div class="bill-info-addr-sec">
 	<div>
 		<h2 class="title">Billing Information</h2>
 	 </div>
