@@ -1272,6 +1272,8 @@ class VoucherRemoveApiView(PaymentApiLogicMixin, APIView):
 class DeleteCardApiView(APIView):
 
     # Api for deleting card from stripe
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     # permission_classes = (IsAuthenticated,)
 
@@ -1282,7 +1284,7 @@ class DeleteCardApiView(APIView):
 
 
         data = request.data
-        cust_id = "cus_JGoPTmvRKrjSyy"
+        cust_id = request.user.tracking_context["customer_id"]
         card_id = data["card_id"]
         try:
             stripe.Customer.delete_source(
@@ -1299,6 +1301,8 @@ class UpdateCardApiView(APIView):
     # Api for updating card from stripe
 
     # permission_classes = (IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self,request):
         import stripe
@@ -1307,7 +1311,7 @@ class UpdateCardApiView(APIView):
         card_update_response = request.POST
 
         logging.info(card_update_response["id"])
-        cust_id = "cus_JGoPTmvRKrjSyy"
+        cust_id = request.user.tracking_context["customer_id"]
         card_id = card_update_response["id"]
 
 
