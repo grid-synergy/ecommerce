@@ -1,710 +1,1406 @@
 <style>
-	
-.payment-card-sec {
-    display: flex;
-    padding-left: 15px;
-    margin-top: 20px !important;
-    align-items: center;
-    float: left;
-    justify-content: flex-start;
-    width: 100%;
+
+
+#payment-information {
+	float: right;
+	padding: 0px;
+	border: none !important;
+	margin: 0px auto 20px auto;
 }
+
+.payment-card-sec {
+
+display: flex;
+
+padding-left: 15px;
+
+margin-top: 20px !important;
+
+align-items: center;
+
+float: left;
+
+justify-content: flex-start;
+
+width: 100%;
+
+}
+
+
 
 .payment-card {
-    max-width: 550px;
-    width: 100%;
-    position: relative;
-    padding: 50px 20px 10px 20px;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0 1px 10px 0 rgb(0 0 0 / 13%), inset 0 0 0 1px rgb(255 255 255 / 75%);
-    background: #fff;
+	max-width: 535px;
+	width: 100%;
+	position: relative;
+	padding: 50px 20px 10px 20px;
+	height: auto;
+	border-radius: 12px;
+	box-shadow: 0 1px 10px 0 rgb(0 0 0 / 13%), inset 0 0 0 1px rgb(255 255 255 / 75%);
+	background: #fff;
 }
+
 
 h3.pay-title {
-    font-size: 16px;
-    font-family: 'Poppins';
-    font-weight: 600;
-    color: #7f7f7f;
-    margin: 0px;
-    padding-left: 15px;
+	font-size: 16px;
+	font-family: 'Poppins';
+	font-weight: 600;
+	color: #7f7f7f;
+	margin: 0px;
 }
+
 
 button.pay-close-btn {
-    background: #bc1010;
-    border: none;
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    display: flex;
-    box-shadow: none;
-    justify-content: center;
-    align-items: self-end;
-    width: 12px;
-    height: 12px;
-    padding: 11px;
-    text-shadow: none;
-    border-radius: 50%;
+
+background: #bc1010;
+
+border: none;
+
+position: absolute;
+
+right: 10px;
+
+top: 10px;
+
+display: flex;
+
+box-shadow: none;
+
+justify-content: center;
+
+align-items: self-end;
+
+width: 12px;
+
+height: 12px;
+
+padding: 11px;
+
+text-shadow: none;
+
+border-radius: 50%;
+
 }
+
+
 
 button.pay-close-btn span {
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 0;
+
+font-size: 24px;
+
+font-weight: bold;
+
+line-height: 0;
+
 }
+
+
 
 button.pay-close-btn:hover {
-    background: #e74747;
+
+background: #e74747;
+
 }
+
+
 
 .pay-card-opt {
-    position: relative;
-    width: 100%;
-    padding-bottom: 10px;
-    height: 100%;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: flex-start;
+
+position: relative;
+
+width: 100%;
+
+padding-bottom: 10px;
+
+height: 100%;
+
+display: inline-flex;
+
+flex-direction: column;
+
+justify-content: flex-start;
+
 }
+
+
 
 img.credit-cards-img {
-    width: 40px;
-    height: 40px;
-    margin-left: 4%;
+
+width: 40px;
+
+height: 40px;
+
+margin-left: 4%;
+
 }
+
+
 
 .pay-card-opt-ls {
-    display: flex;
-    position: relative;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0px;
-    width: 100%;
-    border-bottom: 1px solid #f2f2f2;
+
+display: flex;
+
+position: relative;
+
+align-items: center;
+
+justify-content: space-between;
+
+padding: 10px 0px;
+
+width: 100%;
+
+border-bottom: 1px solid #f2f2f2;
+
 }
+
 .credit-cards-select {
-    display: flex;
-    width: 100%;
-    align-items: center;
+
+display: flex;
+
+width: 100%;
+
+align-items: center;
+
 }
+
+
 
 .credit-cards-name {
-    font-size: 16px;
-    font-weight: 600;
-    font-family: 'Poppins';
-    margin-bottom: 0px;
-    margin-left: 5%;
-    color: #bfbfbf;
-    text-transform: uppercase;
+
+font-size: 16px;
+
+font-weight: 600;
+
+font-family: 'Poppins';
+
+margin-bottom: 0px;
+
+margin-left: 5%;
+
+color: #bfbfbf;
+
+text-transform: uppercase;
+
 }
+
+
 
 span.credit-cards-num {
-    color: #1a345c;
+
+color: #1a345c;
+
 }
+
+
 
 .add-pay-card-btn {
-    display: flex;
-    justify-content: center;
-    padding-top: 20px;
+
+display: flex;
+
+justify-content: center;
+
+padding-top: 20px;
+
 }
+
+
 
 .add-pay-card-btn a {
-    background: #1a345c;
-    color: #ffffff;
-    max-width: 149px;
-    width: 100%;
-    padding: 4px 15px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none !important;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: 'Poppins';
-    border-radius: 5px;
+
+background: #1a345c;
+
+color: #ffffff;
+
+max-width: 149px;
+
+width: 100%;
+
+padding: 4px 15px;
+
+display: flex;
+
+justify-content: center;
+
+align-items: center;
+
+text-decoration: none !important;
+
+font-size: 12px;
+
+font-weight: 600;
+
+font-family: 'Poppins';
+
+border-radius: 5px;
+
 }
+
+
 
 .add-pay-card-btn span {
-    font-size: 24px;
-    font-weight: 600;
-    margin-right: 7px;
+
+font-size: 24px;
+
+font-weight: 600;
+
+margin-right: 7px;
+
 }
+
+
 
 .payment-card label {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    flex-wrap: nowrap;
-    margin: 12px 0;
-    cursor: pointer;
-    position: relative;
+
+display: flex;
+
+justify-content: flex-start;
+
+align-items: center;
+
+flex-wrap: nowrap;
+
+margin: 12px 0;
+
+cursor: pointer;
+
+position: relative;
+
 }
+
+
 
 .payment-card input {
-    opacity: 1;
-    position: relative;
-    top: 0;
-    z-index: 0;
-    width: 20px;
-    height: 20px;
-    margin: 0px;
+
+opacity: 1;
+
+position: relative;
+
+top: 0;
+
+z-index: 0;
+
+width: 20px;
+
+height: 20px;
+
+margin: 0px;
+
 }
+
+
 
 .pay-card-opt-ls input:before {
-    content: " ";
-    display: inline-block;
-    position: relative;
-    top: 0px;
-    margin: 0 5px 0 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 11px;
-    border: 2px solid #18355e;
-    background-color: transparent;
+
+content: " ";
+
+display: inline-block;
+
+position: relative;
+
+top: 0px;
+
+margin: 0 5px 0 0;
+
+width: 20px;
+
+height: 20px;
+
+border-radius: 11px;
+
+border: 2px solid #18355e;
+
+background-color: transparent;
+
 }
+
+
 
 .pay-card-opt-ls input[type=radio]:checked:after {
-    border-radius: 11px;
-    width: 12px;
-    height: 12px;
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    content: " ";
-    display: block;
-    background: #18355e;
+
+border-radius: 11px;
+
+width: 12px;
+
+height: 12px;
+
+position: absolute;
+
+top: 4px;
+
+left: 4px;
+
+content: " ";
+
+display: block;
+
+background: #18355e;
+
 }
+
+
 
 .add-pay-card-btn a:hover {
-    color: #ffffff;
-    background: #1a2e4e;
+
+color: #ffffff;
+
+background: #1a2e4e;
+
 }
+
+
 
 .pay-card-opt-ls p.default-mark {
-    margin: 0px;
-    font-size: 10px;
-    font-weight: 600;
-    margin-top: 5px;
-    width: 100%;
-    color: #33aa65;
-    border: 1px solid #33aa65;
-    padding: 4px 10px;
-    max-width: 130px;
-    border-radius: 5px;
-    margin-right: 3%;
-    display: block;
+
+margin: 0px;
+
+font-size: 10px;
+
+font-weight: 600;
+
+margin-top: 5px;
+
+width: 100%;
+
+color: #33aa65;
+
+border: 1px solid #33aa65;
+
+padding: 4px 10px;
+
+max-width: 130px;
+
+border-radius: 5px;
+
+margin-right: 3%;
+
+display: block;
+
 }
+
+
 
 .add-pay-card-btn i {
-    font-size: 14px;
-    margin-left: 12px;
+
+font-size: 14px;
+
+margin-left: 12px;
+
 }
+
+
 
 .pay-card-select {
-    display: flex;
-    width: 100%;
-    align-items: center;
+
+display: flex;
+
+width: 100%;
+
+align-items: center;
+
 }
+
+
 
 .card-dft {
-    display: flex;
-    width: 100%;
-    justify-content: flex-end;
-    align-items: center;
+
+display: flex;
+
+width: 100%;
+
+justify-content: flex-end;
+
+align-items: center;
+
 }
+
+
 
 .card-delete-btn a {
-    color: red;
-    font-size: 12px;
-    border: none;
-    text-decoration: underline;
+
+color: red;
+
+font-size: 12px;
+
+border: none;
+
+text-decoration: underline;
+
 }
+
+
 
 .card-delete-btn a.delete-btn {
-    display: block;
+
+display: block;
+
 }
+
+
 
 a.view-card {
-    color: #337ab7;
+
+color: #337ab7;
+
 }
 
-/* ###############################ADD_NEW_CARD##################################### */
+
+
+/ ###############################ADD_NEW_CARD##################################### /
+
 body {
-	background: url(https://subtlepatterns.com/patterns/crossword.png);
-	font-family: sans-serif;
-	color: #333;
+
+background: url(https://subtlepatterns.com/patterns/crossword.png);
+
+font-family: sans-serif;
+
+color: #333;
+
 }
+
+
 
 .btn-close {
-	color: #aaaaaa;
-	font-size: 20px;
-	text-decoration: none;
-	padding: 10px;
-	position: absolute;
-	right: 7px;
-	top: 0;
+
+color: #aaaaaa;
+
+font-size: 20px;
+
+text-decoration: none;
+
+padding: 10px;
+
+position: absolute;
+
+right: 7px;
+
+top: 0;
+
 }
+
+
 
 .btn-close:hover {
-	color: #919191;
+
+color: #919191;
+
 }
+
+
 
 .modale:before, .viewmodale:before {
-	content: "";
-	display: none;
-	background: rgba(0, 0, 0, 0.6);
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 10;
+
+content: "";
+
+display: none;
+
+background: rgba(0, 0, 0, 0.6);
+
+position: fixed;
+
+top: 0;
+
+left: 0;
+
+right: 0;
+
+bottom: 0;
+
+z-index: 10;
+
 }
+
+
 
 .opened:before {
-	display: block;
+
+display: block;
+
 }
+
+
 
 .modal-dialog {
-	background: #fefefe;
-	border: #333333 solid 0px;
-	border-radius: 5px;
-	margin-left: -250px;
-	text-align: center;
-	position: fixed;
-	z-index: 11;
-	width: 520px;
-	box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-	-webkit-transform: translate(0, -500%);
-	-ms-transform: translate(0, -500%);
-	transform: translate(0, -500%);
-	-webkit-transition: -webkit-transform 0.3s ease-out;
-	-moz-transition: -moz-transform 0.3s ease-out;
-	-o-transition: -o-transform 0.3s ease-out;
-	transition: transform 0.3s ease-out;
+
+background: #fefefe;
+
+border: #333333 solid 0px;
+
+border-radius: 5px;
+
+margin-left: -250px;
+
+text-align: center;
+
+position: fixed;
+
+z-index: 11;
+
+width: 520px;
+
+box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+
+-webkit-transform: translate(0, -500%);
+
+-ms-transform: translate(0, -500%);
+
+transform: translate(0, -500%);
+
+-webkit-transition: -webkit-transform 0.3s ease-out;
+
+-moz-transition: -moz-transform 0.3s ease-out;
+
+-o-transition: -o-transform 0.3s ease-out;
+
+transition: transform 0.3s ease-out;
+
 }
+
+
 
 h2.title {
-    color: #18355e !important;
-    font-size: 22px !important;
-    font-family: 'Poppins';
+
+color: #18355e !important;
+
+font-size: 22px !important;
+
+font-family: 'Poppins';
+
 }
+
+
 
 .modal-cont {
-	position: absolute;
-	left: -20%;
-	top: -70px;
-	z-index: -2;
+
+position: absolute;
+
+left: -20%;
+
+top: -70px;
+
+z-index: -2;
+
 }
+
+
 
 .modale.modal-cont.opened {
-	z-index: 2;
+
+z-index: 2;
+
 }
+
+
 
 #view-card .modal-footer ,
+
 #add-new-card .modal-footer {
-	padding: 0px 40px 20px 40px;
-	display: flex;
-	justify-content: flex-end;
-	border: none;
+
+padding: 0px 40px 20px 40px;
+
+display: flex;
+
+justify-content: flex-end;
+
+border: none;
+
 }
+
+
 
 #view-card .modal-header,
+
 #add-new-card .modal-header {
-	border: none;
+
+border: none;
+
 }
+
+
 
 #view-card .modal-footer button {
-	margin-left: 3%;
+
+margin-left: 3%;
+
 }
+
+
 
 #view-card .view-card-cont {
-	padding: 0px 40px;
+
+padding: 0px 40px;
+
 }
+
+
 
 #view-card .view-card-cont>div {
-	display: flex;
-	align-items: center;
+
+display: flex;
+
+align-items: center;
+
 }
+
+
 
 #add-new-card .cardNumber label {
-	width: 23%;
-	text-align: left;
+
+width: 23%;
+
+text-align: left;
+
 }
+
+
 
 #add-new-card .add-card-form div {
-	flex-direction: row;
-	margin: 10px auto;
-	justify-content: center;
-	text-align: left;
+
+flex-direction: row;
+
+margin: 10px auto;
+
+justify-content: center;
+
+text-align: left;
+
 }
+
+
 
 #add-new-card .add-card-form {
-	padding: 15px 30px;
+
+padding: 15px 30px;
+
 }
+
+
 
 #view-card .set-default-card-radio {
-	justify-content: flex-start !important;
-	margin: 15px auto !important;
+
+justify-content: flex-start !important;
+
+margin: 15px auto !important;
+
 }
+
+
 
 #view-card .set-default-card-radio input {
-	margin: 0px;
-	margin-right: 3%;
+
+margin: 0px;
+
+margin-right: 3%;
+
 }
+
+
 
 #add-new-card .cardNumber .inputcardNumber {
-	width: 77%;
+
+width: 77%;
+
 }
+
+
 
 #view-card .set-default-card-radio label {
-	margin: 0px;
+
+margin: 0px;
+
 }
+
+
 
 #view-card .view-card-cont p {
-    margin: 0px;
+
+margin: 0px;
+
 }
+
+
 
 #view-card .modal-dialog {
-    width: 440px;
+
+width: 440px;
+
 }
+
+
 
 .viewmodale.modal-cont.opened {
-    z-index: 3 !important;
+
+z-index: 3 !important;
+
 }
+
 #add-new-card .month-year {
-	display: flex;
-	width: 100%;
-	align-items: center;
+
+display: flex;
+
+width: 100%;
+
+align-items: center;
+
 }
+
+
 
 #add-new-card .cvc {
-	display: flex;
-	align-items: center;
+
+display: flex;
+
+align-items: center;
+
 }
+
+
 
 #add-new-card .modal-footer button {
-	margin-left: 3%;
+
+margin-left: 3%;
+
 }
+
+
 
 #add-new-card .add-card-form div label {
-	margin-right: 10px;
+
+margin-right: 10px;
+
 }
+
+
 
 .opened .modal-dialog {
-	-webkit-transform: translate(0, 0);
-	-ms-transform: translate(0, 0);
-	transform: translate(0, 0);
-	top: 10%;
-	left: 50%;
+
+-webkit-transform: translate(0, 0);
+
+-ms-transform: translate(0, 0);
+
+transform: translate(0, 0);
+
+top: 10%;
+
+left: 50%;
+
 }
+
+
 
 .add-new-card-cont {
-	padding: 0px 40px;
+
+padding: 0px 40px;
+
 }
+
+
 
 .add-new-card-cont>div {
-	display: flex;
-	justify-content: space-between;
-	margin: 20px auto !important;
-	align-items: center;
+
+display: flex;
+
+justify-content: space-between;
+
+margin: 20px auto !important;
+
+align-items: center;
+
 }
+
+
 
 .set-default-card-radio {
-	justify-content: flex-start !important;
+
+justify-content: flex-start !important;
+
 }
 
+
+
 .set-default-card-radio input {
-	margin-right: 3%;
+
+margin-right: 3%;
+
 }
+
+
 
 #add-new-card .month-year select {
-	margin-right: 3%;
-	width: auto;
+
+margin-right: 3%;
+
+width: auto;
+
 }
+
+
 
 #add-new-card .month-year label {
-	display: block;
-	width: auto;
+
+display: block;
+
+width: auto;
+
 }
+
+
 
 .card-year-sec label {
-	margin: 0px;
-	margin-right: 10px;
+
+margin: 0px;
+
+margin-right: 10px;
+
 }
+
+
 
 .add-new-card-cont input,
-.add-new-card-cont select {
-	min-height: 28px;
-}
 
 .add-new-card-cont select {
-	font-size: 14px;
+
+min-height: 28px;
+
 }
+
+
+
+.add-new-card-cont select {
+
+font-size: 14px;
+
+}
+
+
 
 .set-default-card-radio input {
-	margin: 0px;
-	margin-right: 3%;
+
+margin: 0px;
+
+margin-right: 3%;
+
 }
+
+
 
 .set-default-card-radio label {
-	margin: 0px;
+
+margin: 0px;
+
 }
 
-	</style>
-	
+
+
+</style>
+
+
+
+
+
 
 
 <!-- #################################################################################### -->
+
 <!-- CARD INFORMATION STARTS HERE -->
 
-<div>
-	<div>
-		<h2 class="title">Card Information</h2>
-	 </div>
-	<div>
-	   <h3 class="pay-title">Card Number (required)</h3>
-	</div>
-	<div class="payment-card-sec">
-	   <div class="payment-card">
-		  <input type="hidden" name="csrfmiddlewaretoken" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV">
-		  <input id="web_csrf_token" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV" type="hidden">
-		  <div class="pay-card-opt">
-			{% for cards in stripe_response %}
-				{% if customer_default_card == cards.id %}
-			 <div class="pay-card-opt-ls">
-				 <div class="credit-cards-select">
 
-				<div class="pay-card-select">
-				   <div>
-					  <label>
-					  <input type="radio" name="light" checked="" id="card_1IT6fMCWEv86Pz7X45yRibxo">
-					  </label>
-				   </div>
-				   <img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-				   <p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
-				</div>
-			</div>
-				<div class="card-dft">
-				   <p class="default-mark">Default Selected Card</p>
-				   <div class="card-delete-btn">
-					<a href="#/" class="view-card openviewmodale" >View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
-				 </div>
-				   
-				</div>
-			 </div>
-			 {% else %}
-			 <div class="pay-card-opt-ls">
-				<div class="credit-cards-select">
-				<div>
-					<label>
-						<input type="radio" name="light" id="{{ cards.id }}">
-					</label>
-				</div>
-				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
-			</div>
-				<div class="card-delete-btn"  >
-					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
-				 </div>
-			</div>
-			{% endif %}
-		  {% endfor %}
-			 <div class="add-pay-card-btn">
-				<a href="/basket/" class="openmodale"><span>+</span> Add New Card</a>
-			 </div>
-		  </div>
-	   </div>
-	</div>
- </div>
- 
+
+<div class="bill-info-card-sec">
+
+<div>
+
+<h2 class="title">Card Information</h2>
+
+</div>
+
+<div>
+
+<h3 class="pay-title">Card Number (required)</h3>
+
+</div>
+
+<div class="payment-card-sec">
+
+<div class="payment-card">
+
+<input type="hidden" name="csrfmiddlewaretoken" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV">
+
+<input id="web_csrf_token" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV" type="hidden">
+
+<div class="pay-card-opt">
+
+{% for cards in stripe_response %}
+
+{% if customer_default_card == cards.id %}
+
+<div class="pay-card-opt-ls">
+
+<div class="credit-cards-select">
+
+
+
+<div class="pay-card-select">
+
+<div>
+
+<label>
+
+<input type="radio" name="select-card" checked="" id="card_1IT6fMCWEv86Pz7X45yRibxo">
+
+</label>
+
+</div>
+
+<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
+
+<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+
+</div>
+
+</div>
+
+<div class="card-dft">
+
+<p class="default-mark">Default Selected Card</p>
+
+<div class="card-delete-btn">
+
+<a href="#/" class="view-card openviewmodale" >View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+{% else %}
+
+<div class="pay-card-opt-ls">
+
+<div class="credit-cards-select">
+
+<div>
+
+<label>
+
+<input type="radio" name="light" id="{{ cards.id }}">
+
+</label>
+
+</div>
+
+<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
+
+<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+
+</div>
+
+<div class="card-delete-btn" >
+
+<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
+
+</div>
+
+</div>
+
+{% endif %}
+
+{% endfor %}
+
+<div class="add-pay-card-btn">
+
+<a href="/basket/" class="openmodale"><span>+</span> Add New Card</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
 <!-- CARD INFORMATION ENDS HERE -->
+
 <!-- #################################################################################### -->
+
+
+
 
 
 <!-- ADD CARD MODALE STARTS HERE -->
- 
+
+
+
 <div class="modale modal-cont" aria-hidden="true" id="add-new-card">
-	<div class="modal-dialog" role="document">
-	   <div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">×</a> </div>
-	   <div class="heading">
-		  <h2>Add New Card</h2>
-	   </div>
-	   <div class="add-new-card-cont">
-		  <div class="cardNumber">
-			 <label for="cardNumber">Card Number</label>
-			 <input type="text" class="inputcardNumber" id="cardNumber"> 
-		  </div>
-		  <div class="card-year-sec">
-			 <div class="month-year">
-				<label>Date of Expiry</label>
-				<select class="months" id="month_dropdown">
-				   <option value="00">MM</option>
-				   {% for month in months %}
-                        <option value="{{forloop.counter|stringformat:'02d'}}">{{month}}</option>
-                    {% endfor %}
-				</select>
-				<select class="year" id="year_dropdown">
-				   <option value="YY"> YYYY</option>
-				   {% for year in years %}
-                        <option value="{{year}}">{{year}}</option>
-                    {% endfor %}
-				</select>
-			 </div>
-			 <div class="cvc">
-				<label for="cvc">CVC</label>
-				<input type="text" class="inputcvc" id="cvc"> 
-			 </div>
-		  </div>
-		  <div class="set-default-card-radio">
-			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
-			 <label type="checkbox">Set as Default Card</label>
-		  </div>
-	   </div>
-	   <div class="modal-footer">
-		  <button class="btn btn-primary" type = "button" onclick="add_card()" >Save</button>
-		  <button class="btn btn-default">Cancel</button>
-	   </div>
-	</div>
- </div>
+
+<div class="modal-dialog" role="document">
+
+<div class="modal-header"> <a href="#" class="btn-close closemodale" aria-hidden="true">×</a> </div>
+
+<div class="heading">
+
+<h2>Add New Card</h2>
+
+</div>
+
+<form id="card-add" class="add-new-card-cont">
+
+<div class="cardNumber">
+
+<label for="cardNumber">Card Number</label>
+
+<input type="text" class="inputcardNumber" id="cardNumber">
+
+</div>
+
+<div class="card-year-sec">
+
+<div class="month-year">
+
+<label>Date of Expiry</label>
+
+<select class="months" id="month_dropdown">
+
+<option value="00">MM</option>
+
+{% for month in months %}
+
+<option value="{{forloop.counter|stringformat:'02d'}}">{{month}}</option>
+
+{% endfor %}
+
+</select>
+
+<select class="year" id="year_dropdown">
+
+<option value="YY"> YYYY</option>
+
+{% for year in years %}
+
+<option value="{{year}}">{{year}}</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="cvc">
+
+<label for="cvc">CVC</label>
+
+<input type="text" class="inputcvc" id="cvc">
+
+</div>
+
+</div>
+
+<div class="set-default-card-radio">
+
+<input type="checkbox" id="radio" name="radio" class="checkmark ">
+
+<label type="checkbox">Set as Default Card</label>
+
+</div>
+
+</form>
+
+<div class="modal-footer">
+
+<button class="btn btn-primary" type = "button" onclick="add_card()" >Save</button>
+
+<button class="btn btn-default">Cancel</button>
+
+</div>
+
+</div>
+
+</div>
+
+
 
 <!-- ADD CARD MODALE ENDS HERE -->
 
- 
+
+
+
+
 <!-- VIEW CARD MODALE STARTS HERE -->
- 
+
+
+
 <div class="viewmodale modal-cont" aria-hidden="true" id="view-card">
-	<div class="modal-dialog" role="document">
-	   <div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
-	   <div class="heading">
-		  <h2>View Card</h2>
-	   </div>
-	   <div class="view-card-cont">
-		  <div>
-			 <p class="month-year">
-			   Credit Card
-				<span>VISA</span>
-			 </p>
-		  </div>
-		  <div >
-			 <p>
-				Credit Card
-				<span>42424-42424-42424</span>
-			 </p>
-		  </div>
-		  <div class="set-default-card-radio">
-			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
-			 <label type="checkbox">Set as Default Card</label>
-		  </div>
-	   </div>
-	   <div class="modal-footer">
-		  <button class="btn btn-primary">Save</button>
-		  <button class="btn btn-default closeviewmodale">Cancel</button>
-	   </div>
-	</div>
- </div>
+
+<div class="modal-dialog" role="document">
+
+<div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
+
+<div class="heading">
+
+<h2>View Card</h2>
+
+</div>
+
+<div class="view-card-cont">
+
+<div>
+
+<p class="month-year">
+
+Credit Card
+
+<span>VISA</span>
+
+</p>
+
+</div>
+
+<div >
+
+<p>
+
+Credit Card
+
+<span>42424-42424-42424</span>
+
+</p>
+
+</div>
+
+<div class="set-default-card-radio">
+
+<input type="checkbox" id="radio" name="radio" class="checkmark ">
+
+<label type="checkbox">Set as Default Card</label>
+
+</div>
+
+</div>
+
+<div class="modal-footer">
+
+<button class="btn btn-primary">Save</button>
+
+<button class="btn btn-default closeviewmodale">Cancel</button>
+
+</div>
+
+</div>
+
+</div>
+
+
 
 <!-- VIEW CARD MODALE ENDS HERE -->
 
 
+
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
 <script>
-	function continue_to_basket(){
-		var selected_value = document.querySelector('input[name="light"]:checked').id;
-		var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
-			window.location.replace(host);
-		}
+
+function continue_to_basket(){
+
+var selected_value = document.querySelector('input[name="light"]:checked').id;
+
+var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
+
+window.location.replace(host);
+
+}
+
+
 
 </script>
+
 <script>
-	//You may use vanilla JS, I just chose jquery
+
+//You may use vanilla JS, I just chose jquery
+
+
 
 // Add New Card Modale
+
 $('.openmodale').click(function (e) {
-    e.preventDefault();
-    $('.modale').addClass('opened');
+
+e.preventDefault();
+
+$('.modale').addClass('opened');
+
 });
+
 $('.closemodale').click(function (e) {
-    e.preventDefault();
-    $('.modale').removeClass('opened');
+
+e.preventDefault();
+
+$('.modale').removeClass('opened');
+
 });
+
+
 
 // View Modale
+
 $('.openviewmodale').click(function (e) {
-    e.preventDefault();
-    $('.viewmodale').addClass('opened');
+
+e.preventDefault();
+
+$('.viewmodale').addClass('opened');
+
 });
+
 $('.closeviewmodale').click(function (e) {
-    e.preventDefault();
-    $('.viewmodale').removeClass('opened');
+
+e.preventDefault();
+
+$('.viewmodale').removeClass('opened');
+
 });
+
 </script>
+
 <script>
-	function add_card() {
-			let csrf = $('#csrf-token').val();
-			data_dictionary = {
-				"number":$("#cardNumber").val(),
-				"exp_month":$('#month_dropdown option:selected').text(),
-				"exp_year":$('#year_dropdown option:selected').text(),
-				"cvc":$("#cvc").val(),	
-				"is_default":$("#radio").is(":checked")		
-				}
-			$.ajax({
-				url: '/basket/card-add-source/',
-				method: 'POST',
-				contentType: 'application/json; charset=utf-8',
-				dataType: 'json',
-				headers: {
-					'X-CSRFToken': csrf
-				},
-				data: JSON.stringify(data_dictionary),
-				success: function(response){
-					if (response['status'] == 'Success')
-					{
-					window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
-					}
-					else 
-					{
-					  alert('some error has occured')	
-					}
-				},
-				error: function(data){ 
-					alert('some error has occured')
-				},
-			});
-		}
 
-	function delete_card(card_id) {
-			let csrf = $('#csrf-token').val();
-			data_dictionary = {
-				"card_id": card_id	
-				}
-			$.ajax({
-				url: '/basket/card-delete-source/',
-				method: 'DELETE',
-				contentType: 'application/json; charset=utf-8',
-				dataType: 'json',
-				headers: {
-					'X-CSRFToken': csrf
-				},
-				data: JSON.stringify(data_dictionary),
-				success: function(response){
-					if (response['status'] == 'Success')
-					{
-					window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
-					}
-					else 
-					{
-					  alert('some error has occured')	
-					}
-				},
-				error: function(data){ 
-					alert('some error has occured')
-				},
-			});
-		}
+function add_card() {
 
-		
+let csrf = $('#csrf-token').val();
+
+data_dictionary = {
+
+"number":$("#cardNumber").val(),
+
+"exp_month":$('#month_dropdown option:selected').text(),
+
+"exp_year":$('#year_dropdown option:selected').text(),
+
+"cvc":$("#cvc").val(),
+
+"is_default":$("#radio").is(":checked")
+
+}
+
+$.ajax({
+
+url: '/basket/card-add-source/',
+
+method: 'POST',
+
+contentType: 'application/json; charset=utf-8',
+
+dataType: 'json',
+
+headers: {
+
+'X-CSRFToken': csrf
+
+},
+
+data: JSON.stringify(data_dictionary),
+
+success: function(response){
+
+if (response['status'] == 'Success')
+
+{
+
+window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+
+}
+
+else
+
+{
+
+alert('some error has occured')
+
+}
+
+},
+
+error: function(data){
+
+alert('some error has occured')
+
+},
+
+});
+
+}
+
+
+
+function delete_card(card_id) {
+
+let csrf = $('#csrf-token').val();
+
+data_dictionary = {
+
+"card_id": card_id
+
+}
+
+$.ajax({
+
+url: '/basket/card-delete-source/',
+
+method: 'DELETE',
+
+contentType: 'application/json; charset=utf-8',
+
+dataType: 'json',
+
+headers: {
+
+'X-CSRFToken': csrf
+
+},
+
+data: JSON.stringify(data_dictionary),
+
+success: function(response){
+
+if (response['status'] == 'Success')
+
+{
+
+window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+
+}
+
+else
+
+{
+
+alert('some error has occured')
+
+}
+
+},
+
+error: function(data){
+
+alert('some error has occured')
+
+},
+
+});
+
+}
+
+
+
+
+
+
 
 </script>
