@@ -482,13 +482,16 @@ h2.title {
 					  </label>
 				   </div>
 				   <img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-				   <p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+				   <p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+			 		
+			 		<input type="hidden" id="hidden_card_number" name="hidden_card_number" value="">
+
 				</div>
 			</div>
 				<div class="card-dft">
 				   <p class="default-mark">Default Selected Card</p>
 				   <div class="card-delete-btn">
-					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
+					<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')" >View</a><a href="#/" class="delete-btn"> Delete</a>
 				 </div>
 				   
 				</div>
@@ -502,10 +505,10 @@ h2.title {
 					</label>
 				</div>
 				<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-				<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+				<p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
 			</div>
 				<div class="card-delete-btn">
-					<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn"> Delete</a>
+					<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a><a href="#/" class="delete-btn"> Delete</a>
 				 </div>
 			</div>
 			{% endif %}
@@ -583,13 +586,14 @@ h2.title {
 		  <div>
 			 <p class="month-year">
 			   Credit Card
-				<span>VISA</span>
+				<span id="viewmodale_card_type"></span>
 			 </p>
+			 <input type="hidden" id="hidden_card_id" name="hidden_card_id" value="">
 		  </div>
 		  <div >
 			 <p>
 				Credit Card
-				<span>42424-42424-42424</span>
+				<span id="viewmodale_card_number"></span>
 			 </p>
 		  </div>
 		  <div class="set-default-card-radio">
@@ -598,7 +602,7 @@ h2.title {
 		  </div>
 	   </div>
 	   <div class="modal-footer">
-		  <button class="btn btn-primary">Save</button>
+		  <button class="btn btn-primary" onclick="set_default_card()" id='set_defaut_save_button'>Save</button>
 		  <button class="btn btn-default closeviewmodale">Cancel</button>
 	   </div>
 	</div>
@@ -631,16 +635,52 @@ $('.closemodale').click(function (e) {
 });
 
 // View Modale
-$('.openviewmodale').click(function (e) {
-    e.preventDefault();
-    $('.viewmodale').addClass('opened');
-});
+// $('.openviewmodale').click(function (e) {
+//     e.preventDefault();
+//     $('.viewmodale').addClass('opened');
+// });
 $('.closeviewmodale').click(function (e) {
     e.preventDefault();
     $('.viewmodale').removeClass('opened');
 });
+
+function view_card_modal(card_id){
+    $('.viewmodale').addClass('opened');
+    $("#hidden_card_id").val(card_id);
+    var card_name = $('#card_name_' + card_id).text().split('-')[0].toUpperCase();
+    $("#viewmodale_card_type").text(card_name);
+    var card_number = $('#card_name_' + card_id + ' span').text();
+    card_number = "XXXX-XXXX-XXXX-" + card_number
+    $("#viewmodale_card_number").text(card_number);
+}
 </script>
 <script>
+	
+	function set_default_card() {
+		let csrf = $('#csrf-token').val();
+		$.ajax({
+			type:"POST",
+			url: "/basket/card-update-source/",
+			contentType: "application/json; charset=utf-8",
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			data: JSON.stringify({
+				card_id: $("#hidden_card_id").val(),
+			}),
+			success: function(response){
+				if (response['status'] == 'Success')
+				{
+					window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+				}
+				else
+				{
+					alert("Some error occured")
+				}
+			}
+		});
+	}
+
 	function add_card() {
 			let csrf = $('#csrf-token').val();
 			data_dictionary = {
