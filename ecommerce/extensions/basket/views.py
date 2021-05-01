@@ -32,6 +32,8 @@ from rest_framework.views import APIView
 from slumber.exceptions import SlumberBaseException
 from django.views.generic import TemplateView
 
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from ecommerce.core.exceptions import SiteConfigurationError
 from ecommerce.core.url_utils import absolute_redirect, get_lms_course_about_url, get_lms_url
@@ -759,7 +761,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         if "customer_id" not in self.request.user.tracking_context.keys():
             return 
         customer_id = self.request.user.tracking_context["customer_id"]
-        customer_id = "cus_JGoPTmvRKrjSyy"
+        # customer_id = "cus_JGoPTmvRKrjSyy"
         logging.info(customer_id)
         stripe_response = stripe.PaymentMethod.list(
             customer = customer_id,
@@ -1323,6 +1325,9 @@ class AddCardApiView(APIView):
     # Api for Adding card from stripe
 
     # permission_classes = (IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
 
     def post(self,request):
         import stripe
@@ -1331,15 +1336,17 @@ class AddCardApiView(APIView):
         #card_add_response = request.POST
         data = request.data
         logging.info(data["number"])
-        cust_id = "cus_JOFKknSNVVTSjM" 
+        # cust_id = "cus_JOFKknSNVVTSjM" 
         card_number = data["number"]
         expiry_month = data["exp_month"]
         expiry_year = data["exp_year"]
         security_code = data["cvc"]
         is_default = data['is_default']
-        token = stripe.Token.create(card={"number": card_number , "exp_month": expiry_month, "exp_year":expiry_year, "cvc":security_code },)
-        cust_id = "cus_JOFKknSNVVTSjM"
+        
+        cust_id = request.user.tracking_context["customer_id"]
+
         try:
+            token = stripe.Token.create(card={"number": card_number , "exp_month": expiry_month, "exp_year":expiry_year, "cvc":security_code },)
             card = stripe.Customer.create_source(
             cust_id,
             source= token["id"]
