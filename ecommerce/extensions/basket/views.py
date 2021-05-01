@@ -1336,7 +1336,7 @@ class AddCardApiView(APIView):
     def post(self,request):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
-
+        
         #card_add_response = request.POST
         data = request.data
         logging.info(data["number"])
@@ -1347,9 +1347,23 @@ class AddCardApiView(APIView):
         security_code = data["cvc"]
         is_default = data['is_default']
         
-        cust_id = request.user.tracking_context["customer_id"]
-
+        
         try:
+            if not request.user.tracking_context.get('customer_id', None):
+                customer = stripe.Customer.create(
+                    email=request.user.email,
+                    name=request.user.full_name
+                )
+                cust_id = customer['id']
+                request.user.tracking_context.update({
+                    'customer_id': cust_id 
+                })
+
+                request.user.save()
+            else:
+                cust_id = request.user.tracking_context["customer_id"]
+    
+                
             token = stripe.Token.create(card={"number": card_number , "exp_month": expiry_month, "exp_year":expiry_year, "cvc":security_code },)
             card = stripe.Customer.create_source(
             cust_id,
