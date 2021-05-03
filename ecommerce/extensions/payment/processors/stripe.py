@@ -81,14 +81,12 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
                   tracking_context.get('customer_id'),
                   selected_card,
                )
-               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= selected_card)
 
             else:
                src = stripe.Customer.create_source(
                   tracking_context.get('customer_id'),
                   source=token
                )
-               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= src["id"])
 
             customer_id = customer['id']
             basket.owner.tracking_context.update({'token':token})
