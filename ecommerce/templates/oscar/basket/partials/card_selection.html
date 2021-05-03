@@ -969,7 +969,7 @@ margin: 0px;
 
 <div class="card-delete-btn">
 
-<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a>
+<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}', 'true')">View</a>
 <a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 
 </div>
@@ -1004,7 +1004,7 @@ margin: 0px;
 
 <div class="card-delete-btn" >
 
-<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a>
+<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}', 'false')">View</a>
 <a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 
 </div>
@@ -1121,7 +1121,7 @@ margin: 0px;
 
 <button class="btn btn-primary" type = "button" onclick="add_card()" >Save</button>
 
-<button class="btn btn-default">Cancel</button>
+<button class="btn btn-default closemodale">Cancel</button>
 
 </div>
 
@@ -1162,7 +1162,7 @@ margin: 0px;
 			 </p>
 		  </div>
 		  <div class="set-default-card-radio">
-			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
+			 <input type="checkbox" id="set_default_checkbox" onchange="change_checkbox()" class="checkmark ">
 			 <label type="checkbox">Set as Default Card</label>
 		  </div>
 	   </div>
@@ -1225,18 +1225,6 @@ $('.modale').removeClass('opened');
 
 });
 
-
-
-// View Modale
-
-// $('.openviewmodale').click(function (e) {
-
-// e.preventDefault();
-
-// $('.viewmodale').addClass('opened');
-
-// });
-
 $('.closeviewmodale').click(function (e) {
 
 e.preventDefault();
@@ -1245,7 +1233,7 @@ $('.viewmodale').removeClass('opened');
 
 });
 
-function view_card_modal(card_id){
+function view_card_modal(card_id, is_default){
 $('.viewmodale').addClass('opened');
 $("#hidden_card_id").val(card_id);
 var card_name = $('#card_name_' + card_id).text().split('-')[0].toUpperCase();
@@ -1253,6 +1241,27 @@ $("#viewmodale_card_type").text(card_name);
 var card_number = $('#card_name_' + card_id + ' span').text();
 card_number = "XXXX-XXXX-XXXX-" + card_number
 $("#viewmodale_card_number").text(card_number);
+
+if (is_default == 'true'){
+	$("#set_default_checkbox").removeAttr("disabled");
+	$("#set_default_checkbox").prop('checked', true);
+	$("#set_default_checkbox").attr("disabled", 'disabled');
+	$("#set_defaut_save_button").attr('disabled', 'disabled');
+}
+else if (is_default == 'false'){
+	$("#set_default_checkbox").prop('checked', false);
+	$("#set_defaut_save_button").attr('disabled', 'disabled');
+	$("#set_default_checkbox").attr('checked', false).removeAttr('disabled');
+}
+
+}
+
+function change_checkbox(){
+	if ($("#set_default_checkbox").is(":checked")) {	
+		$("#set_defaut_save_button").removeAttr('disabled');
+	}else{
+		$("#set_defaut_save_button").attr('disabled', 'disabled');
+	}
 }
 </script>
 
