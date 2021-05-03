@@ -1308,7 +1308,7 @@ class UpdateCardApiView(APIView):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
 
-        card_update_response = request.POST
+        card_update_response = request.data
 
         logging.info(card_update_response["id"])
         cust_id = request.user.tracking_context["customer_id"]

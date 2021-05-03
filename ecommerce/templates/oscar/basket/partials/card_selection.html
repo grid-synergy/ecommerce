@@ -380,113 +380,6 @@ display: block;
 
 
 }
-<div>
-<div>
-<h2 class="title">Card Information</h2>
-</div>
-<div>
-<h3 class="pay-title">Card Number (required)</h3>
-</div>
-<div class="payment-card-sec">
-<div class="payment-card">
-<input type="hidden" name="csrfmiddlewaretoken" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV">
-<input id="web_csrf_token" value="F7Hm6oQ2Lcm0D36aocUKs3RRtkRB4p0lc1AdMmpobbH7chSmRd1laaYFAW8SC7pV" type="hidden">
-<div class="pay-card-opt">
-{% for cards in stripe_response %}
-{% if customer_default_card == cards.id %}
-<div class="pay-card-opt-ls">
-<div class="credit-cards-select">
-
-<div class="pay-card-select">
-<div>
-<label>
-<input type="radio" name="light" checked="" id="card_1IT6fMCWEv86Pz7X45yRibxo">
-</label>
-</div>
-<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-<p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
-
-<input type="hidden" id="hidden_card_number" name="hidden_card_number" value="">
-
-</div>
-</div>
-<div class="card-dft">
-<p class="default-mark">Default Selected Card</p>
-<div class="card-delete-btn">
-<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')" >View</a><a href="#/" class="delete-btn"> Delete</a>
-</div>
-
-</div>
-</div>
-{% else %}
-<div class="pay-card-opt-ls">
-<div class="credit-cards-select">
-<div>
-<label>
-<input type="radio" name="light" id="{{ cards.id }}">
-</label>
-</div>
-<img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
-<p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
-</div>
-<div class="card-delete-btn">
-<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a><a href="#/" class="delete-btn"> Delete</a>
-</div>
-</div>
-{% endif %}
-{% endfor %}
-<div class="add-pay-card-btn">
-<a href="/basket/" class="openmodale"><span>+</span> Add New Card</a>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- CARD INFORMATION ENDS HERE -->
-<!-- #################################################################################### -->
-
-
-
-
-<!-- VIEW CARD MODALE STARTS HERE -->
-
-<div class="viewmodale modal-cont" aria-hidden="true" id="view-card">
-<div class="modal-dialog" role="document">
-<div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
-<div class="heading">
-<h2>View Card</h2>
-</div>
-<div class="view-card-cont">
-<div>
-<p class="month-year">
-Credit Card
-<span id="viewmodale_card_type"></span>
-</p>
-<input type="hidden" id="hidden_card_id" name="hidden_card_id" value="">
-</div>
-<div >
-<p>
-Credit Card
-<span id="viewmodale_card_number"></span>
-</p>
-</div>
-<div class="set-default-card-radio">
-<input type="checkbox" id="radio" name="radio" class="checkmark ">
-<label type="checkbox">Set as Default Card</label>
-</div>
-</div>
-<div class="modal-footer">
-<button class="btn btn-primary" onclick="set_default_card()" id='set_defaut_save_button'>Save</button>
-<button class="btn btn-default closeviewmodale">Cancel</button>
-</div>
-</div>
-</div>
-
-
-
-
-
 
 .add-pay-card-btn i {
 
@@ -554,7 +447,7 @@ color: #337ab7;
 
 
 
-/ ###############################ADD_NEW_CARD##################################### /
+/* ###############################ADD_NEW_CARD##################################### */
 
 body {
 
@@ -1062,7 +955,9 @@ margin: 0px;
 
 <img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
 
-<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+<p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+
+<input type="hidden" id="hidden_card_number" name="hidden_card_number" value="">
 
 </div>
 
@@ -1074,7 +969,8 @@ margin: 0px;
 
 <div class="card-delete-btn">
 
-<a href="#/" class="view-card openviewmodale" >View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
+<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a>
+<a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 
 </div>
 
@@ -1102,13 +998,14 @@ margin: 0px;
 
 <img class="credit-cards-img" src="https://i.ibb.co/ZVLCmyq/001-credit-card.png" alt="Credit Cards">
 
-<p class="credit-cards-name">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
+<p class="credit-cards-name" id="card_name_{{ cards.id }}">{{ cards.card.brand }}-<span class="credit-cards-num">{{ cards.card.last4 }}</span></p>
 
 </div>
 
 <div class="card-delete-btn" >
 
-<a href="#/" class="view-card openviewmodale">View</a><a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
+<a href="#/" class="view-card openviewmodale" onclick="view_card_modal('{{ cards.id }}')">View</a>
+<a href="#/" class="delete-btn" onclick="delete_card('{{cards.id}}')"> Delete</a>
 
 </div>
 
@@ -1245,64 +1142,36 @@ margin: 0px;
 
 
 <div class="viewmodale modal-cont" aria-hidden="true" id="view-card">
-
-<div class="modal-dialog" role="document">
-
-<div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
-
-<div class="heading">
-
-<h2>View Card</h2>
-
-</div>
-
-<div class="view-card-cont">
-
-<div>
-
-<p class="month-year">
-
-Credit Card
-
-<span>VISA</span>
-
-</p>
-
-</div>
-
-<div >
-
-<p>
-
-Credit Card
-
-<span>42424-42424-42424</span>
-
-</p>
-
-</div>
-
-<div class="set-default-card-radio">
-
-<input type="checkbox" id="radio" name="radio" class="checkmark ">
-
-<label type="checkbox">Set as Default Card</label>
-
-</div>
-
-</div>
-
-<div class="modal-footer">
-
-<button class="btn btn-primary">Save</button>
-
-<button class="btn btn-default closeviewmodale">Cancel</button>
-
-</div>
-
-</div>
-
-</div>
+	<div class="modal-dialog" role="document">
+	   <div class="modal-header"> <a href="#" class="btn-close closeviewmodale" aria-hidden="true">×</a> </div>
+	   <div class="heading">
+		  <h2>View Card</h2>
+	   </div>
+	   <div class="view-card-cont">
+		  <div>
+			 <p class="month-year">
+			   Credit Card
+				<span id="viewmodale_card_type"></span>
+			 </p>
+			 <input type="hidden" id="hidden_card_id" name="hidden_card_id" value="">
+		  </div>
+		  <div >
+			 <p>
+				Credit Card
+				<span id="viewmodale_card_number"></span>
+			 </p>
+		  </div>
+		  <div class="set-default-card-radio">
+			 <input type="checkbox" id="radio" name="radio" class="checkmark ">
+			 <label type="checkbox">Set as Default Card</label>
+		  </div>
+	   </div>
+	   <div class="modal-footer">
+		  <button class="btn btn-primary" onclick="set_default_card()" id='set_defaut_save_button'>Save</button>
+		  <button class="btn btn-default closeviewmodale">Cancel</button>
+	   </div>
+	</div>
+ </div>
 
 
 
@@ -1360,13 +1229,13 @@ $('.modale').removeClass('opened');
 
 // View Modale
 
-$('.openviewmodale').click(function (e) {
+// $('.openviewmodale').click(function (e) {
 
-e.preventDefault();
+// e.preventDefault();
 
-$('.viewmodale').addClass('opened');
+// $('.viewmodale').addClass('opened');
 
-});
+// });
 
 $('.closeviewmodale').click(function (e) {
 
@@ -1399,7 +1268,7 @@ headers: {
 'X-CSRFToken': csrf
 },
 data: JSON.stringify({
-card_id: $("#hidden_card_id").val(),
+"id": $("#hidden_card_id").val(),
 }),
 success: function(response){
 if (response['status'] == 'Success')
