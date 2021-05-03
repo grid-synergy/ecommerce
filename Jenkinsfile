@@ -9,6 +9,7 @@
 //              Jenkins host: https://jenkins.gsedxlms.com/
 //
 //              Jenkins variables: https://jenkins.gsedxlms.com/env-vars.html/
+// webhook test #7
 // ----------------------------------------------------------------------------
 def gv 
 
@@ -16,6 +17,10 @@ pipeline {
 
     agent { docker { image 'python:3.5.1' } }
     //agent any 
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // I. itemized build stages for init, build, test, deploy
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     stages {
 
@@ -25,6 +30,20 @@ pipeline {
                 script {
                     gv = load "Jenkins.pipeline.groovy"
                     gv.initEnvironment()
+
+                    //def email_subject = "Jenkins build ${BUILD_ID}: ${GIT_BRANCH} in ${GIT_URL}"
+                    //def email_body = gv.getGitHubMetadata()
+                    //def email_providers = [ [$class: 'CulpritsRecipientProvider'], [$class: 'DevelopersRecipientProvider'] ];
+
+                    //email_providers.add ( [$class: 'RequesterRecipientProvider'] );
+
+                    //emailext (
+                    //    to: 'andrew@gridsynergy.com.sg',
+                    //    recipientProviders: email_providers,
+                    //    subject: email_subject,
+                    //    attachLog: true,
+                    //    body: email_body
+                    //)
                 }
             }
 
@@ -89,8 +108,10 @@ pipeline {
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // THESE ARE ACTIONS THAT WE TAKE BASED ON THE JENKINS 
-    // PIPELINE RESULT.
+    // II. conditional processing that we add after the pipeline
+    //     has executed. we can differentiate between
+    //     build success, failure, or a change in state 
+    //     (i.e. builds had been successful but this build failed.)
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
    post {
 
@@ -98,22 +119,66 @@ pipeline {
 
             echo 'Cleaning up Jenkins environment...'
 
+            // email results to the committers
+            script {
+                emailext subject: '$DEFAULT_SUBJECT',
+                    body: '$DEFAULT_CONTENT',
+                    recipientProviders: [
+                        [$class: 'DevelopersRecipientProvider'],
+                        [$class: 'RequesterRecipientProvider']
+                    ], 
+                    replyTo: '$DEFAULT_REPLYTO',
+                    attachLog: true,
+                    to: '$DEFAULT_RECIPIENTS'
+            }
+
         }
 
         failure {
             
             echo 'Jenkins post - Failure...'
 
-            // post a message back to the pull requests that Jenkins job failed.
-
         }
 
         success {
-
             echo 'Jenkins post - Success...'
-            echo "This pull request / commit merged into koa.master"
+            script {
+                if (gv.isProductionBranch()) {
+                    // announce on Slack.
+                    echo "This pull request / commit merged to production branch."
+                    slackSend channel: '#codeissues', color: 'good', message: "Commit to production branch ${currentBuild.fullDisplayName}\nCommit hash: ${GIT_COMMIT}\nCommit message: ${GIT_COMMIT_MSG}\nCommitted by ${GIT_COMMITTER_NAME} ${GIT_COMMITTER_EMAIL}\nFiles affected by this commit: ${gv.getChangedFilesList()}"
+                    slackSend channel: '#codeissues', color: 'good', message: "Additional details about this build and the pipeline build log are available here: ${JOB_URL}"
+                }
+            }
 
         }
+
+        changed {
+            script {
+                // email our culprits that the state has changed.
+                emailext subject: '$DEFAULT_SUBJECT',
+                    body: '$DEFAULT_CONTENT',
+                    recipientProviders: [[$class: 'CulpritsRecipientProvider']], 
+                    replyTo: '$DEFAULT_REPLYTO',
+                    attachLog: true,
+                    to: 'andrew@gridsynergy.com.sg, lpm0073@gmail.com'
+
+                if (gv.isProductionBranch()) {
+                    if (currentBuild.currentResult == 'SUCCESS') { // Other values: SUCCESS, UNSTABLE
+                        slackSend channel: '#codeissues', color: 'good', message: "Pipeline for ${currentBuild.fullDisplayName} has stabilized. More info: ${JOB_URL}"
+                    }
+                    if (currentBuild.currentResult == 'FAILURE') { // Other values: SUCCESS, UNSTABLE
+                        slackSend channel: '#codeissues', color: 'bad', message: "Build pipeline ${currentBuild.fullDisplayName} failed. More info: ${JOB_URL}"
+                    }
+                    if (currentBuild.currentResult == 'UNSTABLE') { // Other values: SUCCESS, UNSTABLE
+                        slackSend channel: '#codeissues', color: 'bad', message: "Build pipeline ${currentBuild.fullDisplayName} is unstable. More info: ${JOB_URL}"
+                    }
+                }
+
+            }
+        }
+
+
     }    
 
 }

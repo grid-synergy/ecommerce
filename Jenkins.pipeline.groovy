@@ -33,9 +33,121 @@ String getChangedFilesList() {
 
 // true if the branch name begins with "gs/" and there are code modifications.
 def isGSBranch() {
+    return env.BRANCH_NAME.startsWith('gs/')
+}
+def isGSContractorBranch() {
+    return env.BRANCH_NAME.startsWith('gs/crontractor/')
+}
+def isLhubBranch() {
+    return env.BRANCH_NAME.startsWith('lhub/')
+}
+def isProductionBranch() {
+    return env.BRANCH_NAME == 'gs/koa.master'
+}
 
-    return env.BRANCH_NAME ==~ /gs\/[0-9]+\.[0-9]+\.[0-9]+/ && CODE_CHANGES == true
+String getGitHubMetadata() {
 
+    def metaData = "Jenkins Build URL: ${BUILD_URL}\n"
+
+    metaData = metaData + "Jenkins Job URL: ${JOB_URL}\n"
+    metaData = metaData + "Git repository: ${GIT_URL}\n"
+    metaData = metaData + "Git Branch: ${GIT_BRANCH}\n"
+    
+    if (isProductionBranch()) {
+        metaData = metaData + "This is the production branch\n"
+    }
+    if (isGSBranch()) {
+        metaData = metaData + "This branch is in the Grid Synergy Name Space\n"
+    }
+    if (isGSContractorBranch()) {
+        metaData = metaData + "This is a Grid Synergy contractor branch\n"
+    }
+    if (isLhubBranch()) {
+        metaData = metaData + "This branch is in the LHUB Name Space\n"
+    }
+
+    if (env.CHANGE_AUTHOR) {metaData = metaData + "Git Pull author: ${CHANGE_AUTHOR}\n"}
+    if (env.CHANGE_ID) {metaData = metaData + "Git Pull request: ${CHANGE_ID}\n"}
+    if (env.CHANGE_TARGET) {metaData = metaData + "Git Pull branch target: ${CHANGE_TARGET}\n"}
+    
+    metaData = metaData + "Git Commit: ${GIT_COMMIT}\n"
+    metaData = metaData + "Git Commit Message: ${GIT_COMMIT_MSG}\n"
+    metaData = metaData + "Git Build Number: ${BUILD_NUMBER}\n"
+    if (env.GIT_COMMITTER_NAME) {
+            metaData = metaData + "Git committer: ${GIT_COMMITTER_NAME} ${GIT_COMMITTER_EMAIL}\n"
+        }
+    
+    if (env.GIT_AUTHOR_NAME) {
+        metaData = metaData + "Git author: ${GIT_AUTHOR_NAME} ${GIT_AUTHOR_EMAIL}\n"
+    }
+
+    metaData = metaData + "\n"
+    //echo "Initializing Jenkins for version ${NEW_VERSION}"
+    
+    metaData = metaData + "I harken from Jenkins.pipeline.groovy in the root folder of this git repository\n"
+    metaData = metaData + "Git changed files list: ${changedFiles}\n"
+
+    metaData = metaData + "\n"
+    metaData = metaData + "Jenkins environment variables:\n"
+    metaData = metaData + "------------------------------\n"
+    metaData = metaData + "\n"
+    metaData = metaData + "BRANCH_NAME: ${BRANCH_NAME}\n"
+
+    if (env.CHANGE_ID) {
+        metaData = metaData + "optional Pull request variables\n"
+        metaData = metaData + "CHANGE_ID: ${CHANGE_ID}\n"
+        metaData = metaData + "CHANGE_URL ${CHANGE_URL}\n"
+        metaData = metaData + "CHANGE_TITLE ${CHANGE_TITLE}\n"
+        metaData = metaData + "CHANGE_AUTHOR ${CHANGE_AUTHOR}\n"
+        metaData = metaData + "CHANGE_AUTHOR_DISPLAY_NAME ${CHANGE_AUTHOR_DISPLAY_NAME}\n"
+        metaData = metaData + "CHANGE_AUTHOR_EMAIL ${CHANGE_AUTHOR_EMAIL}\n"
+        metaData = metaData + "CHANGE_TARGET ${CHANGE_TARGET}\n"
+        metaData = metaData + "CHANGE_BRANCH ${CHANGE_BRANCH}\n"
+        metaData = metaData + "CHANGE_FORK ${CHANGE_FORK}\n"
+    }
+
+    if (env.TAG_NAME) {
+        metaData = metaData + 'optional Git Tag variables'
+        metaData = metaData + "TAG_NAME ${TAG_NAME}\n"
+        metaData = metaData + "TAG_TIMESTAMP ${TAG_TIMESTAMP}\n"
+        metaData = metaData + "TAG_UNIXTIME ${TAG_UNIXTIME}\n"
+        metaData = metaData + "TAG_DATE ${TAG_DATE}\n"
+    }
+
+    
+    if (env.BUILD_NUMBER) {metaData = metaData + "BUILD_NUMBER ${BUILD_NUMBER}\n"}
+    if (env.BUILD_ID) {metaData = metaData + "BUILD_ID ${BUILD_ID}\n"}
+    if (env.BUILD_DISPLAY_NAME) {metaData = metaData + "BUILD_DISPLAY_NAME ${BUILD_DISPLAY_NAME}\n"}
+    if (env.BUILD_TAG) {metaData = metaData + "BUILD_TAG ${BUILD_TAG}\n"}
+    if (env.BUILD_URL) {metaData = metaData + "BUILD_URL ${BUILD_URL}\n"}
+
+    if (env.JOB_NAME) {metaData = metaData + "JOB_NAME ${JOB_NAME}\n"}
+    if (env.JOB_BASE_NAME) {metaData = metaData + "JOB_BASE_NAME ${JOB_BASE_NAME}\n"}
+    if (env.JOB_URL) {metaData = metaData + "JOB_URL ${JOB_URL}\n"}
+
+    if (env.EXECUTOR_NUMBER) {metaData = metaData + "EXECUTOR_NUMBER ${EXECUTOR_NUMBER}\n"}
+    if (env.NODE_NAME) {metaData = metaData + "NODE_NAME ${NODE_NAME}\n"}
+    if (env.NODE_LABELS) {metaData = metaData + "NODE_LABELS ${NODE_LABELS}\n"}
+    if (env.WORKSPACE) {metaData = metaData + "WORKSPACE ${WORKSPACE}\n"}
+    if (env.WORKSPACE_TMP) {metaData = metaData + "WORKSPACE_TMP ${WORKSPACE_TMP}\n"}
+    if (env.JENKINS_HOME) {metaData = metaData + "JENKINS_HOME ${JENKINS_HOME}\n"}
+    if (env.JENKINS_URL) {metaData = metaData + "JENKINS_URL ${JENKINS_URL}\n"}
+
+    if (env.GIT_COMMIT) {metaData = metaData + "GIT_COMMIT ${GIT_COMMIT}\n"}
+    if (env.GIT_PREVIOUS_COMMIT) {metaData = metaData + "GIT_PREVIOUS_COMMIT ${GIT_PREVIOUS_COMMIT}\n"}
+    if (env.GIT_PREVIOUS_SUCCESSFUL_COMMIT) {metaData = metaData + "GIT_PREVIOUS_SUCCESSFUL_COMMIT ${GIT_PREVIOUS_SUCCESSFUL_COMMIT}\n"}
+    if (env.GIT_BRANCH) {metaData = metaData + "GIT_BRANCH ${GIT_BRANCH}\n"}
+    if (env.GIT_LOCAL_BRANCH) {metaData = metaData + "GIT_LOCAL_BRANCH ${GIT_LOCAL_BRANCH}\n"}
+    if (env.GIT_CHECKOUT_DIR) {metaData = metaData + "GIT_CHECKOUT_DIR ${GIT_CHECKOUT_DIR}\n"}
+    if (env.GIT_URL) {metaData = metaData + "GIT_URL ${GIT_URL}\n"}
+    if (env.GIT_COMMITTER_NAME) {metaData = metaData + "GIT_COMMITTER_NAME ${GIT_COMMITTER_NAME}\n"}
+    if (env.GIT_AUTHOR_NAME) {metaData = metaData + "GIT_AUTHOR_NAME ${GIT_AUTHOR_NAME}\n"}
+    if (env.GIT_COMMITTER_EMAIL) {metaData = metaData + "GIT_COMMITTER_EMAIL ${GIT_COMMITTER_EMAIL}\n"}
+    if (env.GIT_AUTHOR_EMAIL) {metaData = metaData + "GIT_AUTHOR_EMAIL ${GIT_AUTHOR_EMAIL}\n"}
+
+    metaData = metaData + "\n"
+    metaData = metaData + "\n"
+    return metaData
 }
 
 def initEnvironment() {
@@ -43,87 +155,8 @@ def initEnvironment() {
     changedFiles = getChangedFilesList()
 
     echo 'Initializing Jenkins environment...'
-    echo "Jenkins Build URL: ${BUILD_URL}"
-    echo "Jenkins Job URL: ${JOB_URL}"
-    echo ''
-    echo "Git repository: ${GIT_URL}"
-    echo "Git Branch: ${GIT_BRANCH}"
-    if (env.CHANGE_AUTHOR) {echo "Git Pull author: ${CHANGE_AUTHOR}"}
-    if (env.CHANGE_ID) {echo "Git Pull request: ${CHANGE_ID}"}
-    if (env.CHANGE_TARGET) {echo "Git Pull branch target: ${CHANGE_TARGET}"}
-    
-    echo "Git Commit: ${GIT_COMMIT}"
-    echo "Git Build Number: ${BUILD_NUMBER}"
-    if (env.GIT_COMMITTER_NAME) {
-            echo "Git committer: ${GIT_COMMITTER_NAME} ${GIT_COMMITTER_EMAIL}"
-        }
-    
-    if (env.GIT_AUTHOR_NAME) {
-        echo "Git author: ${GIT_AUTHOR_NAME} ${GIT_AUTHOR_EMAIL}"
-    }
-
-    echo ''
-    //echo "Initializing Jenkins for version ${NEW_VERSION}"
-    echo 'I harken from Jenkins.pipeline.groovy in the root folder of this git repository'
-    echo ''
-    echo "Git changed files list: ${changedFiles}"
-
-    echo ''
-    echo 'Jenkins environment variables:'
-    echo '------------------------------'
-    echo "BRANCH_NAME: ${BRANCH_NAME}"
-
-    if (env.CHANGE_ID) {
-        echo 'optional Pull request variables'
-        echo "CHANGE_ID: ${CHANGE_ID}"
-        echo "CHANGE_URL ${CHANGE_URL}"
-        echo "CHANGE_TITLE ${CHANGE_TITLE}"
-        echo "CHANGE_AUTHOR ${CHANGE_AUTHOR}"
-        echo "CHANGE_AUTHOR_DISPLAY_NAME ${CHANGE_AUTHOR_DISPLAY_NAME}"
-        echo "CHANGE_AUTHOR_EMAIL ${CHANGE_AUTHOR_EMAIL}"
-        echo "CHANGE_TARGET ${CHANGE_TARGET}"
-        echo "CHANGE_BRANCH ${CHANGE_BRANCH}"
-        echo "CHANGE_FORK ${CHANGE_FORK}"
-    }
-
-    if (env.TAG_NAME) {
-        echo 'optional Git Tag variables'
-        echo "TAG_NAME ${TAG_NAME}"
-        echo "TAG_TIMESTAMP ${TAG_TIMESTAMP}"
-        echo "TAG_UNIXTIME ${TAG_UNIXTIME}"
-        echo "TAG_DATE ${TAG_DATE}"
-    }
-
-    
-    if (env.BUILD_NUMBER) {echo "BUILD_NUMBER ${BUILD_NUMBER}"}
-    if (env.BUILD_ID) {echo "BUILD_ID ${BUILD_ID}"}
-    if (env.BUILD_DISPLAY_NAME) {echo "BUILD_DISPLAY_NAME ${BUILD_DISPLAY_NAME}"}
-    if (env.BUILD_TAG) {echo "BUILD_TAG ${BUILD_TAG}"}
-    if (env.BUILD_URL) {echo "BUILD_URL ${BUILD_URL}"}
-
-    if (env.JOB_NAME) {echo "JOB_NAME ${JOB_NAME}"}
-    if (env.JOB_BASE_NAME) {echo "JOB_BASE_NAME ${JOB_BASE_NAME}"}
-    if (env.JOB_URL) {echo "JOB_URL ${JOB_URL}"}
-
-    if (env.EXECUTOR_NUMBER) {echo "EXECUTOR_NUMBER ${EXECUTOR_NUMBER}"}
-    if (env.NODE_NAME) {echo "NODE_NAME ${NODE_NAME}"}
-    if (env.NODE_LABELS) {echo "NODE_LABELS ${NODE_LABELS}"}
-    if (env.WORKSPACE) {echo "WORKSPACE ${WORKSPACE}"}
-    if (env.WORKSPACE_TMP) {echo "WORKSPACE_TMP ${WORKSPACE_TMP}"}
-    if (env.JENKINS_HOME) {echo "JENKINS_HOME ${JENKINS_HOME}"}
-    if (env.JENKINS_URL) {echo "JENKINS_URL ${JENKINS_URL}"}
-
-    if (env.GIT_COMMIT) {echo "GIT_COMMIT ${GIT_COMMIT}"}
-    if (env.GIT_PREVIOUS_COMMIT) {echo "GIT_PREVIOUS_COMMIT ${GIT_PREVIOUS_COMMIT}"}
-    if (env.GIT_PREVIOUS_SUCCESSFUL_COMMIT) {echo "GIT_PREVIOUS_SUCCESSFUL_COMMIT ${GIT_PREVIOUS_SUCCESSFUL_COMMIT}"}
-    if (env.GIT_BRANCH) {echo "GIT_BRANCH ${GIT_BRANCH}"}
-    if (env.GIT_LOCAL_BRANCH) {echo "GIT_LOCAL_BRANCH ${GIT_LOCAL_BRANCH}"}
-    if (env.GIT_CHECKOUT_DIR) {echo "GIT_CHECKOUT_DIR ${GIT_CHECKOUT_DIR}"}
-    if (env.GIT_URL) {echo "GIT_URL ${GIT_URL}"}
-    if (env.GIT_COMMITTER_NAME) {echo "GIT_COMMITTER_NAME ${GIT_COMMITTER_NAME}"}
-    if (env.GIT_AUTHOR_NAME) {echo "GIT_AUTHOR_NAME ${GIT_AUTHOR_NAME}"}
-    if (env.GIT_COMMITTER_EMAIL) {echo "GIT_COMMITTER_EMAIL ${GIT_COMMITTER_EMAIL}"}
-    if (env.GIT_AUTHOR_EMAIL) {echo "GIT_AUTHOR_EMAIL ${GIT_AUTHOR_EMAIL}"}
+    env.GIT_COMMIT_MSG = sh (script: 'git log -1 --pretty=%B ${GIT_COMMIT}', returnStdout: true).trim()
+    echo getGitHubMetadata()
 
 }
 
@@ -134,7 +167,7 @@ def buildApp() {
 
     echo 'Building edx-platform...'
     sh 'python --version'
-
+    sh 'expr 1 + 0'
 
 }
 
