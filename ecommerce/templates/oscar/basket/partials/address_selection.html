@@ -437,7 +437,7 @@ a:focus,
 						<div class="select-address">
 						<div>
 							<label>
-								<input type="radio" name="address_radio" checked id="{{ address.id }}">
+								<input type="radio" name="address_radio" class="address_radio" checked id="{{ address.id }}">
 							</label>
 						</div>
 						<img class="address-icon" src="https://i.ibb.co/fH4zzTZ/Layer-0.png" alt="Credit Cards">
@@ -470,7 +470,7 @@ a:focus,
 						<div class="select-address">
 						<div>
 							<label>
-								<input type="radio" name="address_radio" id="{{ address.id }}">
+								<input type="radio" name="address_radio" class="address_radio" id="{{ address.id }}">
 							</label>
 						</div>
 						<img class="address-icon" src="https://i.ibb.co/fH4zzTZ/Layer-0.png" alt="Credit Cards">
@@ -778,5 +778,13 @@ $('.closeeditmodale').click(function (e) {
     e.preventDefault();
     $('.editmodale').removeClass('opened');
 });
+
+$( document ).ready(function() {
+	var numItems = $('.address_radio').length
+	if (numItems >= 1 && !$('.address_radio').is(':checked')){
+		$('.address_radio').eq(0).prop("checked", true);
+	}
+});
+
 
 </script>
