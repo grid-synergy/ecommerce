@@ -212,6 +212,8 @@ class StripeSubmitForm(forms.Form):
             'invalid_choice': _('There was a problem retrieving your basket. Refresh the page to try again.'),
         }
     )
+    address_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
+    payment_method = forms.CharField(widget=forms.HiddenInput(), required=True)
 
     def __init__(self, user, request, *args, **kwargs):
         super(StripeSubmitForm, self).__init__(*args, **kwargs)

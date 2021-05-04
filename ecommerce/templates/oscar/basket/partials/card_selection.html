@@ -947,7 +947,7 @@ margin: 0px;
 
 <label>
 
-<input type="radio" name="select-card" checked="" id="card_1IT6fMCWEv86Pz7X45yRibxo">
+<input type="radio" name="select-card" checked id="{{ cards.id }}">
 
 </label>
 
@@ -990,7 +990,7 @@ margin: 0px;
 
 <label>
 
-<input type="radio" name="light" id="{{ cards.id }}">
+<input type="radio" name="select-card" id="{{ cards.id }}">
 
 </label>
 
@@ -1189,7 +1189,7 @@ margin: 0px;
 
 function continue_to_basket(){
 
-var selected_value = document.querySelector('input[name="light"]:checked').id;
+var selected_value = document.querySelector('input[name="select-card"]:checked').id;
 
 var host = window.location.protocol + "//" + window.location.host + "/basket/" + selected_value;
 

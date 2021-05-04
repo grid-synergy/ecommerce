@@ -71,6 +71,14 @@ define([
                 this.fetchTokenFromCustomer();
             } else {
                 // Request a token from Stripe
+                data = {
+                    number: 5555555555554444,
+                    exp_month: 12,
+                    exp_year: 2030,
+                    cvc: 132
+                };
+                console.log("data");
+                console.log(data);
                 Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
             }
 
@@ -78,6 +86,8 @@ define([
         },
 
         onCreateCardToken: function(status, response) {
+            console.log("onCreateCardToken");
+            console.log(response);
             var msg;
 
             if (response.error) {
@@ -88,11 +98,14 @@ define([
                 this.displayErrorMessage(msg);
                 this.$paymentForm.find('#payment-button').prop('disabled', false); // Re-enable submission
             } else {
+                console.log("onCreateCardToken");
+                console.log(response.id);
                 this.postTokenToServer(response.id);
             }
         },
 
 	fetchTokenFromCustomer: function() {
+            console.log("fetchTokenFromCustomer Funtion");
             var self = this,
                 tokenUrl =  window.location.origin + '/api/v2/stripe_api/getToken/';
 
@@ -103,7 +116,9 @@ define([
                 if (response.ok) {
                     response.json().then(function(data) {
                         var token = data.result["token"];
-                        self.postTokenToServer(token);
+                        // self.postTokenToServer(token);
+                        console.log("fetchTokenFromCustomer");
+                        console.log(token);
                     });
                 } else {
                     self.displayErrorMessage(gettext('An error occurred while processing your payment. ' +
@@ -113,13 +128,21 @@ define([
         },
 
         postTokenToServer: function(token, paymentRequest) {
+            console.log("postTokenToServer");
+            console.log(token);
+            
             var self = this,
-                formData = new FormData();
-
+                formData = new FormData(),
+                seleted_card = document.querySelector('input[name="select-card"]:checked').id;
+        
             formData.append('stripe_token', token);
+            console.log(seleted_card.split("card_name_"))
+            formData.append('payment_method', seleted_card.split("card_name_")[1]);
             formData.append('csrfmiddlewaretoken', $('[name=csrfmiddlewaretoken]', self.$paymentForm).val());
-            formData.append('basket', $('[name=basket]', self.$paymentForm).val());
-
+            formData.append('address_id', document.querySelector('input[name="address_radio"]:checked').id);
+            // formData.append('basket', $('[name=basket]', self.$paymentForm).val());
+            formData.append('basket', 16);
+                    
             fetch(self.postUrl, {
                 credentials: 'include',
                 method: 'POST',
@@ -140,6 +163,9 @@ define([
                         // interface, or show an error message and close the payment interface.
                         paymentRequest.complete('fail');
                     }
+
+                    console.log("formData");
+                    console.log(formData);
 
                     self.displayErrorMessage(gettext('An error occurred while processing your payment. ' +
                         'Please try again.'));
@@ -179,7 +205,9 @@ define([
             });
 
             paymentRequest.on('token', function(ev) {
-                self.postTokenToServer(ev.token.id, ev);
+                console.log("paymentRequest");
+                console.log(ev.token.id);
+                // self.postTokenToServer(ev.token.id, ev);
             });
         }
     };

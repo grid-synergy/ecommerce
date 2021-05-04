@@ -25,6 +25,8 @@ Country = get_model('address', 'Country')
 NoShippingRequired = get_class('shipping.methods', 'NoShippingRequired')
 OrderTotalCalculator = get_class('checkout.calculators', 'OrderTotalCalculator')
 Basket = get_model('basket', 'basket')
+UserAddress = get_model('address', 'UserAddress')
+
 
 class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
     """ Stripe payment handler.
@@ -45,6 +47,11 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
         committed_basket.strategy = self.request.strategy
         committed_basket.save()
         token = form_data['stripe_token']
+        payment_method = form_data['payment_method']
+        logging.info("===================FORM_DATA===================")
+        logging.info(form_data)
+        logging.info("===============================================")
+        billing_address_id = form_data['address_id']
         order_number = committed_basket.order_number
         if waffle.flag_is_active(self.request, DYNAMIC_DISCOUNT_FLAG) and committed_basket.lines.count() == 1:
             discount_lms_url = get_lms_url('/api/discounts/')
@@ -59,8 +66,11 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
         Applicator().apply(committed_basket, self.request.user, self.request)
         basket_add_organization_attribute(committed_basket, self.request.POST)
         committed_basket.freeze()
+
         try:
-            billing_address = self.payment_processor.get_address_from_token(token)
+            # billing_address = self.payment_processor.get_address_from_token(token)
+            billing_address = self.payment_processor.get_address_from_user_address(billing_address_id)
+            
         except Exception:  # pylint: disable=broad-except
             logger.exception(
                 'An error occurred while parsing the billing address for basket [%d]. No billing address will be '
@@ -70,7 +80,7 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
             billing_address = None
 
         try:
-            self.handle_payment(token, committed_basket)
+            self.handle_payment(token, billing_address_id, committed_basket)
         except Exception:  # pylint: disable=broad-except
             logger.exception('An error occurred while processing the Stripe payment for basket [%d].', committed_basket.id)
             return JsonResponse({}, status=400)

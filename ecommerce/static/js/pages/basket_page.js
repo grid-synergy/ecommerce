@@ -176,33 +176,33 @@ define([
                 }
             },
 
-            detectCreditCard: function() {
-                var card,
-                    $input = $('#card-number'),
-                    cardNumber = $input.val().replace(/\s+/g, ''),
-                    iconPath = '/static/images/credit_cards/';
+            // detectCreditCard: function() {
+            //     var card,
+            //         $input = $('#card-number'),
+            //         cardNumber = $input.val().replace(/\s+/g, ''),
+            //         iconPath = '/static/images/credit_cards/';
 
-                if (cardNumber.length > 12) {
-                    card = CreditCardUtils.getCreditCardType(cardNumber);
+            //     if (cardNumber.length > 12) {
+            //         card = CreditCardUtils.getCreditCardType(cardNumber);
 
-                    if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
-                        $('.card-type-icon').attr('src', '').addClass('hidden');
-                        return;
-                    }
+            //         if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
+            //             $('.card-type-icon').attr('src', '').addClass('hidden');
+            //             return;
+            //         }
 
-                    if (typeof card !== 'undefined') {
-                        $('.card-type-icon').attr(
-                            'src',
-                            iconPath + card.name + '.png'
-                        ).removeClass('hidden');
-                        $input.trigger('cardType:detected', {type: card.name});
-                    } else {
-                        $('.card-type-icon').attr('src', '').addClass('hidden');
-                    }
-                } else {
-                    $('.card-type-icon').attr('src', '').addClass('hidden');
-                }
-            },
+            //         if (typeof card !== 'undefined') {
+            //             $('.card-type-icon').attr(
+            //                 'src',
+            //                 iconPath + card.name + '.png'
+            //             ).removeClass('hidden');
+            //             $input.trigger('cardType:detected', {type: card.name});
+            //         } else {
+            //             $('.card-type-icon').attr('src', '').addClass('hidden');
+            //         }
+            //     } else {
+            //         $('.card-type-icon').attr('src', '').addClass('hidden');
+            //     }
+            // },
 
             showVoucherForm: function() {
                 $('#voucher_form_container').show();
@@ -495,40 +495,40 @@ define([
                     BasketPage.validateQuantity(e);
                 });
 
-                $('#payment-button').click(function(e) {
-                    _.each($('.help-block'), function(errorMsg) {
-                        $(errorMsg).empty();  // Clear existing validation error messages.
-                    });
-                    $('.payment-form').attr('data-has-error', false);
-                    if ($('#card-number').val()) {
-                        BasketPage.detectCreditCard();
-                    }
-                    BasketPage.cardInfoValidation(e);
-                    BasketPage.cardHolderInfoValidation(e);
-                });
+                // $('#payment-button').click(function(e) {
+                //     _.each($('.help-block'), function(errorMsg) {
+                //         $(errorMsg).empty();  // Clear existing validation error messages.
+                //     });
+                //     $('.payment-form').attr('data-has-error', false);
+                //     if ($('#card-number').val()) {
+                //         BasketPage.detectCreditCard();
+                //     }
+                //     BasketPage.cardInfoValidation(e);
+                //     BasketPage.cardHolderInfoValidation(e);
+                // });
 
                 // NOTE: We only include buttons that have a data-processor-name attribute because we don't want to
                 // go through the standard checkout process for some payment methods (e.g. Apple Pay).
-                $paymentButtons.find('.payment-button[data-processor-name]').click(function(e) {
-                    var $btn = $(e.target),
-                        deferred = new $.Deferred(),
-                        promise = deferred.promise(),
-                        paymentProcessor = $btn.data('processor-name'),
-                        discountJwt = $btn.closest('#paymentForm').find('input[name="discount_jwt"]'),
-                        data = {
-                            basket_id: basketId,
-                            payment_processor: paymentProcessor
-                        };
+                // $paymentButtons.find('.payment-button[data-processor-name]').click(function(e) {
+                //     var $btn = $(e.target),
+                //         deferred = new $.Deferred(),
+                //         promise = deferred.promise(),
+                //         paymentProcessor = $btn.data('processor-name'),
+                //         discountJwt = $btn.closest('#paymentForm').find('input[name="discount_jwt"]'),
+                //         data = {
+                //             basket_id: basketId,
+                //             payment_processor: paymentProcessor
+                //         };
 
-                    if (discountJwt.length === 1) {
-                        data.discount_jwt = discountJwt.val();
-                    }
+                //     if (discountJwt.length === 1) {
+                //         data.discount_jwt = discountJwt.val();
+                //     }
 
-                    Utils.disableElementWhileRunning($btn, function() {
-                        return promise;
-                    });
-                    BasketPage.checkoutPayment(data);
-                });
+                //     Utils.disableElementWhileRunning($btn, function() {
+                //         return promise;
+                //     });
+                //     BasketPage.checkoutPayment(data);
+                // });
 
                 // Increment the quantity field until max
                 $('.spinner .btn:first-of-type').on('click', function() {

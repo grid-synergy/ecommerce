@@ -35,6 +35,7 @@ PaymentEventType = get_model('order', 'PaymentEventType')
 PaymentProcessorResponse = get_model('payment', 'PaymentProcessorResponse')
 Source = get_model('payment', 'Source')
 SourceType = get_model('payment', 'SourceType')
+UserAddress = get_model('address', 'UserAddress')
 
 
 class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
@@ -62,11 +63,12 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
     def _get_basket_amount(self, basket):
         return str((basket.total_incl_tax * 100).to_integral_value())  
 
-    def handle_processor_response(self, response, basket=None, forMobile=False):
+    def handle_processor_response(self, response, address_id, basket=None, forMobile=False):
         token = response
         order_number = basket.order_number
         currency = basket.currency
         basket_id = json.dumps(basket.id)
+        billing_address_id = address_id
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
 
@@ -76,18 +78,6 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             )
             selected_card = tracking_context.get('selected_payment_card_id', None)
 
-            if selected_card:
-               card_retrieve = stripe.Customer.retrieve_source(
-                  tracking_context.get('customer_id'),
-                  selected_card,
-               )
-
-            else:
-               src = stripe.Customer.create_source(
-                  tracking_context.get('customer_id'),
-                  source=token
-               )
-
             customer_id = customer['id']
             basket.owner.tracking_context.update({'token':token})
             basket.owner.save()
@@ -95,14 +85,15 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         if token is None:
             customer_id = tracking_context.get('customer_id')
         elif not tracking_context.get('customer_id', None):
-            billing_address = self.get_address_from_token(token)
+            # billing_address = self.get_address_from_token(token)
+            billing_address = UserAddress.objects.filter(id = billing_address_id)
             address = {
-                'city': billing_address.line4,
-                'country': billing_address.country,
-                'line1': billing_address.line1,
-                'line2': billing_address.line2,
-                'postal_code': billing_address.postcode,
-                'state': billing_address.state
+                'city': billing_address[0].line4,
+                'country': billing_address[0].country,
+                'line1': billing_address[0].line1,
+                'line2': billing_address[0].line2,
+                'postal_code': billing_address[0].postcode,
+                'state': billing_address[0].state
             }
             customer = stripe.Customer.create(
                 source=token,
@@ -215,5 +206,31 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             postcode=data.get('address_zip') or '',
             state=data.get('address_state') or '',
             country=Country.objects.get(iso_3166_1_a2__iexact=data['address_country'])
+        )
+        return address
+
+    def get_address_from_user_address(self, billing_address_id):
+        """ Retrieves the billing address associated with User Address for billing.
+
+        Returns:
+            BillingAddress
+        """
+
+        data = UserAddress.objects.get(id = billing_address_id)
+        logging.info(data)
+        try:
+            country = Country.objects.get(iso_3166_1_a2__iexact=data.country)
+        except:
+            country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+        address = BillingAddress(
+            first_name=data.name,     # Stripe only has a single name field
+            last_name='',
+            line1=data.line1 or '',
+            line2=data.line2 or '',
+            line4=data.line4,            # Oscar uses line4 for city
+            postcode=data.postcode or '',
+            state=data.state or '',
+            country=country
         )
         return address
