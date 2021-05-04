@@ -1446,9 +1446,10 @@ class AddressAddNewView(APIView):
 
 
     def _remove_default_for_billing(self):
-        default_address = UserAddress.objects.filter(is_default_for_billing = True)
-        default_address[0].is_default_for_billing = False
-        default_address[0].save
+        if UserAddress.objects.filter(is_default_for_billing = True).exists():
+            default_address = UserAddress.objects.filter(is_default_for_billing = True)
+            default_address[0].is_default_for_billing = False
+            default_address[0].save
 
 
 class AddressEditView(APIView):
@@ -1496,9 +1497,10 @@ class AddressEditView(APIView):
 
 
     def _remove_default_for_billing(self):
-        default_address = UserAddress.objects.filter(is_default_for_billing = True)
-        default_address[0].is_default_for_billing = False
-        default_address[0].save
+        if UserAddress.objects.filter(is_default_for_billing = True).exists():
+            default_address = UserAddress.objects.filter(is_default_for_billing = True)
+            default_address[0].is_default_for_billing = False
+            default_address[0].save
 
 
 

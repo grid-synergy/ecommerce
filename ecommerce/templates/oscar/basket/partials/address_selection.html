@@ -622,7 +622,7 @@ a:focus,
 		  </form>
 	   </div>
 	   <div class="modal-footer">
-		  <button type="button" class="btn btn-primary" onclick="edit_address();">Save</button>
+		  <button type="button" id="address_save_button" class="btn btn-primary" onclick="edit_address();">Save</button>
 		  <button type="submit" class="btn btn-default closeeditmodale">Cancel</button>
 	   </div>
 	</div>
@@ -681,12 +681,24 @@ a:focus,
 		$("#edit_state").val($('.user-location')[4 + counter].id);
 		$("#edit_zip").val($('.user-location')[5 + counter].id);
 		$("#edit_country").val($('.user-location')[6 + counter].id);
-
-		var is_default = ($('.user-location')[8 + counter].id) == "True" ? true : false;
-		$("#edit_radio").prop("checked", is_default);
-
 		$("#edit_address_id").val(address_id);
+
+		var is_default = ($('.user-location')[8 + counter].id);
+
+		if (is_default == "True") {
+			$("#edit_radio").removeAttr("disabled");
+			$("#edit_radio").prop("checked", true);
+			$("#edit_radio").attr("disabled", 'disabled');
+		}
+		else if (is_default == 'False') {
+			$("#edit_radio").prop('checked', false);
+			$("#edit_radio").removeAttr("disabled");
+			$("#address_save_button").removeAttr('disabled');
+		}
 	}
+
+
+
 
 	function edit_address() {
 		let csrf = $('#csrf-token').val();
