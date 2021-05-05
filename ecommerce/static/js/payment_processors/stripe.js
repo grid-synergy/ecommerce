@@ -71,14 +71,6 @@ define([
                 this.fetchTokenFromCustomer();
             } else {
                 // Request a token from Stripe
-                data = {
-                    number: 5555555555554444,
-                    exp_month: 12,
-                    exp_year: 2030,
-                    cvc: 132
-                };
-                console.log("data");
-                console.log(data);
                 // Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
                 this.postTokenToServer();
             }
@@ -87,8 +79,6 @@ define([
         },
 
         onCreateCardToken: function(status, response) {
-            console.log("onCreateCardToken");
-            console.log(response);
             var msg;
 
             if (response.error) {
@@ -99,14 +89,11 @@ define([
                 this.displayErrorMessage(msg);
                 this.$paymentForm.find('#payment-button').prop('disabled', false); // Re-enable submission
             } else {
-                console.log("onCreateCardToken");
-                console.log(response.id);
                 this.postTokenToServer(response.id);
             }
         },
 
 	fetchTokenFromCustomer: function() {
-            console.log("fetchTokenFromCustomer Funtion");
             var self = this,
                 tokenUrl =  window.location.origin + '/api/v2/stripe_api/getToken/';
 
@@ -156,9 +143,6 @@ define([
                         paymentRequest.complete('fail');
                     }
 
-                    console.log("formData");
-                    console.log(formData);
-
                     self.displayErrorMessage(gettext('An error occurred while processing your payment. ' +
                         'Please try again.'));
                 }
@@ -197,7 +181,6 @@ define([
             });
 
             paymentRequest.on('token', function(ev) {
-                console.log("paymentRequest");
                 self.postTokenToServer(ev.token.id, ev);
             });
         }
