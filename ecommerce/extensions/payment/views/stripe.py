@@ -46,11 +46,7 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
         committed_basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
         committed_basket.strategy = self.request.strategy
         committed_basket.save()
-        token = form_data['stripe_token']
         payment_method = form_data['payment_method']
-        logging.info("===================FORM_DATA===================")
-        logging.info(form_data)
-        logging.info("===============================================")
         billing_address_id = form_data['address_id']
         order_number = committed_basket.order_number
         if waffle.flag_is_active(self.request, DYNAMIC_DISCOUNT_FLAG) and committed_basket.lines.count() == 1:
@@ -80,7 +76,7 @@ class StripeSubmitView(EdxOrderPlacementMixin, BasePaymentSubmitView):
             billing_address = None
 
         try:
-            self.handle_payment(token, billing_address_id, committed_basket)
+            self.handle_payment(payment_method, billing_address_id, committed_basket)
         except Exception:  # pylint: disable=broad-except
             logger.exception('An error occurred while processing the Stripe payment for basket [%d].', committed_basket.id)
             return JsonResponse({}, status=400)

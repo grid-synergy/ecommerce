@@ -93,7 +93,7 @@ class EdxOrderPlacementMixin(OrderPlacementMixin, metaclass=abc.ABCMeta):
             self._payment_events = []
         self._payment_events.append(event)
 
-    def handle_payment(self, response, address_id, basket):  # pylint: disable=arguments-differ
+    def handle_payment(self, payment_method, address_id, basket):  # pylint: disable=arguments-differ
         """
         Handle any payment processing and record payment sources and events.
 
@@ -106,7 +106,7 @@ class EdxOrderPlacementMixin(OrderPlacementMixin, metaclass=abc.ABCMeta):
         # If payment didn't go through, the handle_processor_response function will raise an error. We want to
         # send the event regardless of if the payment didn't go through.
         try:
-            handled_processor_response = self.payment_processor.handle_processor_response(response, address_id, basket=basket)
+            handled_processor_response = self.payment_processor.handle_processor_response(payment_method, address_id, basket=basket)
         except Exception as ex:
             properties.update({'success': False, 'payment_error': type(ex).__name__, })
             raise

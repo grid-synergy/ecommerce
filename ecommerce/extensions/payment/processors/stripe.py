@@ -63,8 +63,11 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
     def _get_basket_amount(self, basket):
         return str((basket.total_incl_tax * 100).to_integral_value())  
 
-    def handle_processor_response(self, response, address_id, basket=None, forMobile=False):
-        token = response
+    def handle_processor_response(self, payment_method_id, address_id, basket=None, forMobile=False):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+        payment_method = payment_method_id
         order_number = basket.order_number
         currency = basket.currency
         basket_id = json.dumps(basket.id)
@@ -72,57 +75,36 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
 
-        if tracking_context.get('customer_id') and not forMobile:
-            token_data = stripe.Token.retrieve(
-               token,
-            )
-            selected_card = tracking_context.get('selected_payment_card_id', None)
-
-            customer_id = customer['id']
-            basket.owner.tracking_context.update({'token':token})
-            basket.owner.save()
-
-        if token is None:
-            customer_id = tracking_context.get('customer_id')
-        elif not tracking_context.get('customer_id', None):
-            # billing_address = self.get_address_from_token(token)
-            billing_address = UserAddress.objects.filter(id = billing_address_id)
-            address = {
-                'city': billing_address[0].line4,
-                'country': billing_address[0].country,
-                'line1': billing_address[0].line1,
-                'line2': billing_address[0].line2,
-                'postal_code': billing_address[0].postcode,
-                'state': billing_address[0].state
-            }
-            customer = stripe.Customer.create(
-                source=token,
-                email=basket.owner.email,
-                address=address,
-                name=basket.owner.full_name
-            )
-            customer_id = customer['id']
-            basket.owner.tracking_context = basket.owner.tracking_context or {}
-            basket.owner.tracking_context.update({'customer_id': customer_id, 'token': token})
-            basket.owner.save()
-
-        else:
-            customer_id = tracking_context.get('customer_id')
+        customer_id = tracking_context.get('customer_id')
+        billing_address = UserAddress.objects.get(id = billing_address_id)
+        stripe.Customer.modify_source(
+            customer_id,
+            payment_method,
+            address_city = billing_address.line4,
+            address_country = billing_address.country,
+            address_line1 = billing_address.line1,
+            address_line2 = billing_address.line2,
+            address_state = billing_address.state,
+            address_zip = billing_address.postcode
+        )
 
         if not forMobile:
             try:
-                charge = stripe.Charge.create(
+                payment_intent = stripe.PaymentIntent.create(
                     amount=self._get_basket_amount(basket),
                     currency=currency,
                     customer=customer_id,
                     description=order_number,
-                    metadata={'order_number': order_number, 'basket_id': basket_id}
+                    metadata={'order_number': order_number, 'basket_id': basket_id},
+                    payment_method=payment_method,
+                    confirm=True
                 )
-                transaction_id = charge.id
+                transaction_id = payment_intent.id
+
 
                 # NOTE: Charge objects subclass the dict class so there is no need to do any data transformation
                 # before storing the response in the database.
-                self.record_processor_response(charge, transaction_id=transaction_id, basket=basket)
+                self.record_processor_response(payment_intent, transaction_id=transaction_id, basket=basket)
                 logger.info('Successfully created Stripe charge [%s] for basket [%d].', transaction_id, basket.id)
             except stripe.error.CardError as ex:
                 base_message = "Stripe payment for basket [%d] declined with HTTP status [%d]"
@@ -138,8 +120,9 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
                 raise TransactionDeclined(base_message, basket.id, ex.http_status)
 
             total = basket.total_incl_tax
-            card_number = charge.source.last4
-            card_type = STRIPE_CARD_TYPE_MAP.get(charge.source.brand)
+
+            card_number = payment_intent.charges.data[0]["payment_method_details"]["card"]["brand"]
+            card_type = payment_intent.charges.data[0]["payment_method_details"]["card"]["last4"]
 
             return HandledProcessorResponse(
                 transaction_id=transaction_id,

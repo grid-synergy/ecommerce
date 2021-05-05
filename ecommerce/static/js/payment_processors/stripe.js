@@ -79,7 +79,8 @@ define([
                 };
                 console.log("data");
                 console.log(data);
-                Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+                // Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+                this.postTokenToServer();
             }
 
             e.preventDefault();
@@ -116,9 +117,7 @@ define([
                 if (response.ok) {
                     response.json().then(function(data) {
                         var token = data.result["token"];
-                        // self.postTokenToServer(token);
-                        console.log("fetchTokenFromCustomer");
-                        console.log(token);
+                        self.postTokenToServer(token);
                     });
                 } else {
                     self.displayErrorMessage(gettext('An error occurred while processing your payment. ' +
@@ -128,21 +127,14 @@ define([
         },
 
         postTokenToServer: function(token, paymentRequest) {
-            console.log("postTokenToServer");
-            console.log(token);
-            
             var self = this,
                 formData = new FormData(),
                 seleted_card = document.querySelector('input[name="select-card"]:checked').id;
-        
-            formData.append('stripe_token', token);
-            console.log(seleted_card.split("card_name_"))
-            formData.append('payment_method', seleted_card.split("card_name_")[1]);
+            
+            formData.append('payment_method', seleted_card.split("card_name_")[0]);
             formData.append('csrfmiddlewaretoken', $('[name=csrfmiddlewaretoken]', self.$paymentForm).val());
             formData.append('address_id', document.querySelector('input[name="address_radio"]:checked').id);
-            // formData.append('basket', $('[name=basket]', self.$paymentForm).val());
-            formData.append('basket', 16);
-                    
+            
             fetch(self.postUrl, {
                 credentials: 'include',
                 method: 'POST',
@@ -206,8 +198,7 @@ define([
 
             paymentRequest.on('token', function(ev) {
                 console.log("paymentRequest");
-                console.log(ev.token.id);
-                // self.postTokenToServer(ev.token.id, ev);
+                self.postTokenToServer(ev.token.id, ev);
             });
         }
     };

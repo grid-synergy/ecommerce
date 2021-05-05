@@ -573,12 +573,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             basket, shipping_charge, surcharges=0)
 
         context = self._get_addresses_data(context)
-        # logging.info("===================================")
         countries = Country.objects.all()
-        # for country in countries:
-        #     logging.info(country.printable_name)
-        #     logging.info(country.iso_3166_1_a2)
-        # logging.info("===================================")
         context["countries"] = countries
 
         return self._add_to_context_data(context)
@@ -650,7 +645,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'lms_url_root': site_configuration.lms_url_root,
             'commited_basket': commited_basket
         })
-        self.card_selection_data(context)
+        self._card_selection_data(context)
         return context
 
     def _get_cutomer_card_info(self, user):
@@ -753,7 +748,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
                                                      sc=site_configuration.id)
             raise SiteConfigurationError(msg)
     
-    def card_selection_data(self, context):
+    def _card_selection_data(self, context):
 
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
@@ -761,8 +756,6 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         if "customer_id" not in self.request.user.tracking_context.keys():
             return 
         customer_id = self.request.user.tracking_context["customer_id"]
-        # customer_id = "cus_JGoPTmvRKrjSyy"
-        logging.info(customer_id)
         stripe_response = stripe.PaymentMethod.list(
             customer = customer_id,
             type = "card",
@@ -1323,7 +1316,7 @@ class UpdateCardApiView(APIView):
             print('=======')
             print(e)
             return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
-        
+
 
 class AddCardApiView(APIView):
     # Api for Adding card from stripe
@@ -1364,10 +1357,18 @@ class AddCardApiView(APIView):
                 cust_id = request.user.tracking_context["customer_id"]
     
                 
-            token = stripe.Token.create(card={"number": card_number , "exp_month": expiry_month, "exp_year":expiry_year, "cvc":security_code },)
+            token = stripe.Token.create(
+                card={
+                    "number": card_number, 
+                    "exp_month": expiry_month, 
+                    "exp_year":expiry_year,
+                    "cvc":security_code
+                },
+            )
+
             card = stripe.Customer.create_source(
-            cust_id,
-            source= token["id"]
+                cust_id,
+                source= token["id"]
             )
             if is_default:
                 customer = stripe.Customer.modify(cust_id, default_source= card['id'])
