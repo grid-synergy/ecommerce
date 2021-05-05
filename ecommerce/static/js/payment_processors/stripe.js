@@ -71,7 +71,8 @@ define([
                 this.fetchTokenFromCustomer();
             } else {
                 // Request a token from Stripe
-                Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+                // Stripe.card.createToken(data, $.proxy(this.onCreateCardToken, this));
+                this.postTokenToServer();
             }
 
             e.preventDefault();
@@ -114,12 +115,13 @@ define([
 
         postTokenToServer: function(token, paymentRequest) {
             var self = this,
-                formData = new FormData();
-
-            formData.append('stripe_token', token);
+                formData = new FormData(),
+                seleted_card = document.querySelector('input[name="select-card"]:checked').id;
+            
+            formData.append('payment_method', seleted_card.split("card_name_")[0]);
             formData.append('csrfmiddlewaretoken', $('[name=csrfmiddlewaretoken]', self.$paymentForm).val());
-            formData.append('basket', $('[name=basket]', self.$paymentForm).val());
-
+            formData.append('address_id', document.querySelector('input[name="address_radio"]:checked').id);
+            
             fetch(self.postUrl, {
                 credentials: 'include',
                 method: 'POST',

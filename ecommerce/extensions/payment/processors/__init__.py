@@ -51,7 +51,7 @@ class BasePaymentProcessor(metaclass=abc.ABCMeta):  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod
-    def handle_processor_response(self, response, basket=None):
+    def handle_processor_response(self, response, address_id, basket=None):
         """
         Handle a response from the payment processor.
 

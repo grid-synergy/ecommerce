@@ -30,6 +30,7 @@ Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
 Applicator = get_class('offer.applicator', 'Applicator')
 
+
 class CustomStripeView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -82,6 +83,8 @@ class CustomStripeView(APIView):
         country=country
         )
         return address
+
+    
 
 class PaymentView(APIView, EdxOrderPlacementMixin):
 

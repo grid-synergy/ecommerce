@@ -125,7 +125,28 @@
 {% include 'oscar/basket/partials/address_selection.html' %}
 {% include 'oscar/basket/partials/card_selection.html' %}
 
-<form id="paymentForm" class="payment-form form-horizontal" method="post" aria-live="polite">
+<form id="paymentForm" action="/payment/stripe/submit/" method="post" class="payment-form form-horizontal">
+    {% csrf_token %}
+    <div id="payment-information" class="col-sm-7">
+        <input type="text" id="num" name="num" style="display: none;">
+
+        <div class="form-input-elements placeholder">
+            <div class="payment-button col-sm-6 col-sm-offset-6 col-xs-12">
+                <button id="payment-button" type="submit" class="btn btn-primary btn-large col-sm-12 col-xs-12"
+                        data-track-type="click"
+                        data-track-event="edx.bi.ecommerce.basket.payment_selected"
+                        data-track-category="checkout"
+                        data-track-payment-method="Credit Card"
+                        data-processor-name="{{ client_side_payment_processor.NAME }}"
+                        data-track-checkout-type="client_side">
+                    {% trans "Place Order" as tmsg %}{{ tmsg | force_escape }}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- <form id="paymentForm" class="payment-form form-horizontal" method="post" aria-live="polite">
     {% csrf_token %}
     {% if discount_jwt %}
         <input type="hidden" name="discount_jwt" value="{{discount_jwt}}">
@@ -133,7 +154,7 @@
 
     <div id="payment-information" class="col-sm-7">
         {% if not free_basket %}
-        <!-- <div id="card-holder-information" class="form-input-elements placeholder row">
+        <div id="card-holder-information" class="form-input-elements placeholder row">
             <div role="region" aria-labelledby="card-holder-information-region">
                 <h2 id="card-holder-information-region" class="title">{% trans "Billing Information" as tmsg %}{{ tmsg | force_escape }}</h2>
                 {% if sdn_check %}
@@ -141,11 +162,11 @@
                 {% endif %}
                  {% crispy payment_form %}
             </div>
-        </div> -->
+        </div>
         {% endif %}
         <div class="form-input-elements placeholder">
             <div role="region" {% if not free_basket %}aria-labelledby="billing-information-region"{% endif %}>
-                <!-- {% if not free_basket %}
+                {% if not free_basket %}
                     <h2 id="billing-information-region" class="title">{% trans "billing information" as tmsg %}{{ tmsg | force_escape }}</h2>
                 {% if not paypal_enabled %}
                     <img aria-hidden="true" class="credit-card-list" src="/static/images/credit_card_options.png" alt="{% trans "Credit cards" as tmsg %}{{ tmsg | force_escape }}">
@@ -200,7 +221,7 @@
                         <p class="help-block"></p>
                     </div>
                 </div>
-                {% endif %} -->
+                {% endif %}
 
                 <div class="payment-button col-sm-6 col-sm-offset-6 col-xs-12">
                 {% if free_basket %}
@@ -232,7 +253,24 @@
             </div>
         </div>
     </div>
-</form>
+</form> -->
+
+<script>
+$('#payment-button').click(function () {
+    if (($("input[name='address_radio']:checked").val()) &&  ($("input[name='select-card']:checked").val())) {
+        var selected_address = document.querySelector('input[name="address_radio"]:checked').id;
+        var selected_card = document.querySelector('input[name="select-card"]:checked').id;
+
+    } else if (!$("input[name='address_radio']:checked").val()){
+        alert("Please Select an Address")
+        return;
+
+    } else if (!$("input[name='select-card']:checked").val()){
+        alert("Please Select a Card")
+        // return;
+    }
+})    
+</script>
 
 <script>
 $(document).ready(function(){
