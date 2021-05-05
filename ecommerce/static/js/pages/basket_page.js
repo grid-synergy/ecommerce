@@ -66,7 +66,7 @@ define([
                 event.preventDefault();
                 field.find('~.help-block').append('<span>' + msg + '</span>');
                 field.focus();
-                $('.payment-form').attr('data-has-error', true);
+                $('.add-new-card-cont').attr('data-has-error', true);
             },
 
             appendCardHolderValidationErrorMsg_custom: function(field, msg) {
@@ -175,16 +175,16 @@ define([
                     // i.e 1 for JAN, 2 for FEB etc.
                     currentMonth = new Date().getMonth() + 1,
                     currentYear = new Date().getFullYear(),
-                    $number = $('#card-number'),
-                    $cvn = $('#card-cvn'),
-                    $expMonth = $('#card-expiry-month'),
-                    $expYear = $('#card-expiry-year'),
+                    $number = $('#cardNumber'),
+                    $cvn = $('#cvc'),
+                    $expMonth = $('#month_dropdown'),
+                    $expYear = $('#year_dropdown'),
                     cardNumber = $number.val(),
                     cvnNumber = $cvn.val(),
                     cardExpiryMonth = $expMonth.val(),
-                    cardExpiryYear = $expYear.val();
+                    cardExpiryYear = $expYear.val()
 
-                cardType = CreditCardUtils.getCreditCardType(cardNumber);
+                    cardType = CreditCardUtils.getCreditCardType(cardNumber);
 
 
                 // Number.isInteger() is not compatible with IE11, so polyfill is required. Polyfill taken from:
@@ -213,6 +213,51 @@ define([
                 }
             },
 
+            cardInfoValidation_custom: function(event) {
+                var cardType,
+                    // We are adding 1 here because month in js style date-time starts with 0
+                    // i.e. 0 for JAN, 1 for FEB etc. However, credit card expiry months start with 1
+                    // i.e 1 for JAN, 2 for FEB etc.
+                    currentMonth = new Date().getMonth() + 1,
+                    currentYear = new Date().getFullYear(),
+                    $number = $('#cardNumber'),
+                    $cvn = $('#cvc'),
+                    $expMonth = $('#month_dropdown'),
+                    $expYear = $('#year_dropdown'),
+                    cardNumber = $number.val(),
+                    cvnNumber = $cvn.val(),
+                    cardExpiryMonth = $expMonth.val(),
+                    cardExpiryYear = $expYear.val();
+  
+                cardType = CreditCardUtils.getCreditCardType(cardNumber);
+  
+  
+                // Number.isInteger() is not compatible with IE11, so polyfill is required. Polyfill taken from:
+                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+                Number.isInteger = Number.isInteger || function(value) {
+                    return typeof value === 'number' &&
+                        isFinite(value) &&
+                        Math.floor(value) === value;
+                };
+  
+                if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
+                    BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Invalid card number'));
+                } else if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && (_.isUndefined(cardType) || !BasketPage.isCardTypeSupported(cardType.name))) {
+                    BasketPage.appendCardValidationErrorMsg(event, $number, gettext('Unsupported card type'));
+                } else if (cvnNumber.length !== cardType.cvnLength || !Number.isInteger(Number(cvnNumber))) {
+                    BasketPage.appendCardValidationErrorMsg(event, $cvn, gettext('Invalid security number'));
+                }
+  
+                if (!Number.isInteger(Number(cardExpiryMonth)) ||
+                    Number(cardExpiryMonth) > 12 || Number(cardExpiryMonth) < 1) {
+                    BasketPage.appendCardValidationErrorMsg(event, $expMonth, gettext('Invalid month'));
+                } else if (!Number.isInteger(Number(cardExpiryYear)) || Number(cardExpiryYear) < currentYear) {
+                    BasketPage.appendCardValidationErrorMsg(event, $expYear, gettext('Invalid year'));
+                } else if (Number(cardExpiryMonth) < currentMonth && Number(cardExpiryYear) === currentYear) {
+                    BasketPage.appendCardValidationErrorMsg(event, $expMonth, gettext('Card expired'));
+                }
+            },
+
             showErrorState: function(e, msg) {
                 e.preventDefault();
                 $('#input-quantity-field').addClass('error-state');
@@ -231,33 +276,60 @@ define([
                 }
             },
 
-            // detectCreditCard: function() {
-            //     var card,
-            //         $input = $('#card-number'),
-            //         cardNumber = $input.val().replace(/\s+/g, ''),
-            //         iconPath = '/static/images/credit_cards/';
+            detectCreditCard: function() {
+                var card,
+                    $input = $('#card-number'),
+                    cardNumber = $input.val().replace(/\s+/g, ''),
+                    iconPath = '/static/images/credit_cards/';
 
-            //     if (cardNumber.length > 12) {
-            //         card = CreditCardUtils.getCreditCardType(cardNumber);
+                if (cardNumber.length > 12) {
+                    card = CreditCardUtils.getCreditCardType(cardNumber);
 
-            //         if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
-            //             $('.card-type-icon').attr('src', '').addClass('hidden');
-            //             return;
-            //         }
+                    if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
+                        $('.card-type-icon').attr('src', '').addClass('hidden');
+                        return;
+                    }
 
-            //         if (typeof card !== 'undefined') {
-            //             $('.card-type-icon').attr(
-            //                 'src',
-            //                 iconPath + card.name + '.png'
-            //             ).removeClass('hidden');
-            //             $input.trigger('cardType:detected', {type: card.name});
-            //         } else {
-            //             $('.card-type-icon').attr('src', '').addClass('hidden');
-            //         }
-            //     } else {
-            //         $('.card-type-icon').attr('src', '').addClass('hidden');
-            //     }
-            // },
+                    if (typeof card !== 'undefined') {
+                        $('.card-type-icon').attr(
+                            'src',
+                            iconPath + card.name + '.png'
+                        ).removeClass('hidden');
+                        $input.trigger('cardType:detected', {type: card.name});
+                    } else {
+                        $('.card-type-icon').attr('src', '').addClass('hidden');
+                    }
+                } else {
+                    $('.card-type-icon').attr('src', '').addClass('hidden');
+                }
+            },
+            detectCreditCard_custom: function() {
+                var card,
+                    $input = $('#cardNumber'),
+                    cardNumber = $input.val().replace(/\s+/g, ''),
+                    iconPath = '/static/images/credit_cards/';
+  
+                if (cardNumber.length > 12) {
+                    card = CreditCardUtils.getCreditCardType(cardNumber);
+  
+                    if (!CreditCardUtils.savedCreditCardValidator(cardNumber) && !CreditCardUtils.isValidCardNumber(cardNumber)) {
+                        $('.card-type-icon').attr('src', '').addClass('hidden');
+                        return;
+                    }
+  
+                    if (typeof card !== 'undefined') {
+                        $('.card-type-icon').attr(
+                            'src',
+                            iconPath + card.name + '.png'
+                        ).removeClass('hidden');
+                        $input.trigger('cardType:detected', {type: card.name});
+                    } else {
+                        $('.card-type-icon').attr('src', '').addClass('hidden');
+                    }
+                } else {
+                    $('.card-type-icon').attr('src', '').addClass('hidden');
+                }
+            },
 
             showVoucherForm: function() {
                 $('#voucher_form_container').show();
@@ -542,8 +614,8 @@ define([
                     }
                 });
 
-                $('#card-number').on('input', function() {
-                    BasketPage.detectCreditCard();
+                $('#cardNumber').on('input', function() {
+                    BasketPage.detectCreditCard_custom();
                 });
 
                 $('#quantity-update').on('click', function(e) {
@@ -600,6 +672,82 @@ define([
                         });
                     }
                 });
+                $("#btn-save-card").click(function(e) {                    
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                    $('.add-new-card-cont').attr('data-has-error', false);
+                    if ($('#cardNumber').val()) {
+                        BasketPage.detectCreditCard_custom();
+                    }
+  
+                    BasketPage.cardInfoValidation_custom(e);
+                    if ($(".add-new-card-cont").attr('data-has-error') == "false") {
+                      $("#btn-save-card").attr("disabled","true");                 
+                      
+                      let csrf = $('#csrf-token').val();
+                  
+                      var data_dictionary = {
+                  
+                          "number": $("#cardNumber").val(),
+                  
+                          "exp_month": $('#month_dropdown option:selected').text(),
+                  
+                          "exp_year": $('#year_dropdown option:selected').text(),
+                  
+                          "cvc": $("#cvc").val(),
+                  
+                          "is_default": $("#radio").is(":checked")
+                  
+                      }
+                  
+                      $.ajax({
+                  
+                          url: '/basket/card-add-source/',
+                  
+                          method: 'POST',
+                  
+                          contentType: 'application/json; charset=utf-8',
+                  
+                          dataType: 'json',
+                  
+                          headers: {
+                  
+                              'X-CSRFToken': csrf
+                  
+                          },
+                  
+                          data: JSON.stringify(data_dictionary),
+                  
+                          success: function(response) {
+                  
+                              if (response['status'] == 'Success')
+                  
+                              {
+                  
+                                  window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+                  
+                              } else
+                  
+                              {
+                  
+                                  alert('some error has occured')
+                  
+                              }
+                  
+                          },
+                  
+                          error: function(data) {
+                  
+                              alert('some error has occured')
+                  
+                          },
+                  
+                      });
+                  
+                  }
+                  
+                  });
 
                 $('#edit_address_save_button').click(function(e) {
                     _.each($('.help-block'), function(errorMsg) {
