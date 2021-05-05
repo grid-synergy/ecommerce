@@ -317,10 +317,6 @@ h2.title {
 	font-size: 20px;
 }
 
-#add-new-address .heading {
-	padding-top: 12px;
-}
-
 #add-new-address label {
 	margin-right: 12px;
 	font-weight: 600;
@@ -328,7 +324,7 @@ h2.title {
 
 #add-new-address .add-address-form div {
 	display: flex;
-	margin: 12px auto;
+	margin: 25px auto;
 	justify-content: space-between;
 	width: 100%;
 	align-items: center;
@@ -415,10 +411,38 @@ a:focus,
     display: flex;
 }
 
+#add-new-address .add-address-form .help-block {
+    position: absolute;
+    right: 0px;
+    font-size: 11px;
+    font-style: italic;
+    bottom: -27px;
+}
+
+#add-new-address .add-address-form div {
+    position: relative;
+}
+
+#add-new-address .heading h2 {
+    margin: 0px;
+}
+.right_cardbox {
+    width: 50%;
+    float: right;
+}
+input#edit_address_id {
+    height: 0;
+}
+#add-new-address .add-address-form .dft-addr-radio-btn {margin: 0;}
+
+.editmodale.modal-cont.opened .modal-dialog {
+    top: 3%;
+}
 </style>
 
 <!-- #################################################################################### -->
 <!-- ADDRESS INFORMATION STARTS HERE -->
+
 <div class="bill-info-addr-sec">
 	<div>
 		<h2 class="title">Billing Information</h2>
@@ -621,9 +645,8 @@ a:focus,
 				</select> 
 				<p class="help-block"></p>
 			</div>
-			<div>
-				<input type="text" id="edit_address_id" name="address_id" style="visibility: hidden;"> 
-			</div>
+				<input class="hidden-input" type="text" id="edit_address_id" name="address_id" style="visibility: hidden;"> 
+			
 		 <div class="dft-addr-radio-btn">
 				<input type="checkbox" id="edit_radio" name="edit_radio">
 				<label for="checkbox">Set as Default Address</label>

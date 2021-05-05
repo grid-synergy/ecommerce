@@ -121,10 +121,10 @@
         </div>
     {% endif %}
 </div>
-
+<div class="right_cardbox">
 {% include 'oscar/basket/partials/address_selection.html' %}
 {% include 'oscar/basket/partials/card_selection.html' %}
-
+</div>
 <form id="paymentForm" action="/payment/stripe/submit/" method="post" class="payment-form form-horizontal">
     {% csrf_token %}
     <div id="payment-information" class="col-sm-7">
