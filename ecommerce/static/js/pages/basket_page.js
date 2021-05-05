@@ -560,7 +560,7 @@ define([
                 });
 
                 $('#cardNumber').on('input', function() {
-                    BasketPage.detectCreditCard();
+                    BasketPage.detectCreditCard_custom();
                 });
 
                 $('#quantity-update').on('click', function(e) {
@@ -589,6 +589,8 @@ define([
   
                     BasketPage.cardInfoValidation_custom(e);
                     if ($(".add-new-card-cont").attr('data-has-error') == "false") {
+                      $("#btn-save-card").attr("disabled","true");                 
+                      
                       let csrf = $('#csrf-token').val();
                   
                       var data_dictionary = {
