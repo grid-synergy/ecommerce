@@ -69,6 +69,12 @@ define([
                 $('.payment-form').attr('data-has-error', true);
             },
 
+            appendCardHolderValidationErrorMsg_custom: function(field, msg) {
+                field.find('~.help-block').append(
+                    '<span>' + msg + '</span>'
+                );
+            },
+
             appendCardHolderValidationErrorMsg: function(field, msg) {
                 field.parentsUntil('form-item').find('~.help-block').append(
                     '<span>' + msg + '</span>'
@@ -108,6 +114,55 @@ define([
                 .find('input')
                 .focus();
             },
+
+            cardHolderInfoValidation_custom: function(event, form) {
+                var requiredFields = null;
+                if(form == 'edit-address'){
+                requiredFields = [
+                    'input[name=edit_fname]',
+                    'input[name=edit_address1]',
+                    'input[name=edit_city]',
+                    'select[name=edit_country]'
+                    ];
+                    var countriesWithRequiredStateAndPostalCodeValues = ['US', 'CA'];
+                    var experiments = window.experimentVariables || {};
+                }
+                if(form == 'add-address'){
+                    requiredFields = [
+                        'input[name=fname]',
+                        'input[name=address1]',
+                        'input[name=city]',
+                        'select[name=country]'
+                        ];
+                        var countriesWithRequiredStateAndPostalCodeValues = ['US', 'CA'];
+                        var experiments = window.experimentVariables || {};
+                }
+ 
+                // Only require address and state if we are not in the hide location fields variation of this experiment
+                // https://openedx.atlassian.net/browse/LEARNER-2355
+                if (!(experiments && experiments.hide_location_fields)) {
+                    requiredFields.push('input[name=address_line1]');
+                    if (countriesWithRequiredStateAndPostalCodeValues.indexOf($('select[name=country]').val()) > -1) {
+                        requiredFields.push('select[name=state]');
+                        requiredFields.push('input[name=postal_code]');
+                    }
+                }
+
+                _.each(requiredFields, function(field) {
+                    if ($(field).val() === '') {
+                        event.preventDefault();
+                        BasketPage.appendCardHolderValidationErrorMsg_custom($(field), gettext('This field is required'));
+                        $('.add-address-form').attr('data-has-error', true);
+                    }
+                });
+
+                // Focus the first element that has an error message.
+                $('.help-block > span')
+                .first().parentsUntil('fieldset').last()
+                .find('input')
+                .focus();
+            },
+
 
             isCardTypeSupported: function(cardType) {
                 return $.inArray(cardType, ['amex', 'discover', 'mastercard', 'visa']) > -1;
@@ -470,11 +525,11 @@ define([
                         stateSelector += !(experiments && experiments.hide_location_fields) ? selectorRequired : '';
                         stateSelector += '></select>';
                         $($inputDiv).append(stateSelector);
-                        $('#id_state').append($('<option>', {value: '', text: gettext('<Choose state/province>')}));
+                        $('#id_state').append($('<option>', { value: '', text: gettext('<Choose state/province>') }));
                         $('#div_id_state').find('label').text(gettext('State/Province (required)'));
 
                         _.each(states[country], function(value, key) {
-                            $('#id_state').append($('<option>', {value: value, text: key}));
+                            $('#id_state').append($('<option>', { value: value, text: key }));
                         });
                     } else {
                         $($inputDiv).empty();
@@ -506,6 +561,103 @@ define([
                     BasketPage.cardInfoValidation(e);
                     BasketPage.cardHolderInfoValidation(e);
                 });
+
+                $('#add_address_save_button').click(function(e) {
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                    $('.add-address-form').attr('data-has-error', false);
+                    BasketPage.cardHolderInfoValidation_custom(e, 'add-address');
+                    if ($('.add-address-form').attr('data-has-error') == 'false') {
+                        $("#add_address_save_button").attr("disabled","true");
+                        let csrf = $('#csrf-token').val();
+                        var data = {
+                            "first_name": document.getElementById("fname").value,
+                            "address_line1": document.getElementById("address1").value,
+                            "address_line2": document.getElementById("address2").value,
+                            "address_city": document.getElementById("city").value,
+                            "address_state": document.getElementById("state").value,
+                            "address_postal_code": document.getElementById("zip").value,
+                            "address_country": document.getElementById("country").value,
+                            "is_default_for_billing": document.querySelector('input[name="add_radio"]:checked') ? true : false,
+                        };
+
+                        $.ajax({
+                            url: '/basket/address-add-new/',
+                            method: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            dataType: 'json',
+                            headers: {
+                                'X-CSRFToken': csrf
+                            },
+                            data: JSON.stringify(data),
+                            success: function(response) {
+                                window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+                            },
+                            error: function(data) {
+                                alert("Some error has occured");
+                            },
+                        });
+                    }
+                });
+
+                $('#edit_address_save_button').click(function(e) {
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                    $('.add-address-form').attr('data-has-error', false);
+                    
+                    BasketPage.cardHolderInfoValidation_custom(e, 'edit-address');
+                    if ($('.add-address-form').attr('data-has-error') == 'false') {
+                        $("#edit_address_save_button").attr("disabled","true");
+                        let csrf = $('#csrf-token').val();
+                        var data = {
+                            "id": document.getElementById("edit_address_id").value,
+                            "first_name": document.getElementById("edit_fname").value,
+                            "address_line1": document.getElementById("edit_address1").value,
+                            "address_line2": document.getElementById("edit_address2").value,
+                            "address_city": document.getElementById("edit_city").value,
+                            "address_state": document.getElementById("edit_state").value,
+                            "address_postal_code": document.getElementById("edit_zip").value,
+                            "address_country": document.getElementById("edit_country").value,
+                            "is_default_for_billing": document.querySelector('input[name="edit_radio"]:checked') ? true : false,
+                        };
+                
+                        $.ajax({
+                            url: '/basket/address-edit/',
+                            method: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            dataType: 'json',
+                            headers: {
+                                'X-CSRFToken': csrf
+                            },
+                            data: JSON.stringify(data),
+                            success: function(response){
+                                window.location.replace(window.location.protocol + "//" + window.location.host + "/basket/");
+                            },
+                            error: function(data){ 
+                                alert("Some error has occured");
+                            },
+                        }); 
+                    }  
+                });
+
+
+                $('#add_new_address_button').click(function(e) {
+                    $('#add-address-form').trigger("reset");
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                });
+
+                $('.edit-address-btn').click(function(e) {
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                });
+
+
+
 
                 // NOTE: We only include buttons that have a data-processor-name attribute because we don't want to
                 // go through the standard checkout process for some payment methods (e.g. Apple Pay).

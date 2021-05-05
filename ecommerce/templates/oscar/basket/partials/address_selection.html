@@ -461,7 +461,7 @@ a:focus,
 						</div>
 					</div>
 						<div class="edit-delete-btns">
-							<a href="#" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
+							<a href="#" class="edit-address-btn" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
 							<a href="#" onclick="delete_address({{ address.id }});"> Delete </a>
 						</div>
 					</div>
@@ -493,14 +493,14 @@ a:focus,
 						</div>
 					</div>
 						<div class="edit-delete-btns">
-							<a href="#" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
+							<a href="#" class="edit-address-btn" onclick="open_edit_modal({{ forloop.counter }}, {{ address.id }});"> Edit </a>
 							<a href="#" onclick="delete_address({{ address.id }});"> Delete </a>
 						</div>
 					</div>
 				{% endif %}
 			{% endfor %}
 			<div class="add-address-btn">
-				<a href="#" class="openaddressmodale"><span>+</span> Add New Address </a>
+				<a href="#" id="add_new_address_button" class="openaddressmodale"><span>+</span> Add New Address </a>
 			</div>
 		  </div>
 	   </div>
@@ -519,14 +519,16 @@ a:focus,
 		  <h2>Add New Address</h2>
 	   </div>
 	   <div class="add-address-form">
-		  <form>
+		  <form class="add-address-form" id="add-address-form" method="POST">
 			 <div>
-				<label for="fname">Name</label>
-				<input type="text" id="fname" name="fname"> 
+				<label for="fname" class="requiredField">Name</label>
+				<input type="text" id="fname" required maxlength="60" name="fname">
+				<p class="help-block"></p>
 			 </div>
 			 <div>
 				<label for="address1">Address Line 1</label>
-				<input type="text" id="address1" name="address1"> 
+				<input type="text" id="address1" required name="address1"> 
+				<p class="help-block"></p>
 			 </div>
 			 <div>
 				<label for="address2">Address Line 2</label>
@@ -534,24 +536,26 @@ a:focus,
 			 </div>
 			 <div>
 				<label for="zip">Zip Code</label>
-				<input id="zip" name="zip" type="text"> 
+				<input id="zip" name="zip" type="text">
 			 </div>
 			 <div>
 				<label for="city">City</label>
-				<input type="text" id="city" name="city"> 
+				<input type="text" id="city" required name="city">
+				<p class="help-block"></p> 
 			 </div>
 			 <div>
 				<label for="state">State</label>
-				<input type="text" id="state" name="state"> 
+				<input type="text" id="state" name="state">
 			 </div>
 			 <div>
 				<label for="state">Country</label>
-				<select class="country-selection" id="country" name="country">
-					<option value="sc"> ---select a country--- </option>
+				<select class="country-selection" required id="country" name="country">
+					<option value selected> ---select a country--- </option>
 					{% for country in countries %}
 						<option value="{{ country.iso_3166_1_a2 }}"> {{ country.printable_name }} </option>
 					{% endfor %}
 				</select> 
+				<p class="help-block"></p>
 			</div>
 		 <div class="dft-addr-radio-btn">
 				<input type="checkbox" id="radio" name="add_radio">
@@ -560,7 +564,7 @@ a:focus,
 		  </form>
 	   </div>
 	   <div class="modal-footer">
-		  <button type="button" class="btn btn-primary" onclick="add_new_address();">Save</button>
+		  <button type="button" id="add_address_save_button" class="btn btn-primary save_address_btn">Save</button>
 		  <button type="submit" class="btn btn-default closemodale">Cancel</button>
 	   </div>
 	</div>
@@ -578,39 +582,44 @@ a:focus,
 		  <h2>Edit Address</h2>
 	   </div>
 	   <div class="add-address-form">
-		  <form>
+		  <form class="add-address-form" method="POST">
 			 <div>
 				<label for="fname">Name</label>
-				<input type="text" id="edit_fname" name="fname">
+				<input type="text" id="edit_fname" required name="edit_fname">
+				<p class="help-block"></p>
 			 </div>
 			 <div>
 				<label for="address1">Address Line 1</label>
-				<input type="text" id="edit_address1" name="address1"> 
+				<input type="text" id="edit_address1" required name="edit_address1">
+				<p class="help-block"></p> 
 			 </div>
 			 <div>
 				<label for="address2">Address Line 2</label>
-				<input type="text" id="edit_address2" name="address2"> 
+				<input type="text" id="edit_address2" name="edit_address2"> 
 			 </div>
 			 <div>
 				<label for="zip">Zip Code</label>
-				<input id="edit_zip" name="zip" type="number"> 
+				<input type="number" id="edit_zip" name="edit_zip"> 
 			 </div>
 			 <div>
 				<label for="city">City</label>
-				<input type="text" id="edit_city" name="city"> 
+				<input type="text" id="edit_city" required name="edit_city">
+				<p class="help-block"></p> 
 			 </div>
 			 <div>
 				<label for="state">State</label>
-				<input type="text" id="edit_state" name="state"> 
+				<input type="text" id="edit_state" required name="edit_state">
+				<p class="help-block"></p>
 			 </div>
 			 <div>
 				<label for="state">Country</label>
-				<select class="country-selection" id="edit_country" name="country">
-					<option value="sc"> ---select a country--- </option>
+				<select class="country-selection" required id="edit_country" name="edit_country">
+					<option value selected> ---select a country--- </option>
 					{% for country in countries %}
 						<option value="{{ country.iso_3166_1_a2 }}"> {{ country.printable_name }} </option>
 					{% endfor %}
 				</select> 
+				<p class="help-block"></p>
 			</div>
 			<div>
 				<input type="text" id="edit_address_id" name="address_id" style="visibility: hidden;"> 
@@ -622,7 +631,7 @@ a:focus,
 		  </form>
 	   </div>
 	   <div class="modal-footer">
-		  <button type="button" id="address_save_button" class="btn btn-primary" onclick="edit_address();">Save</button>
+		  <button type="button" id="edit_address_save_button" class="btn btn-primary save_address_btn">Save</button>
 		  <button type="submit" class="btn btn-default closeeditmodale">Cancel</button>
 	   </div>
 	</div>
