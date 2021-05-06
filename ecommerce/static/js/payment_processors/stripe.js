@@ -32,11 +32,22 @@ define([
             // regardless of the backend processor.
             Stripe.setPublishableKey(this.publishableKey);
 
-            this.$paymentForm.on('submit', $.proxy(this.onPaymentFormSubmit, this));
+            this.$paymentForm.on('click', $.proxy(this.onPaymentFormSubmit, this));
             this.initializePaymentRequest();
         },
 
         onPaymentFormSubmit: function(e) {
+            if (!$("input[name='address_radio']:checked").val()){
+                e.preventDefault();
+                alert("Please Select an Address");
+                return;
+        
+            } else if (!$("input[name='select-card']:checked").val()){
+                e.preventDefault();
+                alert("Please Select a Card");
+                return;
+            }
+
             var data = {},
                 fieldMappings = {
                     'card-number': 'number',

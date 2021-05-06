@@ -125,7 +125,8 @@
 {% include 'oscar/basket/partials/address_selection.html' %}
 {% include 'oscar/basket/partials/card_selection.html' %}
 </div>
-<form id="paymentForm" action="/payment/stripe/submit/" method="post" class="payment-form form-horizontal">
+
+<form id="paymentForm" class="payment-form form-horizontal">
     {% csrf_token %}
     <div id="payment-information" class="col-sm-7">
         <input type="text" id="num" name="num" style="display: none;">
@@ -145,132 +146,6 @@
         </div>
     </div>
 </form>
-
-<!-- <form id="paymentForm" class="payment-form form-horizontal" method="post" aria-live="polite">
-    {% csrf_token %}
-    {% if discount_jwt %}
-        <input type="hidden" name="discount_jwt" value="{{discount_jwt}}">
-    {% endif %}
-
-    <div id="payment-information" class="col-sm-7">
-        {% if not free_basket %}
-        <div id="card-holder-information" class="form-input-elements placeholder row">
-            <div role="region" aria-labelledby="card-holder-information-region">
-                <h2 id="card-holder-information-region" class="title">{% trans "Billing Information" as tmsg %}{{ tmsg | force_escape }}</h2>
-                {% if sdn_check %}
-                    <input type="hidden" name="sdn-check" value="enabled">
-                {% endif %}
-                 {% crispy payment_form %}
-            </div>
-        </div>
-        {% endif %}
-        <div class="form-input-elements placeholder">
-            <div role="region" {% if not free_basket %}aria-labelledby="billing-information-region"{% endif %}>
-                {% if not free_basket %}
-                    <h2 id="billing-information-region" class="title">{% trans "billing information" as tmsg %}{{ tmsg | force_escape }}</h2>
-                {% if not paypal_enabled %}
-                    <img aria-hidden="true" class="credit-card-list" src="/static/images/credit_card_options.png" alt="{% trans "Credit cards" as tmsg %}{{ tmsg | force_escape }}">
-                {% endif %}
-                 <div class="pci-fields row">
-                    {# NOTE: The PCI fields should NOT have name attributes by default. This ensures the fields are #}
-                    {# not posted to the server if JavaScript is disabled/fails. The processor-specific JS should #}
-                    {# restore the name attribute to ensure this information is sent to the payment processor. #}
-                    <div class="form-group col-md-6">
-                        <label for="card-number" class="control-label">{% trans "Card Number (required)" as tmsg %}{{ tmsg | force_escape }}<span class="sr">, {% trans "Secure" as tmsg %}{{ tmsg | force_escape }}</span></label>
-                        <input id="card-number" type="text" class="form-control pci-field" maxlength="20" required pattern="([X]{0,12})[0-9\s]*"/>
-                        <i class="fa fa-lock" aria-hidden="true"></i>
-                        <img class="card-type-icon hidden" alt="{% trans "Credit card icon" as tmsg %}{{ tmsg | force_escape }}">
-                        <p class="help-block"></p>
-                    </div>
-                    <input type="hidden" data-name="card_type" class="pci-field">
-                    <div class="form-group col-md-6">
-                        <label for="card-cvn" class="control-label">
-                            {% trans "Security Code (required)" as tmsg %}{{ tmsg | force_escape }}
-                            <span class="sr">, {% trans "Secure" as tmsg %}{{ tmsg | force_escape }}</span>
-                            <button id="card-cvn-help" aria-haspopup=true aria-controls="cvvtooltip" aria-expanded=false>
-                                <i class="fa fa-question-circle" aria-hidden="true"></i>
-                                <span class="sr">{% trans 'Help with CVV' as tmsg %}{{ tmsg | force_escape }}</span>
-                            </button>
-                            <div id="cvvtooltip" class="popover popover-content">
-                                {% trans 'The three last digits in the signature area on the back of your card. For American Express, it is the four digits on the front of the card.' as tmsg %}{{ tmsg | force_escape }}
-                            </div>
-                        </label>
-                        <input type="password" id="card-cvn" class="form-control pci-field" maxlength="4" required pattern="[0-9]*"/>
-                        <i class="fa fa-lock" aria-hidden="true"></i>
-                        <p class="help-block"></p>
-                    </div>
-                    <p id="expiration-label" for="card-expiry-month" class="control-label">{% trans "Expiration (required)" as tmsg %}{{ tmsg | force_escape }}</p>
-                    <div class="form-group col-sm-6 col-xs-7">
-                        <select id="card-expiry-month" class="form-control pci-field" required
-                        aria-labelledby="month-label expiration-label">
-                            <option id="month-label">{% trans "Month" as tmsg %}{{ tmsg | force_escape }}</option>
-                            {% for month in months %}
-                                <option value="{{forloop.counter|stringformat:'02d'}}">{{month}}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="help-block"></p>
-                    </div>
-                    <div class="form-group col-sm-6 col-xs-5">
-                        <select id="card-expiry-year" class="form-control pci-field" required
-                        aria-labelledby="year-label expiration-label">
-                            <option id="year-label">{% trans "Year" as tmsg %}{{ tmsg | force_escape }}</option>
-                            {% for year in years %}
-                                <option value="{{year}}">{{year}}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="help-block"></p>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="payment-button col-sm-6 col-sm-offset-6 col-xs-12">
-                {% if free_basket %}
-                   <a href="{% url 'checkout:free-checkout' %}"
-                       class="btn btn-secondary btn-large col-sm-12 col-xs-12">Cancel
-                    </a>
-
-                    <a href="{% url 'checkout:free-checkout' %}"
-                       data-track-type="click"
-                       data-track-event="edx.bi.ecommerce.basket.free_checkout"
-                       data-track-category="checkout"
-                       class="btn btn-primary btn-large col-sm-12 col-xs-12">	
-                        {% trans "Place Order" as tmsg %}{{ tmsg | force_escape }}
-                    </a>
-                {% else %}
-                     <button id="payment-cancel-button" type="button" class="btn btn-secondary btn-large col-sm-12 col-xs-12" style="display:none">Cancel</button>
-
-                    <button id="payment-button" type="submit" class="btn btn-primary btn-large col-sm-12 col-xs-12"
-                            data-track-type="click"
-                            data-track-event="edx.bi.ecommerce.basket.payment_selected"
-                            data-track-category="checkout"
-                            data-track-payment-method="Credit Card"
-                            data-processor-name="{{ client_side_payment_processor.NAME }}"
-                            data-track-checkout-type="client_side">
-                      {% trans "Place Order" as tmsg %}{{ tmsg | force_escape }}
-                    </button>
-                {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</form> -->
-
-<script>
-$('#payment-button').click(function () {
-    if (($("input[name='address_radio']:checked").val()) &&  ($("input[name='select-card']:checked").val())) {
-        var selected_address = document.querySelector('input[name="address_radio"]:checked').id;
-        var selected_card = document.querySelector('input[name="select-card"]:checked').id;
-
-    } else if (!$("input[name='address_radio']:checked").val()){
-        alert("Please Select an Address")
-        return;
-
-    } else if (!$("input[name='select-card']:checked").val()){
-        alert("Please Select a Card")
-        // return;
-    }
-})    
-</script>
 
 <script>
 $(document).ready(function(){
