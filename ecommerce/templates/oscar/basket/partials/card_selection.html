@@ -9,21 +9,12 @@ margin: 0px auto 20px auto;
 }
 
 .payment-card-sec {
-
 display: flex;
-
-padding-left: 15px;
-
 margin-top: 20px !important;
-
 align-items: center;
-
 float: left;
-
 justify-content: flex-start;
-
 width: 100%;
-
 }
 
 
@@ -609,6 +600,7 @@ border: none;
 
 
 
+
 #view-card .modal-header,
 
 #add-new-card .modal-header {
@@ -646,11 +638,13 @@ align-items: center;
 
 
 #add-new-card .cardNumber label {
+    text-align: left;
+    width: 29%;
+}
 
-width: 23%;
-
-text-align: left;
-
+.form-fields {
+	width: 100%;
+	position: relative;
 }
 
 
@@ -699,7 +693,7 @@ margin-right: 3%;
 
 #add-new-card .cardNumber .inputcardNumber {
 
-width: 77%;
+width: 100%;
 
 }
 
@@ -828,21 +822,15 @@ margin-right: 3%;
 
 
 #add-new-card .month-year select {
-
-margin-right: 3%;
-
-width: auto;
-
+    margin-right: 15px;
+    width: 90%;
 }
 
 
-
 #add-new-card .month-year label {
-
-display: block;
-
-width: auto;
-
+    display: block;
+    min-width: 38%;
+    text-align: left;
 }
 
 
@@ -890,7 +878,27 @@ margin-right: 3%;
 margin: 0px;
 
 }
+#add-new-card .modal-dialog {
+        width: 665px;
+        left: 43%;
+}
 
+
+.cardNumber img.card-type-icon {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 28px;
+}
+
+.basket-client-side .help-block {
+    font-size: 13px;
+    display: block;
+    line-height: 1.2;
+    position: absolute;
+    left: 0;
+	margin-top: 2px;
+}
 
 
 </style>
@@ -1017,7 +1025,7 @@ margin: 0px;
 
 <div class="add-pay-card-btn">
 
-<a href="/basket/" class="openmodale"><span>+</span> Add New Card</a>
+<a href="#" class="openmodale" id="add_new_card_btn"><span>+</span> Add New Card</a>
 
 </div>
 
@@ -1060,9 +1068,13 @@ margin: 0px;
 <div class="cardNumber">
 
 <label for="cardNumber">Card Number</label>
+<div class="form-fields">
+<input type="text" class="inputcardNumber" id="cardNumber" name="cardNumber" maxlength="20" required pattern = "([X]{0,12})[0-9\s]*">
+<p class="help-block"></p>
 
-<input type="text" class="inputcardNumber" id="cardNumber">
-
+  <img class="card-type-icon" src>
+  <p class="validation-error"></p>
+</div>
 </div>
 
 <div class="card-year-sec">
@@ -1071,6 +1083,7 @@ margin: 0px;
 
 <label>Date of Expiry</label>
 
+<div class="form-fields">
 <select class="months" id="month_dropdown">
 
 <option value="00">MM</option>
@@ -1082,7 +1095,10 @@ margin: 0px;
 {% endfor %}
 
 </select>
+<p class="help-block"></p>
+</div>
 
+<div class="form-fields">
 <select class="year" id="year_dropdown">
 
 <option value="YY"> YYYY</option>
@@ -1094,17 +1110,20 @@ margin: 0px;
 {% endfor %}
 
 </select>
-
+<p class="help-block"></p>
+</div>
 </div>
 
 <div class="cvc">
 
 <label for="cvc">CVC</label>
-
-<input type="text" class="inputcvc" id="cvc">
-
+<div class="form-fields">
+<input type="password" class="inputcvc" id="cvc" name = "cvc" maxlength="4" >
+<p class="help-block"></p>
 </div>
 
+
+</div>
 </div>
 
 <div class="set-default-card-radio">
@@ -1119,7 +1138,7 @@ margin: 0px;
 
 <div class="modal-footer">
 
-<button class="btn btn-primary" type = "button" onclick="add_card()" >Save</button>
+<button class="btn btn-primary" type = "button" id = "btn-save-card">Save</button>
 
 <button class="btn btn-default closemodale">Cancel</button>
 
@@ -1292,6 +1311,12 @@ alert("Some error occured")
 });
 }
 
+
+
+
+function delete_card(card_id) {
+
+let csrf = $('#csrf-token').val();
 function add_card() {
 
 let csrf = $('#csrf-token').val();
@@ -1358,12 +1383,6 @@ alert('some error has occured')
 
 }
 
-
-
-function delete_card(card_id) {
-
-let csrf = $('#csrf-token').val();
-
 data_dictionary = {
 
 "card_id": card_id
@@ -1417,6 +1436,5 @@ alert('some error has occured')
 });
 
 }
-
 
 </script>
