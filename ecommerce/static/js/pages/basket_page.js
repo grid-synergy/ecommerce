@@ -805,6 +805,14 @@ define([
                 });
 
 
+                $('#add_new_card_btn').click(function(e) {
+                    $('#card-add').trigger("reset");
+                    _.each($('.help-block'), function(errorMsg) {
+                        $(errorMsg).empty();  // Clear existing validation error messages.
+                    });
+                });
+
+
 
 
                 // NOTE: We only include buttons that have a data-processor-name attribute because we don't want to
