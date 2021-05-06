@@ -160,7 +160,6 @@ define([
                 $('.help-block > span')
                 .first().parentsUntil('fieldset').last()
                 .find('input')
-                .focus();
             },
 
 
