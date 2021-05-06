@@ -35,6 +35,7 @@ PaymentEventType = get_model('order', 'PaymentEventType')
 PaymentProcessorResponse = get_model('payment', 'PaymentProcessorResponse')
 Source = get_model('payment', 'Source')
 SourceType = get_model('payment', 'SourceType')
+UserAddress = get_model('address', 'UserAddress')
 
 
 class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
@@ -62,78 +63,48 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
     def _get_basket_amount(self, basket):
         return str((basket.total_incl_tax * 100).to_integral_value())  
 
-    def handle_processor_response(self, response, basket=None, forMobile=False):
-        token = response
+    def handle_processor_response(self, payment_method_id, address_id, basket=None, forMobile=False):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+        payment_method = payment_method_id
         order_number = basket.order_number
         currency = basket.currency
         basket_id = json.dumps(basket.id)
+        billing_address_id = address_id
         # NOTE: In the future we may want to get/create a Customer. See https://stripe.com/docs/api#customers.
         tracking_context = basket.owner.tracking_context or {}
 
-        if tracking_context.get('customer_id') and not forMobile:
-            token_data = stripe.Token.retrieve(
-               token,
-            )
-            selected_card = tracking_context.get('selected_payment_card_id', None)
-
-            if selected_card:
-               card_retrieve = stripe.Customer.retrieve_source(
-                  tracking_context.get('customer_id'),
-                  selected_card,
-               )
-               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= selected_card)
-
-            else:
-               src = stripe.Customer.create_source(
-                  tracking_context.get('customer_id'),
-                  source=token
-               )
-               customer = stripe.Customer.modify(tracking_context.get('customer_id'), default_source= src["id"])
-
-            customer_id = customer['id']
-            basket.owner.tracking_context.update({'token':token})
-            basket.owner.save()
-
-        if token is None:
-            customer_id = tracking_context.get('customer_id')
-        elif not tracking_context.get('customer_id', None):
-            billing_address = self.get_address_from_token(token)
-            address = {
-                'city': billing_address.line4,
-                'country': billing_address.country,
-                'line1': billing_address.line1,
-                'line2': billing_address.line2,
-                'postal_code': billing_address.postcode,
-                'state': billing_address.state
-            }
-            customer = stripe.Customer.create(
-                source=token,
-                email=basket.owner.email,
-                address=address,
-                name=basket.owner.full_name
-            )
-            customer_id = customer['id']
-            basket.owner.tracking_context = basket.owner.tracking_context or {}
-            basket.owner.tracking_context.update({'customer_id': customer_id, 'token': token})
-            basket.owner.save()
-
-        else:
-            customer_id = tracking_context.get('customer_id')
+        customer_id = tracking_context.get('customer_id')
+        billing_address = UserAddress.objects.get(id = billing_address_id)
+        stripe.Customer.modify_source(
+            customer_id,
+            payment_method,
+            address_city = billing_address.line4,
+            address_country = billing_address.country,
+            address_line1 = billing_address.line1,
+            address_line2 = billing_address.line2,
+            address_state = billing_address.state,
+            address_zip = billing_address.postcode
+        )
 
         if not forMobile:
             try:
-                charge = stripe.Charge.create(
+                payment_intent = stripe.PaymentIntent.create(
                     amount=self._get_basket_amount(basket),
                     currency=currency,
                     customer=customer_id,
                     description=order_number,
-                    metadata={'order_number': order_number, 'basket_id': basket_id}
+                    metadata={'order_number': order_number, 'basket_id': basket_id},
+                    payment_method=payment_method,
+                    confirm=True
                 )
-                transaction_id = charge.id
+                transaction_id = payment_intent.id
+
 
                 # NOTE: Charge objects subclass the dict class so there is no need to do any data transformation
                 # before storing the response in the database.
-                self.record_processor_response(charge, transaction_id=transaction_id, basket=basket)
+                self.record_processor_response(payment_intent, transaction_id=transaction_id, basket=basket)
                 logger.info('Successfully created Stripe charge [%s] for basket [%d].', transaction_id, basket.id)
             except stripe.error.CardError as ex:
                 base_message = "Stripe payment for basket [%d] declined with HTTP status [%d]"
@@ -149,8 +120,9 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
                 raise TransactionDeclined(base_message, basket.id, ex.http_status)
 
             total = basket.total_incl_tax
-            card_number = charge.source.last4
-            card_type = STRIPE_CARD_TYPE_MAP.get(charge.source.brand)
+
+            card_number = payment_intent.charges.data[0]["payment_method_details"]["card"]["brand"]
+            card_type = payment_intent.charges.data[0]["payment_method_details"]["card"]["last4"]
 
             return HandledProcessorResponse(
                 transaction_id=transaction_id,
@@ -217,5 +189,31 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             postcode=data.get('address_zip') or '',
             state=data.get('address_state') or '',
             country=Country.objects.get(iso_3166_1_a2__iexact=data['address_country'])
+        )
+        return address
+
+    def get_address_from_user_address(self, billing_address_id):
+        """ Retrieves the billing address associated with User Address for billing.
+
+        Returns:
+            BillingAddress
+        """
+
+        data = UserAddress.objects.get(id = billing_address_id)
+        logging.info(data)
+        try:
+            country = Country.objects.get(iso_3166_1_a2__iexact=data.country)
+        except:
+            country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+        address = BillingAddress(
+            first_name=data.name,     # Stripe only has a single name field
+            last_name='',
+            line1=data.line1 or '',
+            line2=data.line2 or '',
+            line4=data.line4,            # Oscar uses line4 for city
+            postcode=data.postcode or '',
+            state=data.state or '',
+            country=country
         )
         return address
