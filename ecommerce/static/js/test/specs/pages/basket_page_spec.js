@@ -184,7 +184,7 @@ define([
                             {number: '5105105105105100', name: 'mastercard'},
                             {number: '4111111111111111', name: 'visa'}
                         ],
-                        cardNumberSelector = '#card-number',
+                        cardNumberSelector = '#cardNumber',
                         $cardNumber = $(cardNumberSelector),
                         $cardTypeIcon = $('.card-type-icon');
 
