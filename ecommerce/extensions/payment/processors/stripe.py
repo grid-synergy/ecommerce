@@ -76,7 +76,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         tracking_context = basket.owner.tracking_context or {}
 
         customer_id = tracking_context.get('customer_id')
-        billing_address = UserAddress.objects.get(id = billing_address_id)
+        billing_address = self.get_address_from_user_address(billing_address_id)
         stripe.Customer.modify_source(
             customer_id,
             payment_method,
@@ -200,9 +200,8 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         """
 
         data = UserAddress.objects.get(id = billing_address_id)
-        logging.info(data)
         try:
-            country = Country.objects.get(iso_3166_1_a2__iexact=data.country)
+            country = Country.objects.get(iso_3166_1_a2__iexact=data.country.iso_3166_1_a2)
         except:
             country = Country.objects.get(iso_3166_1_a2__iexact="SG")
 
