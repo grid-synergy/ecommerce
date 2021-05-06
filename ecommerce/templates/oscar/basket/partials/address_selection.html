@@ -322,7 +322,7 @@ h2.title {
 	font-weight: 600;
 }
 
-#add-new-address .add-address-form div {
+#add-new-address .add-address-form .add-adrs-frm-fld-cont {
 	display: flex;
 	margin: 25px auto;
 	justify-content: space-between;
@@ -335,10 +335,13 @@ h2.title {
 }
 
 #add-new-address .add-address-form div label,
-#add-new-address .add-address-form div input,
-#add-new-address .add-address-form div select  {
+#add-new-address .add-address-form .add-address-form-fields  {
 	width: 50%;
 	text-align: left;
+}
+#add-new-address .add-address-form .country-selection {
+    width: 208px;
+    height: 28px;
 }
 
 #add-new-address .add-address-form .dft-addr-radio-btn label,
@@ -354,6 +357,10 @@ h2.title {
 #add-new-address .dft-addr-radio-btn {
     justify-content: flex-start !important;
     align-items: center !important;
+	text-align: left;
+}
+#add-new-address .dft-addr-radio-btn input {
+    min-height: 12px !important;
 }
 
 #add-new-address .add-address-form div input {
@@ -435,8 +442,8 @@ input#edit_address_id {
 }
 #add-new-address .add-address-form .dft-addr-radio-btn {margin: 0;}
 
-.editmodale.modal-cont.opened .modal-dialog {
-    top: 3%;
+.editmodale.modal-cont.opened .modal-dialog, .addaddressmodale.modal-cont.opened .modal-dialog {
+    top: 0%;
 }
 </style>
 
@@ -544,35 +551,48 @@ input#edit_address_id {
 	   </div>
 	   <div class="add-address-form">
 		  <form class="add-address-form" id="add-address-form" method="POST">
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="fname" class="requiredField">Name</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="fname" required maxlength="60" name="fname">
 				<p class="help-block"></p>
+			</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="address1">Address Line 1</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="address1" required name="address1"> 
 				<p class="help-block"></p>
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="address2">Address Line 2</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="address2" name="address2"> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="zip">Zip Code</label>
+				<div class="add-address-form-fields">
 				<input id="zip" name="zip" type="text">
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="city">City</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="city" required name="city">
 				<p class="help-block"></p> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="state">State</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="state" name="state">
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="state">Country</label>
+				<div class="add-address-form-fields">
 				<select class="country-selection" required id="country" name="country">
 					<option value selected> ---select a country--- </option>
 					{% for country in countries %}
@@ -580,6 +600,7 @@ input#edit_address_id {
 					{% endfor %}
 				</select> 
 				<p class="help-block"></p>
+				</div>
 			</div>
 		 <div class="dft-addr-radio-btn">
 				<input type="checkbox" id="radio" name="add_radio">
@@ -607,36 +628,49 @@ input#edit_address_id {
 	   </div>
 	   <div class="add-address-form">
 		  <form class="add-address-form" method="POST">
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="fname">Name</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="edit_fname" required name="edit_fname">
 				<p class="help-block"></p>
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="address1">Address Line 1</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="edit_address1" required name="edit_address1">
 				<p class="help-block"></p> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="address2">Address Line 2</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="edit_address2" name="edit_address2"> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="zip">Zip Code</label>
+				<div class="add-address-form-fields">
 				<input type="number" id="edit_zip" name="edit_zip"> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="city">City</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="edit_city" required name="edit_city">
 				<p class="help-block"></p> 
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="state">State</label>
+				<div class="add-address-form-fields">
 				<input type="text" id="edit_state" required name="edit_state">
 				<p class="help-block"></p>
+				</div>
 			 </div>
-			 <div>
+			 <div class="add-adrs-frm-fld-cont">
 				<label for="state">Country</label>
+				<div class="add-address-form-fields">
 				<select class="country-selection" required id="edit_country" name="edit_country">
 					<option value selected> ---select a country--- </option>
 					{% for country in countries %}
@@ -644,6 +678,7 @@ input#edit_address_id {
 					{% endfor %}
 				</select> 
 				<p class="help-block"></p>
+				</div>
 			</div>
 				<input class="hidden-input" type="text" id="edit_address_id" name="address_id" style="visibility: hidden;"> 
 			
