@@ -68,7 +68,7 @@
             <div id="line-discount" class="amount row">
                 <span class="description">{% trans "Discounts applied" as tmsg %}{{ tmsg | force_escape }}</span>
                 <span class="col-xs-4 col-sm-4"></span>
-                <span class="price col-xs-4 col-sm-4">-{{ commited_basket.total_excl_tax_excl_discounts|subtract:commited_basket.total_excl_tax|currency:commited_basket.currency}}</span>
+                <span class="price col-xs-4 col-sm-4">{{ commited_basket.total_excl_tax_excl_discounts|subtract:commited_basket.total_excl_tax|currency:commited_basket.currency}}</span>
             </div>
         {% endif %}
             <div id="line-price" class="amount row">
