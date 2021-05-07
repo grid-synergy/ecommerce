@@ -26,6 +26,7 @@ from oscar.apps.basket.views import *
 from ecommerce.extensions.basket.utils import apply_offers_on_basket
 from ecommerce.extensions.api.serializers import BasketSerializer
 from ecommerce.extensions.api.throttles import ServiceUserThrottle
+
 import sys, os
 
 Applicator = get_class('offer.applicator', 'Applicator')
@@ -175,17 +176,24 @@ def get_basket_content_mobile(request):
             lms_url = get_lms_url('/api/commerce/v2/checkout/' + course_id)
             commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
+            logging.info("mahad")
             if commerce_response['status_code'] == 200:
-                price = str("%.2f" % commerce_response['result']['modes'][0]['price'])
+                logging.info("omerrr")
+                price= float(commerce_response['result']['modes'][0]['price'])
+                price_string = str("%.2f" % commerce_response['result']['modes'][0]['price'])
                 sku = commerce_response['result']['modes'][0]['sku']
                 discount_applicable = commerce_response['result']['discount_applicable']
-                discounted_price = str("%.2f" % commerce_response['result']['discounted_price'])
+                discounted_price = float(commerce_response['result']['discounted_price'])
+                logging.info(discounted_price)
+                discounted_price_string = str("%.2f" % commerce_response['result']['discounted_price'])
+                logging.info("---------------------")
+                logging.info(discounted_price_string)
                 media = commerce_response['result']['media']['image'] 
                 category = commerce_response['result']['new_category']
                 title = commerce_response['result']['name']
                 organization = commerce_response['result']['organization']
                 course_info = {'course_id' : course_id ,'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
-                              'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details"}
+                        'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details" ,'discounted_price_string':discounted_price_string,'price_string' : price_string}
                 product.append(course_info)
         if len(basket.all_lines()) > 0:
             offers = Applicator().get_site_offers()

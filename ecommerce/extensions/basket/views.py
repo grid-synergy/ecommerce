@@ -765,7 +765,8 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
 
         context["stripe_response"] = stripe_response["data"]
-        context["customer_default_card"] = card_info["id"]
+        if card_info:
+            context["customer_default_card"] = card_info["id"]
         return context
 
 
