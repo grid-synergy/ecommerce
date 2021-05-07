@@ -173,7 +173,7 @@
 
           <div class="order-total">
             <div class="description">{{ order.total_tax|tax_percent }}</div>
-            <div class="price">+{{ order.total_tax|currency:order.currency }}</div>
+            <div class="price">{{ order.total_tax|currency:order.currency }}</div>
           </div>
 
           <div class="order-total">

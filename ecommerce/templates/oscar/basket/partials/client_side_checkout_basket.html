@@ -74,7 +74,7 @@
             <div id="line-price" class="amount row">
                 <span class="description col-xs-4 col-sm-4">{{ commited_basket.total_tax|tax_percent }}</span>
                 <span class="col-xs-4 col-sm-4"></span>
-                <span class="price col-xs-4 col-sm-4">+{{commited_basket.total_tax|currency:commited_basket.currency}}</span>
+                <span class="price col-xs-4 col-sm-4">{{commited_basket.total_tax|currency:commited_basket.currency}}</span>
             </div>
         {% endif %}   
         <div id="voucher-information" class="row">
