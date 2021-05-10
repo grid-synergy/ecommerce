@@ -100,8 +100,8 @@ class LMSPublisher:
             commerce_api_client = site.siteconfiguration.commerce_api_client
             commerce_api_client.courses(course_id).put(data=data)
             # API for changing course price in course overview
-            lhub_commerce_mobile_api_client = site.siteconfiguration.lhub_commerce_mobile_api_client
-            lhub_commerce_mobile_api_client.courses(course_id).put(data=data)
+            #lhub_commerce_mobile_api_client = site.siteconfiguration.lhub_commerce_mobile_api_client
+            #lhub_commerce_mobile_api_client.courses(course_id).put(data=data)
             logger.info('Successfully published commerce data for [%s].', course_id)
             return None
         except SlumberHttpBaseException as e:  # pylint: disable=bare-except
