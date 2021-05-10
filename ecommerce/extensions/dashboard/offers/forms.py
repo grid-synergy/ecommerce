@@ -31,6 +31,7 @@ class BenefitForm(CoreBenefitForm):
 
         if offer:
             ecommerce_data = {}
+            ecommerce_data["associated_ecommerce_offer_id"] = offer.id
             ecommerce_data["start_datetime"] = offer.start_datetime
             ecommerce_data["end_datetime"] = offer.end_datetime
             ecommerce_data["priority"] = offer.priority
