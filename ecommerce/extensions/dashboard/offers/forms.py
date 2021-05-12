@@ -29,20 +29,24 @@ class BenefitForm(CoreBenefitForm):
         if ConditionalOffer.objects.filter(benefit=response.id).exists():
             offer = ConditionalOffer.objects.filter(benefit=response.id)[0]
 
-        if offer:
-            ecommerce_data = {}
-            ecommerce_data["associated_ecommerce_offer_id"] = offer.id
-            ecommerce_data["start_datetime"] = offer.start_datetime
-            ecommerce_data["end_datetime"] = offer.end_datetime
-            ecommerce_data["priority"] = offer.priority
-            ecommerce_data["incentive_type"] = offer.benefit.type
-            ecommerce_data["incentive_value"] = offer.benefit.value
-            ecommerce_data["condition_type"] = offer.condition.type
-            ecommerce_data["condition_value"] = offer.condition.value
-            ecommerce_data["is_exclusive"] = offer.exclusive
-            ecommerce_data["courses_sku"] = []
-            for product in offer.condition.range.all_products():
-                ecommerce_data["courses_sku"].append(product.stockrecords.first().partner_sku)
+        # if offer:
+        #     data = {}
+        #     data["associated_ecommerce_offer_id"] = offer.id
+        #     data["start_datetime"] = str(offer.start_datetime)
+        #     data["end_datetime"] = str(offer.end_datetime)
+        #     data["priority"] = offer.priority
+        #     data["incentive_type"] = response.type
+        #     data["incentive_value"] = float(round(response.value, 2))
+        #     data["condition_type"] = offer.condition.type
+        #     data["condition_value"] = float(round(offer.condition.value, 2))
+        #     data["is_exclusive"] = offer.exclusive
+        #     data["courses_id"] = []
+        #     for product in offer.condition.range.all_products():
+        #         data["courses_id"].append(product.course_id)
+
+        #     site =  Site.objects.get_current()
+        #     commerce_offer_api_client = site.siteconfiguration.lhub_commerce_offer_api_client
+        #     update_discount_response  = commerce_offer_api_client.add.post(data=data)
 
         # if offer and len(offer.condition.range.all_products()) == 1 and offer.benefit.type == 'Percentage':
         #     site =  Site.objects.get_current()
