@@ -55,7 +55,6 @@ class OfferMetaDataView(CoreOfferMetaDataView):
 
 
 
-
 class OfferRestrictionsView(CoreOfferRestrictionsView):
 
     def form_valid(self, form):
@@ -81,6 +80,7 @@ class OfferRestrictionsView(CoreOfferRestrictionsView):
             data["condition_type"] = offer.condition.type
             data["condition_value"] = float(round(offer.condition.value, 2))
             data["is_exclusive"] = offer.exclusive
+            data["is_suspended"] = offer.is_suspended
             data["courses_id"] = []
             for product in offer.condition.range.all_products():
                 data["courses_id"].append(product.course_id)
@@ -111,6 +111,7 @@ class OfferDetailView(CoreOfferDetailView):
             data["condition_type"] = offer.condition.type
             data["condition_value"] = float(round(offer.condition.value, 2))
             data["is_exclusive"] = offer.exclusive
+            data["is_suspended"] = offer.is_suspended
             data["courses_id"] = []
             for product in offer.condition.range.all_products():
                 data["courses_id"].append(product.course_id)
@@ -118,6 +119,8 @@ class OfferDetailView(CoreOfferDetailView):
             site =  Site.objects.get_current()
             commerce_offer_api_client = site.siteconfiguration.lhub_commerce_offer_api_client
             update_discount_response  = commerce_offer_api_client.add.post(data=data)
+
+        return response
 
 
     def unsuspend(self):
@@ -136,6 +139,7 @@ class OfferDetailView(CoreOfferDetailView):
             data["condition_type"] = offer.condition.type
             data["condition_value"] = float(round(offer.condition.value, 2))
             data["is_exclusive"] = offer.exclusive
+            data["is_suspended"] = offer.is_suspended
             data["courses_id"] = []
             for product in offer.condition.range.all_products():
                 data["courses_id"].append(product.course_id)
@@ -144,10 +148,11 @@ class OfferDetailView(CoreOfferDetailView):
             commerce_offer_api_client = site.siteconfiguration.lhub_commerce_offer_api_client
             update_discount_response  = commerce_offer_api_client.add.post(data=data)
 
+        return response
+
 
 
 class OfferDeleteView(CoreOfferDeleteView):
-
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -155,16 +160,12 @@ class OfferDeleteView(CoreOfferDeleteView):
         offer_type = offer.benefit.type
         product = offer.condition.range.all_products()[0]
         sku = product.stockrecords.first().partner_sku
-        logging.info(request.environ["PATH_INFO"])
 
         if offer:
             site =  Site.objects.get_current()
             commerce_offer_api_client = site.siteconfiguration.lhub_commerce_offer_api_client
             try:
                 delete_discount_response  = commerce_offer_api_client.delete(offer.id).delete()
-                logging.info("========================================")
-                logging.info(delete_discount_response)
-                logging.info(type(delete_discount_response))
                 if delete_discount_response:
                     delete_response = self.object.delete()
             except slumber.exceptions.HttpNotFoundError:
