@@ -63,7 +63,7 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
     def _get_basket_amount(self, basket):
         return str((basket.total_incl_tax * 100).to_integral_value())  
 
-    def handle_processor_response(self, payment_method_id, address_id, basket=None, forMobile=False):
+    def handle_processor_response(self, payment_method_id, address_id=None, basket=None, forMobile=False):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
 
@@ -76,8 +76,22 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
         tracking_context = basket.owner.tracking_context or {}
 
         customer_id = tracking_context.get('customer_id')
-        billing_address = self.get_address_from_user_address(billing_address_id)
-        stripe.Customer.modify_source(
+        #billing_address = self.get_address_from_user_address(billing_address_id)
+        #stripe.Customer.modify_source(
+        #    customer_id,
+        #    payment_method,
+        #    address_city = billing_address.line4,
+        #    address_country = billing_address.country,
+        #    address_line1 = billing_address.line1,
+        #    address_line2 = billing_address.line2,
+        #    address_state = billing_address.state,
+        #    address_zip = billing_address.postcode
+        #)
+
+        if not forMobile:
+            customer_id = tracking_context.get('customer_id')
+            billing_address = self.get_address_from_user_address(billing_address_id)
+            stripe.Customer.modify_source(
             customer_id,
             payment_method,
             address_city = billing_address.line4,
@@ -86,9 +100,8 @@ class Stripe(ApplePayMixin, BaseClientSidePaymentProcessor):
             address_line2 = billing_address.line2,
             address_state = billing_address.state,
             address_zip = billing_address.postcode
-        )
+            )
 
-        if not forMobile:
             try:
                 payment_intent = stripe.PaymentIntent.create(
                     amount=self._get_basket_amount(basket),
