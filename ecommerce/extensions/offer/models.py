@@ -40,6 +40,7 @@ from ecommerce.extensions.offer.constants import (
     OFFER_REDEEMED
 )
 from ecommerce.extensions.offer.utils import format_assigned_offer_email
+import operator
 
 OFFER_PRIORITY_ENTERPRISE = 10
 OFFER_PRIORITY_VOUCHER = 20
@@ -116,10 +117,45 @@ class Benefit(AbstractBenefit):
 
         return uncached_course_run_ids, uncached_course_uuids, applicable_lines
 
+
+    def get_applicable_lines_custom(self, offer, basket, range=None):
+        """
+        Return the basket lines that are available to be discounted
+
+        :basket: The basket
+        :range: The range of products to use for filtering.  The fixed-price
+                benefit ignores its range and uses the condition range
+        """
+        if range is None:
+            range = self.range
+        line_tuples = []
+        for line in basket.all_lines():
+            product = line.product
+
+            if (not range.contains_product(product) or not self.can_apply_benefit(line)):
+                continue
+
+            logging.info('==========4343434434')
+            logging.info(line.price_excl_tax)
+            price = line.price_excl_tax
+            if not price:
+                # Avoid zero price products
+                continue
+            line_tuples.append((price, line))
+
+        # We sort lines to be cheapest first to ensure consistent applications
+        return sorted(line_tuples, key=operator.itemgetter(0))
+
+
+
+
+
+
     def get_applicable_lines(self, offer, basket, range=None):  # pylint: disable=redefined-builtin
         """
         Returns the basket lines for which the benefit is applicable.
         """
+        logging.info('==============my 123 =======')
         applicable_range = range if range else self.range
 
         if applicable_range and applicable_range.catalog_query is not None:
@@ -163,9 +199,11 @@ class Benefit(AbstractBenefit):
 
                     if not in_range:
                         applicable_lines.remove(metadata['line'])
-
+            logging.info([(line.product.stockrecords.first().price_excl_tax, line) for line in applicable_lines])
             return [(line.product.stockrecords.first().price_excl_tax, line) for line in applicable_lines]
-        return super(Benefit, self).get_applicable_lines(offer, basket, range=range)  # pylint: disable=bad-super-call
+        logging.info('============my 123 calling super ======')
+        #return super(Benefit, self).get_applicable_lines(offer, basket, range=range)  # pylint: disable=bad-super-call
+        return self.get_applicable_lines_custom(offer, basket, range=range)
 
 
 class ConditionalOffer(AbstractConditionalOffer):

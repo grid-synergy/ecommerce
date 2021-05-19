@@ -4,14 +4,79 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from edx_django_utils.cache import DEFAULT_REQUEST_CACHE
-from oscar.apps.basket.abstract_models import AbstractBasket
+from oscar.apps.basket.abstract_models import AbstractBasket, AbstractLine
 from oscar.core.loading import get_class
 
 from ecommerce.extensions.analytics.utils import track_segment_event, translate_basket_line_for_segment
 from ecommerce.extensions.basket.constants import TEMPORARY_BASKET_CACHE_KEY
+import logging
+from decimal import Decimal as D
+from oscar.core.utils import get_default_currency, round_half_up
 
 OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
 Selector = get_class('partner.strategy', 'Selector')
+from django.conf import settings
+
+@python_2_unicode_compatible
+class Line(AbstractLine):
+
+
+    @property
+    def line_price_incl_tax_incl_discounts(self):
+        # We use whichever discount value is set.  If the discount value was
+        # calculated against the tax-exclusive prices, then the line price
+        # including tax
+        #logging.info('============= custom calculatio =======')
+        if self.line_price_incl_tax is not None and self._discount_incl_tax:
+            #logging.info('in if 123123123')
+            #logging.info(self._discount_incl_tax)
+            #logging.info(self.line_price_excl_tax)
+            #logging.info(self.__dict__)
+            discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * self._discount_incl_tax
+            
+            return max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax)
+        elif self.line_price_excl_tax is not None and self._discount_excl_tax:
+            #logging.info('===== in else 123123123')
+            return max(0, round_half_up((self.line_price_excl_tax - self._discount_excl_tax) / self._tax_ratio))
+
+        return self.line_price_incl_tax
+
+
+
+    @property
+    def line_price_excl_tax_incl_discounts(self):
+        if self._discount_excl_tax and self.line_price_excl_tax is not None:
+            logging.info('=============== in if 111')
+            return max(0, self.line_price_excl_tax - self._discount_excl_tax)
+        if self._discount_incl_tax and self.line_price_incl_tax is not None:
+            logging.info('============= in if 2222')
+            # This is a tricky situation.  We know the discount as calculated
+            # against tax inclusive prices but we need to guess how much of the
+            # discount applies to tax-exclusive prices.  We do this by
+            # assuming a linear tax and scaling down the original discount.
+            logging.info(self.line_price_excl_tax)
+            logging.info(self._discount_incl_tax)
+            logging.info(self._tax_ratio)
+            return max(0, self.line_price_excl_tax - self._discount_incl_tax)
+        logging.info('=========== in else 3333')
+        return self.line_price_excl_tax
+
+
+
+
+
+    @property
+    def line_tax(self):
+        if self.is_tax_known:
+            logging.info('============line_tax =============')
+            logging.info(self.line_price_incl_tax_incl_discounts)
+            logging.info(self.line_price_excl_tax_incl_discounts) 
+            logging.info(self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts)
+            return self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts
+
+
+
+
 
 
 @python_2_unicode_compatible
@@ -31,6 +96,38 @@ class Basket(AbstractBasket):
     )
     status = models.CharField(
         _("Status"), max_length=128, default=OPEN, choices=STATUS_CHOICES)
+
+
+
+    def _get_total_discount(self, property):
+        """
+        For executing a named method on each line of the basket
+        and returning the total.
+        """
+        total = D('0.00')
+        logging.info('============discount total ==========')
+        for line in self.all_lines():
+            logging.info(line.unit_effective_price)
+            try:
+                total += getattr(line, property)
+            except ObjectDoesNotExist:
+                # Handle situation where the product may have been deleted
+                pass
+            except TypeError:
+                # Handle Unavailable products with no known price
+                info = self.get_stock_info(line.product, line.attributes.all())
+                if info.availability.is_available_to_buy:
+                    raise
+                pass
+        return total
+
+
+
+
+    @property
+    def total_discount(self):
+        return self._get_total_discount('discount_value')
+
 
     @property
     def order_number(self):

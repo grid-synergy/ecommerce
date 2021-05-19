@@ -1059,6 +1059,8 @@ class VoucherAddLogicMixin:
             VoucherException in case of an error.
             RedirectException if a redirect is needed.
         """
+        self.request.basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+        self.request.basket.strategy = self.request.strategy
         self._verify_basket_not_empty(code)
         self._verify_voucher_not_already_applied(code)
 
@@ -1084,6 +1086,8 @@ class VoucherAddLogicMixin:
 
     def _verify_voucher_not_already_applied(self, code):
         username = self.request.user and self.request.user.username
+        logging.info('=========== basket voucher =======')
+        logging.info(self.request.basket.id)
         if self.request.basket.contains_voucher(code):
             logger.warning(
                 '[Code Redemption Failure] User tried to apply a code that is already applied. '
