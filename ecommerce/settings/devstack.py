@@ -11,6 +11,7 @@ from ecommerce.settings._debug_toolbar import *  # isort:skip
 DEBUG = True
 INTERNAL_IPS = ['127.0.0.1']
 ENABLE_AUTO_AUTH = True
+ECOMMERCE_URL_ROOT = "http://192.168.0.164:18130"
 
 
 ECOMMERCE_URL_ROOT = 'http://192.168.0.197:18130'

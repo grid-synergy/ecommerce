@@ -7,7 +7,7 @@ import urllib
 from collections import OrderedDict
 from datetime import datetime
 from decimal import Decimal
-
+from rest_framework import status
 import dateutil.parser
 import newrelic.agent
 import waffle
@@ -21,6 +21,8 @@ from opaque_keys.edx.keys import CourseKey
 from oscar.apps.basket.signals import voucher_removal
 from oscar.apps.basket.views import VoucherAddView as BaseVoucherAddView
 from oscar.apps.basket.views import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from django.core.exceptions import ObjectDoesNotExist
+from oscar.core.loading import get_class, get_model
 from oscar.core.prices import Price
 from requests.exceptions import ConnectionError as ReqConnectionError
 from requests.exceptions import Timeout
@@ -28,6 +30,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from slumber.exceptions import SlumberBaseException
+from django.views.generic import TemplateView
+
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from ecommerce.core.exceptions import SiteConfigurationError
 from ecommerce.core.url_utils import absolute_redirect, get_lms_course_about_url, get_lms_url
@@ -72,6 +78,7 @@ from ecommerce.extensions.order.exceptions import AlreadyPlacedOrderException
 from ecommerce.extensions.partner.shortcuts import get_partner_for_site
 from ecommerce.extensions.payment.constants import CLIENT_SIDE_CHECKOUT_FLAG_NAME
 from ecommerce.extensions.payment.forms import PaymentForm
+from django.contrib.auth import get_user_model
 # from oscar.apps.checkout.applicator import SurchargeApplicator
 
 Basket = get_model('basket', 'basket')
@@ -87,6 +94,11 @@ Selector = get_class('partner.strategy', 'Selector')
 BasketLineFormSet, SavedLineFormSet = get_classes(
     'basket.formsets', ('BasketLineFormSet', 'SavedLineFormSet'))
 Applicator = get_class('offer.applicator', 'Applicator')
+UserAddress = get_model('address', 'UserAddress')
+ShippingAddress = get_class('order.models', 'ShippingAddress')
+BillingAddress = get_model('order', 'BillingAddress')
+Country = get_model('address', 'Country')
+User = get_user_model()
 
 class BasketLogicMixin:
     """
@@ -559,6 +571,11 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         Applicator().apply(basket, basket.owner, self.request)
         context['order_total'] = OrderTotalCalculator().calculate(
             basket, shipping_charge, surcharges=0)
+
+        context = self._get_addresses_data(context)
+        countries = Country.objects.all()
+        context["countries"] = countries
+
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
@@ -628,18 +645,16 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             'lms_url_root': site_configuration.lms_url_root,
             'commited_basket': commited_basket
         })
+        self._card_selection_data(context)
         return context
 
     def _get_cutomer_card_info(self, user):
         import stripe
         stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+        
         tracking_context = user.tracking_context or {}
         customer_card_info = {}
         if not self.kwargs.get("pm_id"):
-            tracking_context.pop("selected_payment_card_id", None)
-            user.tracking_context = tracking_context
-            user.save()
-
             customer_card_info.update({
                 'card_number': '',
                 'card_expiry_month': '',
@@ -675,8 +690,7 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
             # })
 
             payment_id = self.kwargs.get("pm_id")
-            user.tracking_context["selected_payment_card_id"] = payment_id
-            user.save()
+            user.tracking_context["select_card"] = payment_id
             payment_info = stripe.PaymentMethod.retrieve(payment_id)
             customer_card_info.update({
                 'card_number': 'XXXXXXXXXXXX' + payment_info['card']['last4'],
@@ -733,7 +747,37 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
                   'site configuration [{sc}]'.format(processor=site_configuration.client_side_payment_processor,
                                                      sc=site_configuration.id)
             raise SiteConfigurationError(msg)
+    
+    def _card_selection_data(self, context):
 
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+    
+        if "customer_id" not in self.request.user.tracking_context.keys():
+            return 
+        customer_id = self.request.user.tracking_context["customer_id"]
+        stripe_response = stripe.PaymentMethod.list(
+            customer = customer_id,
+            type = "card",
+        )
+
+        customer = stripe.Customer.retrieve(customer_id)
+        card_info = stripe.Customer.retrieve_source(customer_id,customer['default_source'])
+
+        context["stripe_response"] = stripe_response["data"]
+        if card_info:
+            context["customer_default_card"] = card_info["id"]
+        return context
+
+
+
+
+    def _get_addresses_data(self, context):
+        user_id = self.request.user.id
+        user_address_data = UserAddress.objects.filter(user = user_id)
+        context["user_addresses"] = user_address_data
+
+        return context
 
 class CaptureContextApiLogicMixin:  # pragma: no cover
     """
@@ -1221,3 +1265,273 @@ class VoucherRemoveApiView(PaymentApiLogicMixin, APIView):
 
         self.reload_basket()
         return self.get_payment_api_response()
+
+
+class DeleteCardApiView(APIView):
+
+    # Api for deleting card from stripe
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    # permission_classes = (IsAuthenticated,)
+
+    def delete(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+
+
+        data = request.data
+        cust_id = request.user.tracking_context["customer_id"]
+        card_id = data["card_id"]
+        try:
+            stripe.Customer.delete_source(
+                cust_id,
+                card_id,
+            )
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+        
+      
+class UpdateCardApiView(APIView):
+
+    # Api for updating card from stripe
+
+    # permission_classes = (IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+
+        card_update_response = request.data
+
+        logging.info(card_update_response["id"])
+        cust_id = request.user.tracking_context["customer_id"]
+        card_id = card_update_response["id"]
+
+
+        try:
+            customer = stripe.Customer.modify(cust_id, default_source= card_id)
+
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print('=======')
+            print(e)
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+
+
+class AddCardApiView(APIView):
+    # Api for Adding card from stripe
+
+    # permission_classes = (IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+
+    def post(self,request):
+        import stripe
+        stripe.api_key = "sk_test_51IAvKdCWEv86Pz7X7tWqBhz0TtXbJCekvZ8rh6gLJ5Nyj21dF2IQQ79UidYFsASUM15568caRymjgvWX9g0nqeY000YqSswEFM"
+        
+        #card_add_response = request.POST
+        data = request.data
+        logging.info(data["number"])
+        # cust_id = "cus_JOFKknSNVVTSjM" 
+        card_number = data["number"]
+        expiry_month = data["exp_month"]
+        expiry_year = data["exp_year"]
+        security_code = data["cvc"]
+        is_default = data['is_default']
+        
+        
+        try:
+            if not request.user.tracking_context.get('customer_id', None):
+                customer = stripe.Customer.create(
+                    email=request.user.email,
+                    name=request.user.full_name
+                )
+                cust_id = customer['id']
+                request.user.tracking_context.update({
+                    'customer_id': cust_id 
+                })
+
+                request.user.save()
+            else:
+                cust_id = request.user.tracking_context["customer_id"]
+    
+                
+            token = stripe.Token.create(
+                card={
+                    "number": card_number, 
+                    "exp_month": expiry_month, 
+                    "exp_year":expiry_year,
+                    "cvc":security_code
+                },
+            )
+
+            card = stripe.Customer.create_source(
+                cust_id,
+                source= token["id"]
+            )
+            if is_default:
+                customer = stripe.Customer.modify(cust_id, default_source= card['id'])
+
+            return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+        
+        except:
+            return Response({'status': 'Failed'}, status=status.HTTP_200_OK)
+
+
+
+class AddressAddNewView(APIView):
+    """ Api for adding a new address to user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        address = self._get_address_object(request.data)
+        is_added = self._add_user_address(request.user, address, request.data)
+
+        if (is_added):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_403_FORBIDDEN)
+
+
+    def _add_user_address(self, user, addr, data):
+        """ Update the user's address book based on the new shipping address """
+
+        try:
+            user_address = user.addresses.get(
+                hash=addr.generate_hash())
+
+            return False
+
+        except ObjectDoesNotExist:
+            # Create a new user address
+            user_address = UserAddress(user=user)
+            addr.populate_alternative_model(user_address)
+
+            if data["is_default_for_billing"]:
+                self._remove_default_for_billing()
+            user_address.is_default_for_billing=data["is_default_for_billing"]
+
+            user_address.save()
+
+            return True
+
+
+    def _get_address_object(self, data):
+        """ Retrieves the billing address associated with token.
+
+        Returns:
+            BillingAddress
+        """
+
+
+        try:
+            country = Country.objects.get(iso_3166_1_a2__iexact=data['address_country'])
+        except:
+            country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+
+        address = BillingAddress(
+            first_name=data['first_name'],      # Stripe only has a single name field
+            last_name='',
+            line1=data['address_line1'] or '',
+            line2=data.get('address_line2') or '',
+            line4=data['address_city'],         # Oscar uses line4 for city
+            postcode=data.get('address_postal_code') or '',
+            state=data.get('address_state') or '',
+            country=country
+        )
+
+        return address
+
+
+    def _remove_default_for_billing(self):
+        if UserAddress.objects.filter(is_default_for_billing = True).exists():
+            default_address = UserAddress.objects.filter(is_default_for_billing = True)
+            default_address[0].is_default_for_billing = False
+            default_address[0].save
+
+
+class AddressEditView(APIView):
+    """ Api for editing an address from user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        is_updated = self._update_user_address(request.user, request.data)
+
+        if (is_updated):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def _update_user_address(self, user, data):
+        """ Update the user's address book based on the new booking address """
+
+        user_address_data = UserAddress.objects.filter(user = user.id)
+        for address in user_address_data:
+            if address.id is int(data["id"]):
+                try:
+                    country = Country.objects.get(iso_3166_1_a2__iexact=data["address_country"])
+                except:
+                    country = Country.objects.get(iso_3166_1_a2__iexact="SG")
+
+                address.first_name = data["first_name"]
+                address.line1 = data["address_line1"]
+                address.line2 = data["address_line2"]
+                address.line4 = data["address_city"]    # Oscar uses line4 for city
+                address.postcode = data["address_postal_code"]
+                address.state = data["address_state"]
+                address.country = country
+
+                if data["is_default_for_billing"]:
+                    self._remove_default_for_billing()
+                    address.is_default_for_billing = data["is_default_for_billing"]
+
+                address.save()
+
+                return True
+
+        return False
+
+
+    def _remove_default_for_billing(self):
+        if UserAddress.objects.filter(is_default_for_billing = True).exists():
+            default_address = UserAddress.objects.filter(is_default_for_billing = True)
+            default_address[0].is_default_for_billing = False
+            default_address[0].save
+
+
+
+class AddressDeleteView(APIView):
+    """ Api for deleting an address from user's address table in ecommerce. """
+
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request):
+        is_deleted = self._delete_user_address(request.user.id, request.data)
+
+        if (is_deleted):
+            return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def _delete_user_address(self, user_id, address_id):
+        """ Delete the user's address from address book based on the given id """
+
+        user_address_data = UserAddress.objects.filter(user = user_id)
+        for address in user_address_data:
+            if address.id is address_id:
+                address.delete()
+
+                return True
+
+        return False

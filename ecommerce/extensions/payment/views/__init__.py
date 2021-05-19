@@ -83,6 +83,8 @@ class BasePaymentSubmitView(View):
         """ Perform payment processing after validating the form submission. """
 
     def form_invalid(self, form):
+        logging.info("form")
+        logging.info(form)
         logger.info(
             'Invalid payment form submitted for basket [%d].',
             self.request.basket.id
