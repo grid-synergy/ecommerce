@@ -154,7 +154,7 @@
                   </div>
                    <span class="label label-success">{% trans "Discount" as tmsg %}{{ tmsg | force_escape }}</span>
 
-                  <div class="price">-{{ discount.amount|subtract_tax_from_discount|currency:order.currency }}</div>
+                  <div class="price">{{ discount.amount|currency:order.currency }}</div>
                   {% enterprise_customer_for_voucher discount.voucher as enterprise_customer %}
                   {% if enterprise_customer %}
                       <div class="enterprise-customer">

@@ -8,6 +8,10 @@ from ecommerce.core.constants import SEAT_PRODUCT_CLASS_NAME
 from decimal import Decimal as D
 import logging
 from django.conf import settings
+from collections import namedtuple
+
+PurchaseInfo = namedtuple(
+    'PurchaseInfo', ['price', 'availability', 'stockrecord'])
 
 class CourseSeatAvailabilityPolicyMixin(strategy.StockRequired):
     """
@@ -50,10 +54,52 @@ class FixedRateTax(strategy.FixedRateTax):
 
 
 
-class DefaultStrategy(strategy.UseFirstStockRecord, strategy.StockRequired, FixedRateTax, strategy.Structured):
+class Structured(strategy.Structured):
+
+    def fetch_for_product(self, product, stockrecord=None):
+        """
+        Return the appropriate ``PurchaseInfo`` instance.
+
+        This method is not intended to be overridden.
+        """
+        logging.info("=============== Custom Stratey =============")
+        if stockrecord is None:
+            stockrecord = self.select_stockrecord(product)
+        logging.info(self.pricing_policy(product, stockrecord))
+        logging.info(self.pricing_policy(product, stockrecord).__dict__)
+        logging.info(stockrecord.__dict__)
+        return PurchaseInfo(
+            price=self.pricing_policy(product, stockrecord),
+            availability=self.availability_policy(product, stockrecord),
+            stockrecord=stockrecord)
+
+
+
+class DefaultStrategy(strategy.UseFirstStockRecord, strategy.StockRequired, FixedRateTax, Structured):
     """ Default Strategy """
 
 
 class Selector:
     def strategy(self, request=None, user=None, **kwargs): # pylint: disable=unused-argument
         return DefaultStrategy(request if hasattr(request, 'user') else None)
+
+
+
+
+
+class Structured1(strategy.Structured):
+
+    def fetch_for_product(self, product, stockrecord=None):
+        """
+        Return the appropriate ``PurchaseInfo`` instance.
+
+        This method is not intended to be overridden.
+        """
+        logging.info("=============== Custom Stratey =============")
+        if stockrecord is None:
+            stockrecord = self.select_stockrecord(product)
+        return PurchaseInfo(
+            price=self.pricing_policy(product, stockrecord),
+            availability=self.availability_policy(product, stockrecord),
+            stockrecord=stockrecord)
+
