@@ -1,5 +1,5 @@
-import oscar.apps.dashboard.vouchers.apps as apps
+from oscar.apps.dashboard.vouchers import apps
 
 
 class VouchersDashboardConfig(apps.VouchersDashboardConfig):
-    name = 'edx.app.ecommerce.ecommerce.ecommerce.extensions.dashboard.vouchers'
+    name = 'ecommerce.extensions.dashboard.vouchers'

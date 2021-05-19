@@ -62,12 +62,8 @@ class Structured(strategy.Structured):
 
         This method is not intended to be overridden.
         """
-        logging.info("=============== Custom Stratey =============")
         if stockrecord is None:
             stockrecord = self.select_stockrecord(product)
-        logging.info(self.pricing_policy(product, stockrecord))
-        logging.info(self.pricing_policy(product, stockrecord).__dict__)
-        logging.info(stockrecord.__dict__)
         return PurchaseInfo(
             price=self.pricing_policy(product, stockrecord),
             availability=self.availability_policy(product, stockrecord),
@@ -83,23 +79,4 @@ class Selector:
     def strategy(self, request=None, user=None, **kwargs): # pylint: disable=unused-argument
         return DefaultStrategy(request if hasattr(request, 'user') else None)
 
-
-
-
-
-class Structured1(strategy.Structured):
-
-    def fetch_for_product(self, product, stockrecord=None):
-        """
-        Return the appropriate ``PurchaseInfo`` instance.
-
-        This method is not intended to be overridden.
-        """
-        logging.info("=============== Custom Stratey =============")
-        if stockrecord is None:
-            stockrecord = self.select_stockrecord(product)
-        return PurchaseInfo(
-            price=self.pricing_policy(product, stockrecord),
-            availability=self.availability_policy(product, stockrecord),
-            stockrecord=stockrecord)
 

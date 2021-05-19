@@ -487,6 +487,10 @@ class SiteConfiguration(models.Model):
         return EdxRestApiClient(self.build_lms_url('/lhub_ecommerce_offer/'), jwt=self.access_token)
 
     @cached_property
+    def lhub_commerce_coupon_api_client(self):
+        return EdxRestApiClient(self.build_lms_url('/lhub_ecommerce_offer/coupon/'), jwt=self.access_token)
+
+    @cached_property
     def lhub_commerce_mobile_api_client(self):
         return EdxRestApiClient(self.build_lms_url('/api/lhub_mobile/'), jwt=self.access_token)
 
