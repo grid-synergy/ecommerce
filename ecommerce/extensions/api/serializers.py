@@ -265,48 +265,6 @@ class PartialStockRecordSerializerForUpdate(StockRecordSerializer):
         model = StockRecord
         fields = ('price_currency', 'price_excl_tax',)
 
-
-class ProductSerializer(ProductPaymentInfoMixin, serializers.HyperlinkedModelSerializer):
-    """ Serializer for Products. """
-    attribute_values = serializers.SerializerMethodField()
-    product_class = serializers.SerializerMethodField()
-    is_available_to_buy = serializers.SerializerMethodField()
-    stockrecords = StockRecordSerializer(many=True, read_only=True)
-
-    def get_attribute_values(self, product):
-        request = self.context.get('request')
-        serializer = ProductAttributeValueSerializer(
-            product.attr,
-            many=True,
-            read_only=True,
-            context={'request': request}
-        )
-        return serializer.data
-
-    def get_product_class(self, product):
-        return product.get_product_class().name
-
-    def get_is_available_to_buy(self, product):
-        info = self._get_info(product)
-        return info.availability.is_available_to_buy
-
-    class Meta:
-        model = Product
-        fields = ('id', 'url', 'structure', 'product_class', 'title', 'price', 'expires', 'attribute_values',
-                  'is_available_to_buy', 'stockrecords',)
-        extra_kwargs = {
-            'url': {'view_name': PRODUCT_DETAIL_VIEW},
-        }
-
-
-class LineSerializer(serializers.ModelSerializer):
-    """Serializer for parsing line item data."""
-    product = ProductSerializer()
-
-    class Meta:
-        model = Line
-        fields = ('title', 'quantity', 'description', 'status', 'line_price_excl_tax', 'unit_price_excl_tax', 'product')
-
 class AvailableVouchersSerializer(serializers.ModelSerializer):
     """ AvailableVouchers serializer. """
     name = serializers.CharField()
@@ -336,6 +294,57 @@ class AvailableVouchersSerializer(serializers.ModelSerializer):
         )
         # For disambiguating within the drf-yasg swagger schema
 
+class ProductSerializer(ProductPaymentInfoMixin, serializers.HyperlinkedModelSerializer):
+    """ Serializer for Products. """
+    attribute_values = serializers.SerializerMethodField()
+    product_class = serializers.SerializerMethodField()
+    is_available_to_buy = serializers.SerializerMethodField()
+    stockrecords = StockRecordSerializer(many=True, read_only=True)
+    available_vouchers = AvailableVouchersSerializer(required=False, many=True)
+    #available_vouchers = serializers.SerializerMethodField()
+
+    def get_attribute_values(self, product):
+        request = self.context.get('request')
+        serializer = ProductAttributeValueSerializer(
+            product.attr,
+            many=True,
+            read_only=True,
+            context={'request': request}
+        )
+        return serializer.data
+
+    def get_available_vouchers(self, obj):
+        try:
+            serializer = AvailableVouchersSerializer(
+                obj.basket.vouchers.all(), many=True, context={'request': self.context['request']}
+            )
+            return serializer.data
+        except (AttributeError, ValueError):
+            return None
+
+    def get_product_class(self, product):
+        return product.get_product_class().name
+
+    def get_is_available_to_buy(self, product):
+        info = self._get_info(product)
+        return info.availability.is_available_to_buy
+
+    class Meta:
+        model = Product
+        fields = ('id', 'url', 'structure', 'product_class', 'title', 'price', 'expires', 'attribute_values',
+                  'is_available_to_buy', 'stockrecords', 'available_vouchers')
+        extra_kwargs = {
+            'url': {'view_name': PRODUCT_DETAIL_VIEW},
+        }
+
+
+class LineSerializer(serializers.ModelSerializer):
+    """Serializer for parsing line item data."""
+    product = ProductSerializer()
+
+    class Meta:
+        model = Line
+        fields = ('title', 'quantity', 'description', 'status', 'line_price_excl_tax', 'unit_price_excl_tax', 'product')
 
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for parsing order data."""
@@ -347,14 +356,34 @@ class OrderSerializer(serializers.ModelSerializer):
     payment_processor = serializers.SerializerMethodField()
     user = UserSerializer()
     vouchers = serializers.SerializerMethodField()
-    available_vouchers = AvailableVouchersSerializer(required=False, many=True)
+    #available_vouchers = AvailableVouchersSerializer(required=False, many=True)
+    available_vouchers = serializers.SerializerMethodField()
 
     def get_available_vouchers(self, obj):
         try:
-            serializer = AvailableVouchersSerializer(
+            serializer = VoucherSerializer(
                 obj.basket.vouchers.all(), many=True, context={'request': self.context['request']}
             )
-            return serializer.data
+            result_array = {}
+            if serializer.data:
+                result_array = {}
+
+                for item in serializer.data:
+                    logging.info("=================================")
+                    logging.info(item)
+                    for i in item.items():
+                        logging.info("-=-=-=-")
+                        logging.info(i[0])
+                        logging.info(i[1])
+                        if i[0] == "name":
+                            result_array['name'] = i[1]
+                        elif i[0] == "code":
+                            result_array['code'] = i[1]
+                        elif i[0] == "benefit":
+                            result_array['discount_type'] = i[1]['type']
+                            result_array['discount_value'] = i[1]['value']
+
+            return result_array
         except (AttributeError, ValueError):
             return None
 
