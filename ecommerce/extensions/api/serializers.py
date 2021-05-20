@@ -307,9 +307,39 @@ class LineSerializer(serializers.ModelSerializer):
         model = Line
         fields = ('title', 'quantity', 'description', 'status', 'line_price_excl_tax', 'unit_price_excl_tax', 'product')
 
+class AvailableVouchersSerializer(serializers.ModelSerializer):
+    """ AvailableVouchers serializer. """
+    name = serializers.CharField()
+    code = serializers.CharField(source="coupon_code")
+    discount_type = serializers.CharField(source="incentive_type")
+    discount_value = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        source="incentive_value"
+    )
+    allow_combine = serializers.BooleanField(source="is_exclusive")
+
+    def get_identity(self, data):
+        try:
+            return data.get('name', None)
+        except AttributeError:
+            return None
+
+    class Meta(object):
+        model = Voucher
+        fields = (
+            'name',
+            'code',
+            'discount_type',
+            'discount_value',
+            'allow_combine',
+        )
+        # For disambiguating within the drf-yasg swagger schema
+
 
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for parsing order data."""
+    
     billing_address = BillingAddressSerializer(allow_null=True)
     date_placed = serializers.DateTimeField(format=ISO_8601_FORMAT)
     discount = serializers.SerializerMethodField()
@@ -317,6 +347,16 @@ class OrderSerializer(serializers.ModelSerializer):
     payment_processor = serializers.SerializerMethodField()
     user = UserSerializer()
     vouchers = serializers.SerializerMethodField()
+    available_vouchers = AvailableVouchersSerializer(required=False, many=True)
+
+    def get_available_vouchers(self, obj):
+        try:
+            serializer = AvailableVouchersSerializer(
+                obj.basket.vouchers.all(), many=True, context={'request': self.context['request']}
+            )
+            return serializer.data
+        except (AttributeError, ValueError):
+            return None
 
     def get_vouchers(self, obj):
         try:
@@ -354,6 +394,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'total_excl_tax',
             'user',
             'vouchers',
+            'available_vouchers'
         )
 
 
@@ -733,7 +774,7 @@ class VoucherSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'code', 'redeem_url', 'usage', 'start_datetime', 'end_datetime', 'num_basket_additions',
             'num_orders', 'total_discount', 'date_created', 'offers', 'is_available_to_user', 'benefit',
-            'is_public',
+            'is_public',   
         )
 
 
