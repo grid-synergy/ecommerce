@@ -46,6 +46,7 @@ class VoucherCreateView(CoreVoucherCreateView):
         voucher_data = self.request._post.copy()
 
         data = {}
+        data["name"] = voucher_data["name"]
         data["coupon_code"] = voucher_data["code"]
         data["incentive_type"] = voucher_data["benefit_type"]
         data["incentive_value"] = voucher_data["benefit_value"]
@@ -77,6 +78,7 @@ class VoucherUpdateView(CoreVoucherUpdateView):
         voucher_data = self.request._post.copy()
 
         data = {}
+        data["name"] = voucher_data["name"]
         data["coupon_code"] = voucher_data["code"]
         data["incentive_type"] = voucher_data["benefit_type"]
         data["incentive_value"] = voucher_data["benefit_value"]
