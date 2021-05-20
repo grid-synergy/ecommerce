@@ -1086,8 +1086,6 @@ class VoucherAddLogicMixin:
 
     def _verify_voucher_not_already_applied(self, code):
         username = self.request.user and self.request.user.username
-        logging.info('=========== basket voucher =======')
-        logging.info(self.request.basket.id)
         if self.request.basket.contains_voucher(code):
             logger.warning(
                 '[Code Redemption Failure] User tried to apply a code that is already applied. '

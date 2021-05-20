@@ -17,65 +17,43 @@ OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
 Selector = get_class('partner.strategy', 'Selector')
 from django.conf import settings
 
+
+
 @python_2_unicode_compatible
 class Line(AbstractLine):
-
 
     @property
     def line_price_incl_tax_incl_discounts(self):
         # We use whichever discount value is set.  If the discount value was
         # calculated against the tax-exclusive prices, then the line price
         # including tax
-        #logging.info('============= custom calculatio =======')
         if self.line_price_incl_tax is not None and self._discount_incl_tax:
-            #logging.info('in if 123123123')
-            #logging.info(self._discount_incl_tax)
-            #logging.info(self.line_price_excl_tax)
-            #logging.info(self.__dict__)
             discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * self._discount_incl_tax
             
             return max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax)
         elif self.line_price_excl_tax is not None and self._discount_excl_tax:
-            #logging.info('===== in else 123123123')
             return max(0, round_half_up((self.line_price_excl_tax - self._discount_excl_tax) / self._tax_ratio))
 
         return self.line_price_incl_tax
 
 
-
     @property
     def line_price_excl_tax_incl_discounts(self):
         if self._discount_excl_tax and self.line_price_excl_tax is not None:
-            logging.info('=============== in if 111')
             return max(0, self.line_price_excl_tax - self._discount_excl_tax)
         if self._discount_incl_tax and self.line_price_incl_tax is not None:
-            logging.info('============= in if 2222')
             # This is a tricky situation.  We know the discount as calculated
             # against tax inclusive prices but we need to guess how much of the
             # discount applies to tax-exclusive prices.  We do this by
             # assuming a linear tax and scaling down the original discount.
-            logging.info(self.line_price_excl_tax)
-            logging.info(self._discount_incl_tax)
-            logging.info(self._tax_ratio)
             return max(0, self.line_price_excl_tax - self._discount_incl_tax)
-        logging.info('=========== in else 3333')
         return self.line_price_excl_tax
-
-
-
 
 
     @property
     def line_tax(self):
         if self.is_tax_known:
-            logging.info('============line_tax =============')
-            logging.info(self.line_price_incl_tax_incl_discounts)
-            logging.info(self.line_price_excl_tax_incl_discounts) 
-            logging.info(self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts)
             return self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts
-
-
-
 
 
 
@@ -98,16 +76,13 @@ class Basket(AbstractBasket):
         _("Status"), max_length=128, default=OPEN, choices=STATUS_CHOICES)
 
 
-
     def _get_total_discount(self, property):
         """
         For executing a named method on each line of the basket
         and returning the total.
         """
         total = D('0.00')
-        logging.info('============discount total ==========')
         for line in self.all_lines():
-            logging.info(line.unit_effective_price)
             try:
                 total += getattr(line, property)
             except ObjectDoesNotExist:
@@ -122,8 +97,6 @@ class Basket(AbstractBasket):
         return total
 
 
-
-
     @property
     def total_discount(self):
         return self._get_total_discount('discount_value')
@@ -133,12 +106,14 @@ class Basket(AbstractBasket):
     def order_number(self):
         return OrderNumberGenerator().order_number(self)
 
+
     @classmethod
     def create_basket(cls, site, user):
         """ Create a new basket for the given site and user. """
         basket = cls.objects.create(site=site, owner=user)
         basket.strategy = Selector().strategy(user=user)
         return basket
+
 
     @classmethod
     def get_basket(cls, user, site):
@@ -162,6 +137,7 @@ class Basket(AbstractBasket):
 
         return basket
 
+
     def flush(self):
         """Remove all products in basket and fire Segment 'Product Removed' Analytic event for each"""
         cached_response = DEFAULT_REQUEST_CACHE.get_cached_response(TEMPORARY_BASKET_CACHE_KEY)
@@ -177,6 +153,7 @@ class Basket(AbstractBasket):
 
         # Call flush after we fetch all_lines() which is cleared during flush()
         super(Basket, self).flush()  # pylint: disable=bad-super-call
+
 
     def add_product(self, product, quantity=1, options=None):
         """
@@ -198,10 +175,12 @@ class Basket(AbstractBasket):
             track_segment_event(self.site, self.owner, 'Product Added', properties)
         return line, created
 
+
     def clear_vouchers(self):
         """Remove all vouchers applied to the basket."""
         for v in self.vouchers.all():
             self.vouchers.remove(v)
+
 
     def __str__(self):
         return _("{id} - {status} basket (owner: {owner}, lines: {num_lines})").format(
@@ -210,11 +189,13 @@ class Basket(AbstractBasket):
             owner=self.owner,
             num_lines=self.num_lines)
 
+
     def is_product_exists(self, product):
         product_line = self.lines.filter(product_id=product.id)
         if product_line:
             return True
         return False
+
 
 
 class BasketAttributeType(models.Model):
@@ -225,6 +206,7 @@ class BasketAttributeType(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class BasketAttribute(models.Model):

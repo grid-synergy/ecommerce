@@ -135,8 +135,6 @@ class Benefit(AbstractBenefit):
             if (not range.contains_product(product) or not self.can_apply_benefit(line)):
                 continue
 
-            logging.info('==========4343434434')
-            logging.info(line.price_excl_tax)
             price = line.price_excl_tax
             if not price:
                 # Avoid zero price products
@@ -155,7 +153,6 @@ class Benefit(AbstractBenefit):
         """
         Returns the basket lines for which the benefit is applicable.
         """
-        logging.info('==============my 123 =======')
         applicable_range = range if range else self.range
 
         if applicable_range and applicable_range.catalog_query is not None:
@@ -199,10 +196,8 @@ class Benefit(AbstractBenefit):
 
                     if not in_range:
                         applicable_lines.remove(metadata['line'])
-            logging.info([(line.product.stockrecords.first().price_excl_tax, line) for line in applicable_lines])
             return [(line.product.stockrecords.first().price_excl_tax, line) for line in applicable_lines]
-        logging.info('============my 123 calling super ======')
-        #return super(Benefit, self).get_applicable_lines(offer, basket, range=range)  # pylint: disable=bad-super-call
+
         return self.get_applicable_lines_custom(offer, basket, range=range)
 
 
