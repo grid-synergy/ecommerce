@@ -81,6 +81,7 @@ from ecommerce.extensions.payment.forms import PaymentForm
 from django.contrib.auth import get_user_model
 # from oscar.apps.checkout.applicator import SurchargeApplicator
 
+from oscar.apps.basket.views import VoucherRemoveView as CoreVoucherRemoveView
 Basket = get_model('basket', 'basket')
 BasketAttribute = get_model('basket', 'BasketAttribute')
 BasketAttributeType = get_model('basket', 'BasketAttributeType')
@@ -1533,3 +1534,38 @@ class AddressDeleteView(APIView):
                 return True
 
         return False
+
+
+
+
+
+
+
+
+class VoucherRemoveView(CoreVoucherRemoveView):
+    #voucher_model = get_model('voucher', 'voucher')
+    #remove_signal = voucher_removal
+    #http_method_names = ['post']
+
+    def post(self, request, *args, **kwargs):
+        response = redirect('basket:summary')
+        request.basket = Basket.objects.filter(owner=request.user, status="Commited").last()
+        voucher_id = kwargs['pk']
+        if not request.basket.id:
+            # Hacking attempt - the basket must be saved for it to have
+            # a voucher in it.
+            return response
+        try:
+            voucher = request.basket.vouchers.get(id=voucher_id)
+        except ObjectDoesNotExist:
+            messages.error(
+                request, _("No voucher found with id '%s'") % voucher_id)
+        else:
+            request.basket.vouchers.remove(voucher)
+            self.remove_signal.send(
+                sender=self, basket=request.basket, voucher=voucher)
+            messages.info(
+                request, _("Voucher '%s' removed from basket") % voucher.code)
+
+        return response
+
