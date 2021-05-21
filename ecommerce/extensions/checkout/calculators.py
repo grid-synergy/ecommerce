@@ -17,9 +17,11 @@ class OrderTotalCalculator(object):
         excl_tax = basket.total_excl_tax + shipping_charge.excl_tax
         if basket.is_tax_known and shipping_charge.is_tax_known:
             incl_tax = basket.total_incl_tax + shipping_charge.incl_tax
+            incl_tax = round(incl_tax, 2)
         else:
             incl_tax = None
             incl_tax = basket.total_incl_tax
+
         return prices.Price(
             currency=basket.currency,
             excl_tax=excl_tax, incl_tax=incl_tax)
