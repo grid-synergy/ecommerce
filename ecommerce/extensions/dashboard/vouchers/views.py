@@ -53,8 +53,12 @@ class VoucherCreateView(CoreVoucherCreateView):
         data["usage"] = voucher_data["usage"]
         data["start_datetime"] = str(voucher_data["start_datetime"])
         data["end_datetime"] = str(voucher_data["end_datetime"])
-        data["is_exclusive"] = True if voucher_data["exclusive"] else False
         data["associated_ecommerce_coupon_id"] = voucher_id
+        try:
+            if voucher_data["exclusive"]:
+                data["is_exclusive"] = True
+        except:
+            data["is_exclusive"] =  False
 
         data["courses_id"] = []
         range = Range.objects.filter(id=voucher_data["benefit_range"]).first()
