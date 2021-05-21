@@ -24,7 +24,7 @@ from oscar.apps.partner import strategy
 from django.contrib.auth import get_user_model
 from oscar.apps.basket.views import * 
 from ecommerce.extensions.basket.utils import apply_offers_on_basket
-from ecommerce.extensions.api.serializers import BasketSerializer
+from ecommerce.extensions.api.serializers import BasketSerializer, OrderSerializer
 from ecommerce.extensions.api.throttles import ServiceUserThrottle
 
 import sys, os
@@ -64,7 +64,6 @@ def get_ephemeral_key(request):
     except Exception as e:
         logging.info(e)
         return Response(str(e))
-
 
 
 class BasketViewSet(viewsets.ReadOnlyModelViewSet):
@@ -177,8 +176,8 @@ def get_basket_content_mobile(request):
             commerce_response  = requests.get(url=str(lms_url),headers={'Authorization' : 'JWT ' + str(request.site.siteconfiguration.access_token)})
             commerce_response = json.loads(commerce_response.text)
             logging.info("mahad")
+            logging.info(commerce_response)
             if commerce_response['status_code'] == 200:
-                logging.info("omerrr")
                 price= float(commerce_response['result']['modes'][0]['price'])
                 price_string = str("%.2f" % commerce_response['result']['modes'][0]['price'])
                 sku = commerce_response['result']['modes'][0]['sku']
@@ -192,8 +191,14 @@ def get_basket_content_mobile(request):
                 category = commerce_response['result']['new_category']
                 title = commerce_response['result']['name']
                 organization = commerce_response['result']['organization']
+                if commerce_response['result']['available_vouchers']:
+                    voucher_applicable = True
+                    #discount_type = commerce_response['result']['available_vouchers'].discount_type
+                else:
+                    voucher_applicable = False
+                    discount_type = ""
                 course_info = {'course_id' : course_id ,'media': media, 'category': category, 'title': title, 'price': price, 'discount_applicable': discount_applicable, \
-                        'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details" ,'discounted_price_string':discounted_price_string,'price_string' : price_string}
+                        'discounted_price': discounted_price, 'organization': organization, 'sku': sku, 'code': "course_details" ,'discounted_price_string':discounted_price_string,'price_string' : price_string, 'voucher_applicable' : voucher_applicable, 'available_vouchers': commerce_response['result']['available_vouchers']}
                 product.append(course_info)
         if len(basket.all_lines()) > 0:
             offers = Applicator().get_site_offers()
@@ -242,3 +247,4 @@ def get_course_discount_info(request, sku):
              pass
 
     return Response(discount_info)
+
