@@ -21,7 +21,6 @@ class OrderTotalCalculator(object):
         else:
             incl_tax = None
             incl_tax = basket.total_incl_tax
-
         return prices.Price(
             currency=basket.currency,
             excl_tax=excl_tax, incl_tax=incl_tax)

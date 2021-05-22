@@ -29,11 +29,9 @@ class Line(AbstractLine):
         # including tax
         if self.line_price_incl_tax is not None and self._discount_incl_tax:
             discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * self._discount_incl_tax
-            logging.info('======tyutyu')
-            logging.info( self.line_price_incl_tax)
-            logging.info(self._discount_incl_tax)
-            logging.info(discount_tax)
+            discount_tax = round(discount_tax, 2)
             #return (self._discount_incl_tax)
+            #return round(max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax),2)
             return max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax)
         elif self.line_price_excl_tax is not None and self._discount_excl_tax:
             return max(0, round_half_up((self.line_price_excl_tax - self._discount_excl_tax) / self._tax_ratio))
@@ -64,9 +62,8 @@ class Line(AbstractLine):
     @property
     def line_tax(self):
         if self.is_tax_known:
-            discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * self.line_price_excl_tax_incl_discounts
-            logging.info('====discount tax')
-            logging.info(round(discount_tax, 2))
+            amount = self.price_excl_tax - self._discount_incl_tax
+            discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * amount
             return round(discount_tax, 2)
             #return round(self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts, 2)
 
@@ -88,16 +85,14 @@ class Line(AbstractLine):
                     "Attempting to discount the tax-exclusive price of a line "
                     "when tax-inclusive discounts are already applied")
             #self._discount_excl_tax += discount_value
-        logging.info('=============123123123123 =====')
-        logging.info(self._discount_incl_tax)
         benefit = Benefit.objects.filter(id=offer.benefit_id).first()
         if benefit.type == 'Percentage':
-            logging.info('==== percentage')
-            logging.info(self.price_excl_tax)
-            self._discount_incl_tax+= self.price_excl_tax - (self.price_excl_tax * (benefit.value/100))
+            self._discount_incl_tax+= round((self.price_excl_tax * (benefit.value/100)),2)
+            #else:
+                #self._discount_incl_tax+=  (self.price_excl_tax * (benefit.value/100))
             #self._discount_incl_tax = round(self._discount_incl_tax, 2)
-            logging.info(self._discount_incl_tax)
-        logging.info(benefit.__dict__) 
+        elif benefit.type == 'Absolute':
+            self._discount_incl_tax+= benefit.value
         self.consume(affected_quantity, offer=offer)
 
 

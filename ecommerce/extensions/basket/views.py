@@ -176,6 +176,8 @@ class BasketLogicMixin:
         # Total benefit displayed in price summary.
         # Currently only one voucher per basket is supported.
         try:
+            self.request.basket = Basket.objects.filter(owner=self.request.user, status="Commited").last()
+            self.request.basket.strategy = self.request.strategy
             applied_voucher = self.request.basket.vouchers.first()
             total_benefit_object = applied_voucher.best_offer.benefit if applied_voucher else None
         # TODO This ValueError handling no longer seems to be required and could probably be removed
@@ -576,7 +578,6 @@ class BasketSummaryView(BasketLogicMixin, BasketView):
         context = self._get_addresses_data(context)
         countries = Country.objects.all()
         context["countries"] = countries
-
         return self._add_to_context_data(context)
 
     @newrelic.agent.function_trace()
