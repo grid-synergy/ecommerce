@@ -900,6 +900,9 @@ margin: 0px;
     left: 0;
 	margin-top: 2px;
 }
+.card-ordering {
+    order: -1;
+}
 
 
 </style>
@@ -1223,6 +1226,10 @@ window.location.replace(host);
 
 <script>
 
+// Card Ordering JS
+$(".default-mark").parent().parent().addClass("card-ordering");
+
+
 //You may use vanilla JS, I just chose jquery
 
 
@@ -1267,6 +1274,7 @@ if (is_default == 'true'){
 	$("#set_default_checkbox").prop('checked', true);
 	$("#set_default_checkbox").attr("disabled", 'disabled');
 	$("#set_defaut_save_button").attr('disabled', 'disabled');
+	$('this').addClass(testing);
 }
 else if (is_default == 'false'){
 	$("#set_default_checkbox").prop('checked', false);

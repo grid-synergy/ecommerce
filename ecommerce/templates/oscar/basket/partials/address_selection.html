@@ -198,7 +198,7 @@ img.address-icon {
 	background: #1a2e4e;
 }
 
-p.default-mark {
+p.address-default-mark {
 	margin-top: 5px;
 	margin-bottom: 5px;
 	font-size: 10px;
@@ -448,6 +448,10 @@ input#edit_address_id {
 .edit-address-btn {
     color: #337ab7 !important;
 }
+.address-ordering {
+    order: -1;
+}
+
 </style>
 
 <!-- #################################################################################### -->
@@ -491,7 +495,7 @@ input#edit_address_id {
 									<span id="{{ address.is_default_for_billing }}" class="user-location user-hidden-info"> {{ address.is_default_for_billing }} </span>
 								</div>
 							</div>
-							<p class="default-mark">Default Selected Address</p>
+							<p class="address-default-mark">Default Selected Address</p>
 						</div>
 					</div>
 						<div class="edit-delete-btns">
@@ -825,6 +829,8 @@ input#edit_address_id {
 </script>
 <script>
 //You may use vanilla JS, I just chose jquery
+// Card Ordering JS
+$(".address-default-mark").parent().parent().parent().addClass("address-ordering");
 
 // ***** Add New Address Modal *****
 $('.openaddressmodale').click(function (e) {
