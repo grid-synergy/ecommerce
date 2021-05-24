@@ -1323,9 +1323,6 @@ alert("Some error occured")
 
 
 
-function delete_card(card_id) {
-
-let csrf = $('#csrf-token').val();
 function add_card() {
 
 let csrf = $('#csrf-token').val();
@@ -1391,6 +1388,10 @@ alert('some error has occured')
 });
 
 }
+
+function delete_card(card_id) {
+
+let csrf = $('#csrf-token').val();
 
 data_dictionary = {
 

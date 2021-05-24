@@ -696,7 +696,7 @@ define([
                   
                           "cvc": $("#cvc").val(),
                   
-                          "is_default": $("#radio").is(":checked")
+                          "is_default": $("#add_card_radio").is(":checked")
                   
                       }
                   
