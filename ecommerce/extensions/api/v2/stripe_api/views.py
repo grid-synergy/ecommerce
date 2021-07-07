@@ -10,7 +10,6 @@ from django.conf import settings
 from oscar.core.loading import get_model
 import logging
 from django.db import IntegrityError, transaction
-from oscar.apps.partner.strategy import Selector
 from oscar.core.loading import get_class
 from ecommerce.extensions.offer.constants import DYNAMIC_DISCOUNT_FLAG
 from ecommerce.core.url_utils import get_lms_url
@@ -23,12 +22,14 @@ import requests
 from ecommerce.extensions.checkout.signals import send_confirm_purchase_email
 
 logger = logging.getLogger(__name__)
+Selector = get_class('partner.strategy', 'Selector')
 BillingAddress = get_model('order', 'BillingAddress')
 Basket = get_model('basket', 'Basket')
 Order = get_model('order', 'Order')
 Country = get_model('address', 'Country')
 stripe.api_key = settings.PAYMENT_PROCESSOR_CONFIG['edx']['stripe']['secret_key']
 Applicator = get_class('offer.applicator', 'Applicator')
+
 
 class CustomStripeView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -82,6 +83,8 @@ class CustomStripeView(APIView):
         country=country
         )
         return address
+
+    
 
 class PaymentView(APIView, EdxOrderPlacementMixin):
 
@@ -203,12 +206,24 @@ class CheckoutBasketMobileView(APIView, EdxOrderPlacementMixin):
 
         if user_basket.status == "Commited":
             total_amount = int(user_basket.total_incl_tax)
+
+            tax = settings.LHUB_TAX_PERCENTAGE
+            basket_total_excl_tax = str("%.2f" % user_basket.total_excl_tax)
+            gst_tax = str(tax) + "%"
+            gst_amount = str("%.2f" % user_basket.total_tax)
+
             if total_amount > 0:
                 try:
                     with transaction.atomic():
                         payment_response = self.make_stripe_payment_for_mobile(None, user_basket)
-                        response = {"total_amount": payment_response.total, "transaction_id": payment_response.transaction_id, \
-                                    "currency": payment_response.currency, "client_secret": payment_response.client_secret}
+                        response = {"transaction_id": payment_response.transaction_id,
+                                    "client_secret": payment_response.client_secret,
+                                    "total_amount": "%.2f"%(payment_response.total),
+                                    "subtotal": basket_total_excl_tax,
+                                    "gst_tax": gst_tax,
+                                    "gst_amount": gst_amount,
+                                    "currency": payment_response.currency
+                                    }
 
                         # Freezing basket to prevent student from getting enrolled to possibily unpaid courses
                         user_basket.status = Basket.FROZEN

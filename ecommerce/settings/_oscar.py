@@ -42,7 +42,6 @@ OSCAR_APPS = [
     'oscar.apps.dashboard.pages',
     'oscar.apps.dashboard.ranges',
     'oscar.apps.dashboard.reviews',
-    'oscar.apps.dashboard.vouchers',
     'oscar.apps.dashboard.communications',
     'oscar.apps.dashboard.shipping',
 
@@ -51,6 +50,7 @@ OSCAR_APPS = [
     'ecommerce.extensions.dashboard.refunds',
     'ecommerce.extensions.dashboard.orders',
     'ecommerce.extensions.dashboard.users',
+    'ecommerce.extensions.dashboard.vouchers',
 
     # 3rd-party apps that oscar depends on
     'haystack',

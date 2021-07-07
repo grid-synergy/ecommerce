@@ -4,9 +4,41 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from opaque_keys.edx.keys import CourseKey
+from decimal import Decimal as D
+import numpy as np
 
 register = template.Library()
 
+
+
+@register.filter(name='subtract')
+def subtract(value, arg):
+    return value - arg
+
+@register.filter(name='subtract_tax_from_discount')
+def subtract_tax_from_discount(amount):
+    tax_percent = settings.LHUB_TAX_PERCENTAGE
+    incl_amount = amount
+    excl_amount = amount * D(tax_percent/100)
+    excl_amount = amount - excl_amount
+    excl_amount = "%.2f" % excl_amount
+    excl_amount = excl_amount
+    inc = 0.01
+
+    for x in np.arange(D(excl_amount), D(incl_amount), D(inc)):
+        discount_without_tax = "%.2f" % x
+        calc_percent = D(discount_without_tax) * D(tax_percent/100)
+        calc_percent = "%.2f" % calc_percent
+        actual_tax = D(discount_without_tax) + D(calc_percent)
+        if actual_tax == amount:
+            return discount_without_tax
+
+
+@register.filter(name='tax_percent')
+def tax_percent(total):
+    tax_percent = str(settings.LHUB_TAX_PERCENTAGE)
+    tax_percent = "GST " + tax_percent + "%"
+    return tax_percent
 
 @register.simple_tag
 def settings_value(name):

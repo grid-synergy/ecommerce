@@ -4,14 +4,97 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from edx_django_utils.cache import DEFAULT_REQUEST_CACHE
-from oscar.apps.basket.abstract_models import AbstractBasket
-from oscar.core.loading import get_class
+from oscar.apps.basket.abstract_models import AbstractBasket, AbstractLine
+from oscar.core.loading import get_class, get_model
 
 from ecommerce.extensions.analytics.utils import track_segment_event, translate_basket_line_for_segment
 from ecommerce.extensions.basket.constants import TEMPORARY_BASKET_CACHE_KEY
+import logging
+from decimal import Decimal as D
+from oscar.core.utils import get_default_currency, round_half_up
 
 OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
 Selector = get_class('partner.strategy', 'Selector')
+from django.conf import settings
+Benefit = get_model('offer', 'Benefit')
+
+
+@python_2_unicode_compatible
+class Line(AbstractLine):
+
+    @property
+    def line_price_incl_tax_incl_discounts(self):
+        # We use whichever discount value is set.  If the discount value was
+        # calculated against the tax-exclusive prices, then the line price
+        # including tax
+        if self.line_price_incl_tax is not None and self._discount_incl_tax:
+            discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * self._discount_incl_tax
+            discount_tax = round(discount_tax, 2)
+            #return (self._discount_incl_tax)
+            #return round(max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax),2)
+            return max(0, self.line_price_incl_tax - self._discount_incl_tax - discount_tax)
+        elif self.line_price_excl_tax is not None and self._discount_excl_tax:
+            return max(0, round_half_up((self.line_price_excl_tax - self._discount_excl_tax) / self._tax_ratio))
+
+        return self.line_price_incl_tax
+
+
+
+
+
+
+
+
+    @property
+    def line_price_excl_tax_incl_discounts(self):
+        #return (self._discount_incl_tax)
+        if self._discount_excl_tax and self.line_price_excl_tax is not None:
+            return max(0, self.line_price_excl_tax - self._discount_excl_tax)
+        if self._discount_incl_tax and self.line_price_incl_tax is not None:
+            # This is a tricky situation.  We know the discount as calculated
+            # against tax inclusive prices but we need to guess how much of the
+            # discount applies to tax-exclusive prices.  We do this by
+            # assuming a linear tax and scaling down the original discount.
+            return max(0, self.line_price_excl_tax - self._discount_incl_tax)
+        return self.line_price_excl_tax
+
+
+    @property
+    def line_tax(self):
+        if self.is_tax_known:
+            amount = self.price_excl_tax - self._discount_incl_tax
+            discount_tax = D((settings.LHUB_TAX_PERCENTAGE/100)) * amount
+            return round(discount_tax, 2)
+            #return round(self.line_price_incl_tax_incl_discounts - self.line_price_excl_tax_incl_discounts, 2)
+
+    def discount(self, discount_value, affected_quantity, incl_tax=True,
+                 offer=None):
+        """
+        Apply a discount to this line
+        """
+       
+        if incl_tax:
+            if self._discount_excl_tax > 0:
+                raise RuntimeError(
+                    "Attempting to discount the tax-inclusive price of a line "
+                    "when tax-exclusive discounts are already applied")
+            #self._discount_incl_tax += discount_value
+        else:
+            if self._discount_incl_tax > 0:
+                raise RuntimeError(
+                    "Attempting to discount the tax-exclusive price of a line "
+                    "when tax-inclusive discounts are already applied")
+            #self._discount_excl_tax += discount_value
+        benefit = Benefit.objects.filter(id=offer.benefit_id).first()
+        if benefit.type == 'Percentage':
+            self._discount_incl_tax+= round((self.price_excl_tax * (benefit.value/100)),2)
+            #else:
+                #self._discount_incl_tax+=  (self.price_excl_tax * (benefit.value/100))
+            #self._discount_incl_tax = round(self._discount_incl_tax, 2)
+        elif benefit.type == 'Absolute':
+            self._discount_incl_tax+= benefit.value
+        self.consume(affected_quantity, offer=offer)
+
 
 
 @python_2_unicode_compatible
@@ -32,9 +115,42 @@ class Basket(AbstractBasket):
     status = models.CharField(
         _("Status"), max_length=128, default=OPEN, choices=STATUS_CHOICES)
 
+
+    def _get_total_discount(self, property):
+        """
+        For executing a named method on each line of the basket
+        and returning the total.
+        """
+        total = D('0.00')
+        for line in self.all_lines():
+            try:
+                total += getattr(line, property)
+            except ObjectDoesNotExist:
+                # Handle situation where the product may have been deleted
+                pass
+            except TypeError:
+                # Handle Unavailable products with no known price
+                info = self.get_stock_info(line.product, line.attributes.all())
+                if info.availability.is_available_to_buy:
+                    raise
+                pass
+        return total
+
+
+    @property
+    def total_discount(self):
+        return self._get_total_discount('discount_value')
+    @property
+    def total_incl_tax(self):
+        return (self._get_total('line_price_incl_tax_incl_discounts'))
+        #return (self._get_total('line_price_excl_tax_incl_discounts') + self.total_tax)
+
+
+
     @property
     def order_number(self):
         return OrderNumberGenerator().order_number(self)
+
 
     @classmethod
     def create_basket(cls, site, user):
@@ -42,6 +158,7 @@ class Basket(AbstractBasket):
         basket = cls.objects.create(site=site, owner=user)
         basket.strategy = Selector().strategy(user=user)
         return basket
+
 
     @classmethod
     def get_basket(cls, user, site):
@@ -65,6 +182,7 @@ class Basket(AbstractBasket):
 
         return basket
 
+
     def flush(self):
         """Remove all products in basket and fire Segment 'Product Removed' Analytic event for each"""
         cached_response = DEFAULT_REQUEST_CACHE.get_cached_response(TEMPORARY_BASKET_CACHE_KEY)
@@ -80,6 +198,7 @@ class Basket(AbstractBasket):
 
         # Call flush after we fetch all_lines() which is cleared during flush()
         super(Basket, self).flush()  # pylint: disable=bad-super-call
+
 
     def add_product(self, product, quantity=1, options=None):
         """
@@ -101,10 +220,12 @@ class Basket(AbstractBasket):
             track_segment_event(self.site, self.owner, 'Product Added', properties)
         return line, created
 
+
     def clear_vouchers(self):
         """Remove all vouchers applied to the basket."""
         for v in self.vouchers.all():
             self.vouchers.remove(v)
+
 
     def __str__(self):
         return _("{id} - {status} basket (owner: {owner}, lines: {num_lines})").format(
@@ -113,11 +234,13 @@ class Basket(AbstractBasket):
             owner=self.owner,
             num_lines=self.num_lines)
 
+
     def is_product_exists(self, product):
         product_line = self.lines.filter(product_id=product.id)
         if product_line:
             return True
         return False
+
 
 
 class BasketAttributeType(models.Model):
@@ -128,6 +251,7 @@ class BasketAttributeType(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class BasketAttribute(models.Model):

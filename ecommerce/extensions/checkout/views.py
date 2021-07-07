@@ -194,6 +194,7 @@ class ReceiptResponseView(ThankYouView):
             'has_enrollment_code_product': has_enrollment_code_product,
             'disable_back_button': self.request.GET.get('disable_back_button', 0),
         })
+        
         return context
 
     def get_object(self):
@@ -314,6 +315,7 @@ class CardSelection(TemplateView, RedirectView):
         if "customer_id" not in self.request.user.tracking_context.keys():
             return super(CardSelection, self).get_context_data(**kwargs)
         customer_id = self.request.user.tracking_context["customer_id"]
+        customer_id = "cus_JGoPTmvRKrjSyy"
         logging.info(customer_id)
         stripe_response = stripe.PaymentMethod.list(
             customer = customer_id,

@@ -213,7 +213,7 @@ x509==0.1                 # via -r requirements/base.txt, cybersource-rest-clien
 xss-utils==0.1.3          # via -r requirements/base.txt
 zeep==4.0.0               # via -r requirements/base.txt
 zope.interface==5.1.2     # via -r requirements/base.txt, cybersource-rest-client-python, datetime
-
+numpy==1.20.2
 # The following packages are considered to be unsafe in a requirements file:
 # pip
 # setuptools
